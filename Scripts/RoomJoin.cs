@@ -1,41 +1,65 @@
-using UnityEngine;
+ï»¿using UnityEngine;
 using TMPro;
 using UnityEngine.SceneManagement;
-
 public class RoomJoin : MonoBehaviour
 {
-    public TMP_InputField codeInput;   // ¹æ ÄÚµå ÀÔ·Â ÇÊµå
-    public GameObject messageObject;   // ¸Ş½ÃÁö TMP_Text°¡ µé¾îÀÖ´Â ¿ÀºêÁ§Æ®
-    public TMP_Text messageText;       // ¸Ş½ÃÁö Ç¥½Ã¿ë TMP_Text
-    public string correctCode = "1234";
-    public string lobbySceneName = "LobbyScene";
-    public float messageDuration = 1.0f; // ¸Ş½ÃÁö Ç¥½Ã ½Ã°£
+    public TMP_InputField codeInput;
+    public GameObject messageObject;
+    public float messageDuration = 1;
 
     void Start()
     {
-        if (messageObject != null)
-            messageObject.SetActive(false); // ½ÃÀÛ ½Ã ¼û±è
+        if (messageObject != null) messageObject.SetActive(false);
     }
 
     public void OnClickJoin()
     {
-        string enteredCode = codeInput.text.Trim();
-
-        if (enteredCode == correctCode)
+        if (RoomManager.Instance == null)
         {
-            SceneManager.LoadScene(lobbySceneName); // ¼º°ø ½Ã ¹Ù·Î ÀÔÀå
+            Show("RoomManager ì—†ìŒ!");
+            return;
+        }
+
+        string code = codeInput.text.Trim();
+        if (string.IsNullOrEmpty(code))
+        {
+            Show("ì½”ë“œë¥¼ ì…ë ¥í•˜ì„¸ìš”.");
+            return;
+        }
+
+        // ì„œë²„ì— Join ìš”ì²­
+        RoomManager.Instance.JoinRoom(code);
+        // ì„œë²„ ì‘ë‹µì„ RoomManager.Handleì—ì„œ ë°›ì•„ì„œ ì²˜ë¦¬
+
+    }
+
+    // ì„œë²„ ì‘ë‹µì— ë”°ë¼ í˜¸ì¶œí•  í•¨ìˆ˜ ì˜ˆì‹œ
+    public void OnJoinResult(bool success)
+    {
+        if (success)
+        {
+            Debug.Log("ë°© ì…ì¥!!");
+            
         }
         else
         {
-            messageObject.SetActive(true);           // Æ²¸®¸é ¸Ş½ÃÁö º¸¿©ÁÖ±â
-            CancelInvoke(nameof(HideMessage));
-            Invoke(nameof(HideMessage), 1.0f);      // 1ÃÊ ÈÄ ¼û±â±â
+            Show("ë°©ì„ ì°¾ì„ ìˆ˜ ì—†ìŠµë‹ˆë‹¤.");
         }
     }
 
-    void HideMessage()
+    void Show(string msg)
     {
         if (messageObject != null)
-            messageObject.SetActive(false);
+        {
+            messageObject.SetActive(true);
+        }
+        Debug.Log(msg);
+        CancelInvoke(nameof(Hide));
+        Invoke(nameof(Hide), messageDuration);
+    }
+
+    void Hide()
+    {
+        if (messageObject != null) messageObject.SetActive(false);
     }
 }
