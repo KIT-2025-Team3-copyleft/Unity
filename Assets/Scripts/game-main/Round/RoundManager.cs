@@ -68,7 +68,7 @@ public class RoundManager : MonoBehaviour
         UIManager.Instance.AddHistoryEntry(
             msg.finalSentence,
             currentRound,
-            msg.scoreChange
-            ); // 이 부분은 상승, 하락에 따라 값으로 1,0?
+            msg.scoreChange // 이 값은 상승, 하락에 따라 1,0?
+            ); 
     }
 }
