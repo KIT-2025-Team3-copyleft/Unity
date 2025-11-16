@@ -171,9 +171,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::RoomJoin
   codeInput: {fileID: 1709492594}
   messageObject: {fileID: 154553679}
-  messageText: {fileID: 1974551961}
-  correctCode: 1234
-  lobbySceneName: LobbyScene
   messageDuration: 1
 --- !u!4 &85518436
 Transform:
@@ -975,6 +972,51 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 770038000}
   m_CullTransparentMesh: 1
+--- !u!1 &817991924
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 817991926}
+  - component: {fileID: 817991925}
+  m_Layer: 0
+  m_Name: RoomManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &817991925
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 817991924}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 062c205144db06447b150884e3ddb35d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::RoomManager
+  roomList: []
+--- !u!4 &817991926
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 817991924}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0.10253, y: -0.13591, z: 0.00023}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &897503766
 GameObject:
   m_ObjectHideFlags: 0
@@ -1036,7 +1078,7 @@ GameObject:
   - component: {fileID: 910787872}
   - component: {fileID: 910787871}
   m_Layer: 0
-  m_Name: RoomManager
+  m_Name: RoomCreate
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1054,7 +1096,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 17008eb19c8f9fe4b8d651412bc70e96, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::RoomCreator
-  sceneChanger: {fileID: 628267172}
   privateModeToggle: {fileID: 1516609350}
 --- !u!4 &910787872
 Transform:
@@ -1276,7 +1317,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2640005792070978208, guid: 40d850ac1ab22604f9b39315b17a810e, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
-      value: CreateRoomFromToggle
+      value: OnClickCreateRoom
       objectReference: {fileID: 0}
     - target: {fileID: 2640005792070978208, guid: 40d850ac1ab22604f9b39315b17a810e, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
@@ -1511,6 +1552,50 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1093817425}
   m_CullTransparentMesh: 1
+--- !u!1 &1103989741
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1103989743}
+  - component: {fileID: 1103989742}
+  m_Layer: 0
+  m_Name: MainThreadDispatcher
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1103989742
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1103989741}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 194ef8c7dd37e6e4b9be89404faea25d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::UnityMainThreadDispatcher
+--- !u!4 &1103989743
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1103989741}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0.10253, y: -0.13591, z: 0.00023}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1194909167 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 149570632070224015, guid: 246c2b37d1497af48bc9b4b018cdc51a, type: 3}
@@ -2032,6 +2117,51 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1557271660}
   m_CullTransparentMesh: 1
+--- !u!1 &1604994212
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1604994214}
+  - component: {fileID: 1604994213}
+  m_Layer: 0
+  m_Name: WebSocketManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1604994213
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1604994212}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5f4b77cfe00d6a0468d2efc9cd84f5ed, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::WebSocketManager
+  serverUrl: ws://localhost:7777/
+--- !u!4 &1604994214
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1604994212}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0.10253, y: -0.13591, z: 0.00023}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &1709492594 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 987926141175887839, guid: 0c5de1ff8a7fc4c49bfb68f8b2b4076a, type: 3}
@@ -2767,7 +2897,7 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 2090038745}
         m_TargetAssemblyTypeName: FastStartButton, Assembly-CSharp
-        m_MethodName: ShowNoRoomPopup
+        m_MethodName: OnClickFastStart
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -3108,11 +3238,11 @@ PrefabInstance:
     - target: {fileID: 2503058644416422534, guid: 0c5de1ff8a7fc4c49bfb68f8b2b4076a, type: 3}
       propertyPath: m_fontAsset
       value: 
-      objectReference: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+      objectReference: {fileID: 11400000, guid: 69b4c6382e3351e4ca7b20ee5e7a55c3, type: 2}
     - target: {fileID: 2503058644416422534, guid: 0c5de1ff8a7fc4c49bfb68f8b2b4076a, type: 3}
       propertyPath: m_sharedMaterial
       value: 
-      objectReference: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+      objectReference: {fileID: 2806189551461477825, guid: 69b4c6382e3351e4ca7b20ee5e7a55c3, type: 2}
     - target: {fileID: 2503058644416422534, guid: 0c5de1ff8a7fc4c49bfb68f8b2b4076a, type: 3}
       propertyPath: m_hasFontAssetChanged
       value: 0
@@ -3516,4 +3646,7 @@ SceneRoots:
   - {fileID: 129020049}
   - {fileID: 85518436}
   - {fileID: 1516609351}
+  - {fileID: 1604994214}
+  - {fileID: 817991926}
   - {fileID: 910787872}
+  - {fileID: 1103989743}

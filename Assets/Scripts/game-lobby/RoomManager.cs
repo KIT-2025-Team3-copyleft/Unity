@@ -1,58 +1,139 @@
-using UnityEngine;
+Ôªøusing System;
+using System.Collections;
 using System.Collections.Generic;
-
-public class Room
-{
-    public string RoomName;
-    public List<string> Players = new List<string>();
-}
+using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class RoomManager : MonoBehaviour
 {
     public static RoomManager Instance;
 
-    public List<Room> Rooms = new List<Room>();
+    private string currentRoomId;
+    private bool currentRoomPrivate;
+    public List<string> roomList = new List<string>();
 
-    private void Awake()
+    // FastStart Í¥ÄÎ†® Ïù¥Î≤§Ìä∏
+    public event Action OnFastStartNoRoom;
+    public event Action<string> OnFastStartFoundRoom;
+
+    void Awake()
     {
-        if (Instance == null)
-        {
-            Instance = this;
-            DontDestroyOnLoad(gameObject); // æ¿¿Ã πŸ≤ÓæÓµµ ¿Ø¡ˆ
-        }
-        else
+        if (Instance != null && Instance != this)
         {
             Destroy(gameObject);
+            return;
+        }
+
+        Instance = this;
+        DontDestroyOnLoad(gameObject);
+
+        StartCoroutine(RegisterWebSocketEvent());
+    }
+
+    IEnumerator RegisterWebSocketEvent()
+    {
+        while (WebSocketManager.Instance == null)
+            yield return null;
+
+        WebSocketManager.Instance.OnServerMessage += Handle;
+        Debug.Log("[RoomManager] WebSocket Ïù¥Î≤§Ìä∏ Íµ¨ÎèÖ ÏôÑÎ£å");
+    }
+
+    void OnDisable()
+    {
+        if (WebSocketManager.Instance != null)
+            WebSocketManager.Instance.OnServerMessage -= Handle;
+    }
+
+    void Handle(string json)
+    {
+        Debug.Log("[RoomManager] Handle Ìò∏Ï∂ú: " + json);
+
+        BaseMsg baseMsg;
+        try
+        {
+            baseMsg = JsonUtility.FromJson<BaseMsg>(json);
+        }
+        catch
+        {
+            return; // Json ÌÉÄÏûÖÏù¥ ÏïÑÎãàÎ©¥ Î¨¥Ïãú
+        }
+
+        if (baseMsg == null || string.IsNullOrEmpty(baseMsg.action))
+            return;
+
+        switch (baseMsg.action)
+        {
+            case "roomCreated":
+                RoomCreated created = JsonUtility.FromJson<RoomCreated>(json);
+                currentRoomId = created.room_id;
+                currentRoomPrivate = created.isPrivate;
+
+                PlayerPrefs.SetString("RoomID", currentRoomId);
+                PlayerPrefs.SetInt("IsPrivate", currentRoomPrivate ? 1 : 0);
+                PlayerPrefs.Save();
+
+                SceneManager.LoadScene("LobbyScene");
+                break;
+
+            case "roomList":
+                RoomList list = JsonUtility.FromJson<RoomList>(json);
+                roomList = new List<string>(list.rooms);
+                Debug.Log("[RoomManager] roomList ÏóÖÎç∞Ïù¥Ìä∏ ÏôÑÎ£å");
+                break;
+
+            case "joinSuccess":
+                NotifyRoomJoinResult(true);
+                SceneManager.LoadScene("LobbyScene");
+                break;
+
+            case "joinFail":
+                NotifyRoomJoinResult(false);
+                break;
+
+            case "noRoom":
+                Debug.Log("[RoomManager] FastStart - noRoom");
+                OnFastStartNoRoom?.Invoke();
+                break;
+
+            case "fastStartRoom":
+                FastStartRoom fs = JsonUtility.FromJson<FastStartRoom>(json);
+                Debug.Log("[RoomManager] FastStart - fastStartRoom: " + fs.room_id);
+
+                OnFastStartFoundRoom?.Invoke(fs.room_id);
+                JoinRoom(fs.room_id);
+                break;
         }
     }
 
-    // πÊ¿Ã ¿÷¥¬¡ˆ »Æ¿Œ
-    public bool HasRoom()
+    public void RequestFastStart()
     {
-        return Rooms.Count > 0;
+        string json = "{ \"action\": \"fastStart\" }";
+        WebSocketManager.Instance.Send(json);
     }
 
-    // πÊ ¬¸∞°
-    public void JoinRoom(int roomIndex)
+    public void JoinRoom(string roomId)
     {
-        if (roomIndex < 0 || roomIndex >= Rooms.Count) return;
+        JoinRoomReq req = new JoinRoomReq
+        {
+            action = "joinRoom",
+            room_id = roomId
+        };
 
-        Room room = Rooms[roomIndex];
-        room.Players.Add(GameManager.Instance.PlayerName); // «√∑π¿ÃæÓ ¥–≥◊¿” √ﬂ∞°
-        GameManager.Instance.CurrentRoomId = roomIndex;
+        WebSocketManager.Instance.Send(JsonUtility.ToJson(req));
     }
 
-    // «ˆ¿Á πÊ ∞°¡Æø¿±‚
-    public Room GetCurrentRoom()
+    private void NotifyRoomJoinResult(bool success)
     {
-        return Rooms[GameManager.Instance.CurrentRoomId];
+        RoomJoin ui = FindFirstObjectByType<RoomJoin>();
+        if (ui != null)
+            ui.OnJoinResult(success);
     }
 
-    // ≈◊Ω∫∆ÆøÎ: ¿”Ω√ πÊ ∏∏µÈ±‚
-    public void CreateTestRoom()
-    {
-        Room newRoom = new Room();
-        newRoom.RoomName = "≈◊Ω∫∆Æ πÊ";
-        Rooms.Add(newRoom);
-    }
+    // JSON ÌÅ¥ÎûòÏä§Îì§
+    [Serializable] public class BaseMsg { public string action; }
+    [Serializable] public class RoomCreated : BaseMsg { public string room_id; public bool isPrivate; }
+    [Serializable] public class RoomList : BaseMsg { public string[] rooms; }
+    [Serializable] public class JoinRoomReq { public string action; public string room_id; }
+    [Serializable] public class FastStartRoom : BaseMsg { public string room_id; }
 }
