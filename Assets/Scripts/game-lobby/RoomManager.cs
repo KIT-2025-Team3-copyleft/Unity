@@ -15,6 +15,7 @@ public class RoomManager : MonoBehaviour
     // FastStart 관련 이벤트
     public event Action OnFastStartNoRoom;
     public event Action<string> OnFastStartFoundRoom;
+    public event Action<List<string>> OnRoomListUpdated;
 
     void Awake()
     {
@@ -80,6 +81,8 @@ public class RoomManager : MonoBehaviour
                 RoomList list = JsonUtility.FromJson<RoomList>(json);
                 roomList = new List<string>(list.rooms);
                 Debug.Log("[RoomManager] roomList 업데이트 완료");
+
+                OnRoomListUpdated?.Invoke(roomList); // UI 알림
                 break;
 
             case "joinSuccess":

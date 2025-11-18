@@ -17,7 +17,7 @@ public class WebSocketManager : MonoBehaviour
 
     [SerializeField]
     private string serverUrl = "ws://localhost:7777/";
-
+    public event Action OnConnected;
     void Awake()
     {
         if (Instance != null && Instance != this)
@@ -51,6 +51,8 @@ public class WebSocketManager : MonoBehaviour
         {
             Debug.Log("[WS] 연결 성공");
             isConnecting = false;
+
+            OnConnected?.Invoke();
 
             // 초기 메시지 예: Unity 식별
             ws.Send("{\"action\":\"unity\"}");
