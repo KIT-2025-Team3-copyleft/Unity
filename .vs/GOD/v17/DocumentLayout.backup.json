@@ -1,0 +1,339 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "D:\\Unity_project\\My project\\GOD\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{EB0EC65E-B183-FF01-1C90-CDDEC58CA0F0}|Assembly-CSharp.csproj|d:\\unity_project\\my project\\god\\assets\\scripts\\roommanager.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{EB0EC65E-B183-FF01-1C90-CDDEC58CA0F0}|Assembly-CSharp.csproj|solutionrelative:assets\\scripts\\roommanager.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{EB0EC65E-B183-FF01-1C90-CDDEC58CA0F0}|Assembly-CSharp.csproj|D:\\Unity_project\\My project\\GOD\\assets\\scripts\\websocketmanager.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{EB0EC65E-B183-FF01-1C90-CDDEC58CA0F0}|Assembly-CSharp.csproj|solutionrelative:assets\\scripts\\websocketmanager.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{EB0EC65E-B183-FF01-1C90-CDDEC58CA0F0}|Assembly-CSharp.csproj|D:\\Unity_project\\My project\\GOD\\assets\\scripts\\faststartbutton.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{EB0EC65E-B183-FF01-1C90-CDDEC58CA0F0}|Assembly-CSharp.csproj|solutionrelative:assets\\scripts\\faststartbutton.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{EB0EC65E-B183-FF01-1C90-CDDEC58CA0F0}|Assembly-CSharp.csproj|D:\\Unity_project\\My project\\GOD\\assets\\scripts\\roomjoin.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{EB0EC65E-B183-FF01-1C90-CDDEC58CA0F0}|Assembly-CSharp.csproj|solutionrelative:assets\\scripts\\roomjoin.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{EB0EC65E-B183-FF01-1C90-CDDEC58CA0F0}|Assembly-CSharp.csproj|D:\\Unity_project\\My project\\GOD\\assets\\scripts\\unitymainthreaddispatcher.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{EB0EC65E-B183-FF01-1C90-CDDEC58CA0F0}|Assembly-CSharp.csproj|solutionrelative:assets\\scripts\\unitymainthreaddispatcher.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{EB0EC65E-B183-FF01-1C90-CDDEC58CA0F0}|Assembly-CSharp.csproj|D:\\Unity_project\\My project\\GOD\\assets\\scripts\\roomcreate.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{EB0EC65E-B183-FF01-1C90-CDDEC58CA0F0}|Assembly-CSharp.csproj|solutionrelative:assets\\scripts\\roomcreate.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{EB0EC65E-B183-FF01-1C90-CDDEC58CA0F0}|Assembly-CSharp.csproj|D:\\Unity_project\\My project\\GOD\\assets\\scripts\\exitgame.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{EB0EC65E-B183-FF01-1C90-CDDEC58CA0F0}|Assembly-CSharp.csproj|solutionrelative:assets\\scripts\\exitgame.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{EB0EC65E-B183-FF01-1C90-CDDEC58CA0F0}|Assembly-CSharp.csproj|D:\\Unity_project\\My project\\GOD\\assets\\scripts\\makeroombutton.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{EB0EC65E-B183-FF01-1C90-CDDEC58CA0F0}|Assembly-CSharp.csproj|solutionrelative:assets\\scripts\\makeroombutton.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{EB0EC65E-B183-FF01-1C90-CDDEC58CA0F0}|Assembly-CSharp.csproj|D:\\Unity_project\\My project\\GOD\\assets\\scripts\\gamestart.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{EB0EC65E-B183-FF01-1C90-CDDEC58CA0F0}|Assembly-CSharp.csproj|solutionrelative:assets\\scripts\\gamestart.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{EB0EC65E-B183-FF01-1C90-CDDEC58CA0F0}|Assembly-CSharp.csproj|D:\\Unity_project\\My project\\GOD\\Assets\\Scripts\\SceneChanger.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{EB0EC65E-B183-FF01-1C90-CDDEC58CA0F0}|Assembly-CSharp.csproj|solutionrelative:Assets\\Scripts\\SceneChanger.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{EB0EC65E-B183-FF01-1C90-CDDEC58CA0F0}|Assembly-CSharp.csproj|D:\\Unity_project\\My project\\GOD\\assets\\scripts\\privatemodetoggle.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{EB0EC65E-B183-FF01-1C90-CDDEC58CA0F0}|Assembly-CSharp.csproj|solutionrelative:assets\\scripts\\privatemodetoggle.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|D:\\Unity_project\\My project\\GOD\\Assets\\Scripts\\lookingfor_button.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:Assets\\Scripts\\lookingfor_button.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|D:\\Unity_project\\My project\\GOD\\Assets\\Scripts\\NickNameStart.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:Assets\\Scripts\\NickNameStart.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{EB0EC65E-B183-FF01-1C90-CDDEC58CA0F0}|Assembly-CSharp.csproj|D:\\Unity_project\\My project\\GOD\\assets\\scripts\\nickname.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{EB0EC65E-B183-FF01-1C90-CDDEC58CA0F0}|Assembly-CSharp.csproj|solutionrelative:assets\\scripts\\nickname.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|D:\\Unity_project\\My project\\GOD\\Assets\\Scripts\\SceneChanger_Room.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:Assets\\Scripts\\SceneChanger_Room.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|D:\\Unity_project\\My project\\GOD\\Assets\\Photon\\PhotonUnityNetworking\\Code\\Views\\PhotonTransformView.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:Assets\\Photon\\PhotonUnityNetworking\\Code\\Views\\PhotonTransformView.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|D:\\Unity_project\\My project\\GOD\\Assets\\Photon\\PhotonUnityNetworking\\UtilityScripts\\Prototyping\\OnClickRpc.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:Assets\\Photon\\PhotonUnityNetworking\\UtilityScripts\\Prototyping\\OnClickRpc.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|D:\\Unity_project\\My project\\GOD\\Assets\\Scripts\\PhotonManager.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:Assets\\Scripts\\PhotonManager.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|D:\\Unity_project\\My project\\GOD\\Assets\\Photon\\PhotonChat\\Demos\\Common\\EventSystemSpawner.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:Assets\\Photon\\PhotonChat\\Demos\\Common\\EventSystemSpawner.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 5,
+          "Children": [
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{3ae79031-e1bc-11d0-8f78-00a0c9110057}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{1c4feeaa-4718-4aa9-859d-94ce25d182ba}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{b1e99781-ab81-11d0-b683-00aa00a3ee26}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{c9c0ae26-aa77-11d2-b3f0-0000f87570ee}"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "UnityMainThreadDispatcher.cs",
+              "DocumentMoniker": "D:\\Unity_project\\My project\\GOD\\Assets\\Scripts\\UnityMainThreadDispatcher.cs",
+              "RelativeDocumentMoniker": "Assets\\Scripts\\UnityMainThreadDispatcher.cs",
+              "ToolTip": "D:\\Unity_project\\My project\\GOD\\Assets\\Scripts\\UnityMainThreadDispatcher.cs",
+              "RelativeToolTip": "Assets\\Scripts\\UnityMainThreadDispatcher.cs",
+              "ViewState": "AgIAABgAAAAAAAAAAAAIwDAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-11-14T07:19:37.11Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "RoomManager.cs",
+              "DocumentMoniker": "D:\\Unity_project\\My project\\GOD\\Assets\\Scripts\\RoomManager.cs",
+              "RelativeDocumentMoniker": "Assets\\Scripts\\RoomManager.cs",
+              "ToolTip": "D:\\Unity_project\\My project\\GOD\\Assets\\Scripts\\RoomManager.cs",
+              "RelativeToolTip": "Assets\\Scripts\\RoomManager.cs",
+              "ViewState": "AgIAAGwAAAAAAAAAAAA2wH8AAAA4AAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-11-13T12:49:16.973Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "WebSocketManager.cs",
+              "DocumentMoniker": "D:\\Unity_project\\My project\\GOD\\Assets\\Scripts\\WebSocketManager.cs",
+              "RelativeDocumentMoniker": "Assets\\Scripts\\WebSocketManager.cs",
+              "ToolTip": "D:\\Unity_project\\My project\\GOD\\Assets\\Scripts\\WebSocketManager.cs",
+              "RelativeToolTip": "Assets\\Scripts\\WebSocketManager.cs",
+              "ViewState": "AgIAADIAAAAAAAAAAAAcwEYAAAARAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-11-13T07:51:16.156Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 8,
+              "Title": "GameStart.cs",
+              "DocumentMoniker": "D:\\Unity_project\\My project\\GOD\\Assets\\Scripts\\GameStart.cs",
+              "RelativeDocumentMoniker": "Assets\\Scripts\\GameStart.cs",
+              "ToolTip": "D:\\Unity_project\\My project\\GOD\\Assets\\Scripts\\GameStart.cs",
+              "RelativeToolTip": "Assets\\Scripts\\GameStart.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAFUAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-11-11T11:36:20.925Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 9,
+              "Title": "SceneChanger.cs",
+              "DocumentMoniker": "D:\\Unity_project\\My project\\GOD\\Assets\\Scripts\\SceneChanger.cs",
+              "RelativeDocumentMoniker": "Assets\\Scripts\\SceneChanger.cs",
+              "ToolTip": "D:\\Unity_project\\My project\\GOD\\Assets\\Scripts\\SceneChanger.cs",
+              "RelativeToolTip": "Assets\\Scripts\\SceneChanger.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA4AAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-09-27T13:45:22.807Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "FastStartButton.cs",
+              "DocumentMoniker": "D:\\Unity_project\\My project\\GOD\\Assets\\Scripts\\FastStartButton.cs",
+              "RelativeDocumentMoniker": "Assets\\Scripts\\FastStartButton.cs",
+              "ToolTip": "D:\\Unity_project\\My project\\GOD\\Assets\\Scripts\\FastStartButton.cs",
+              "RelativeToolTip": "Assets\\Scripts\\FastStartButton.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAB0AAAAkAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-09-28T11:15:35.149Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 7,
+              "Title": "MakeRoomButton.cs",
+              "DocumentMoniker": "D:\\Unity_project\\My project\\GOD\\Assets\\Scripts\\MakeRoomButton.cs",
+              "RelativeDocumentMoniker": "Assets\\Scripts\\MakeRoomButton.cs",
+              "ToolTip": "D:\\Unity_project\\My project\\GOD\\Assets\\Scripts\\MakeRoomButton.cs",
+              "RelativeToolTip": "Assets\\Scripts\\MakeRoomButton.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABUAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-11-11T14:22:25.824Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "RoomJoin.cs",
+              "DocumentMoniker": "D:\\Unity_project\\My project\\GOD\\Assets\\Scripts\\RoomJoin.cs",
+              "RelativeDocumentMoniker": "Assets\\Scripts\\RoomJoin.cs",
+              "ToolTip": "D:\\Unity_project\\My project\\GOD\\Assets\\Scripts\\RoomJoin.cs",
+              "RelativeToolTip": "Assets\\Scripts\\RoomJoin.cs",
+              "ViewState": "AgIAABgAAAAAAAAAAAAIwCwAAAAJAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-11-11T13:46:12.278Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 5,
+              "Title": "RoomCreate.cs",
+              "DocumentMoniker": "D:\\Unity_project\\My project\\GOD\\Assets\\Scripts\\RoomCreate.cs",
+              "RelativeDocumentMoniker": "Assets\\Scripts\\RoomCreate.cs",
+              "ToolTip": "D:\\Unity_project\\My project\\GOD\\Assets\\Scripts\\RoomCreate.cs",
+              "RelativeToolTip": "Assets\\Scripts\\RoomCreate.cs",
+              "ViewState": "AgIAAAUAAAAAAAAAAADwvxYAAAAtAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-11-13T03:51:09.385Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 6,
+              "Title": "ExitGame.cs",
+              "DocumentMoniker": "D:\\Unity_project\\My project\\GOD\\Assets\\Scripts\\ExitGame.cs",
+              "RelativeDocumentMoniker": "Assets\\Scripts\\ExitGame.cs",
+              "ToolTip": "D:\\Unity_project\\My project\\GOD\\Assets\\Scripts\\ExitGame.cs",
+              "RelativeToolTip": "Assets\\Scripts\\ExitGame.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-11-11T11:43:06.226Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 11,
+              "Title": "lookingfor_button.cs",
+              "DocumentMoniker": "D:\\Unity_project\\My project\\GOD\\Assets\\Scripts\\lookingfor_button.cs",
+              "RelativeDocumentMoniker": "Assets\\Scripts\\lookingfor_button.cs",
+              "ToolTip": "D:\\Unity_project\\My project\\GOD\\Assets\\Scripts\\lookingfor_button.cs",
+              "RelativeToolTip": "Assets\\Scripts\\lookingfor_button.cs",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-11-11T13:22:39.903Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 10,
+              "Title": "PrivateModeToggle.cs",
+              "DocumentMoniker": "D:\\Unity_project\\My project\\GOD\\Assets\\Scripts\\PrivateModeToggle.cs",
+              "RelativeDocumentMoniker": "Assets\\Scripts\\PrivateModeToggle.cs",
+              "ToolTip": "D:\\Unity_project\\My project\\GOD\\Assets\\Scripts\\PrivateModeToggle.cs",
+              "RelativeToolTip": "Assets\\Scripts\\PrivateModeToggle.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAB8AAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-11-11T15:04:22.881Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 13,
+              "Title": "NickName.cs",
+              "DocumentMoniker": "D:\\Unity_project\\My project\\GOD\\Assets\\Scripts\\NickName.cs",
+              "RelativeDocumentMoniker": "Assets\\Scripts\\NickName.cs",
+              "ToolTip": "D:\\Unity_project\\My project\\GOD\\Assets\\Scripts\\NickName.cs",
+              "RelativeToolTip": "Assets\\Scripts\\NickName.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA8AAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-09-27T14:48:15.093Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 12,
+              "Title": "NickNameStart.cs",
+              "DocumentMoniker": "D:\\Unity_project\\My project\\GOD\\Assets\\Scripts\\NickNameStart.cs",
+              "RelativeDocumentMoniker": "Assets\\Scripts\\NickNameStart.cs",
+              "ToolTip": "D:\\Unity_project\\My project\\GOD\\Assets\\Scripts\\NickNameStart.cs",
+              "RelativeToolTip": "Assets\\Scripts\\NickNameStart.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABUAAAARAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-09-27T14:35:18.389Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 15,
+              "Title": "PhotonTransformView.cs",
+              "DocumentMoniker": "D:\\Unity_project\\My project\\GOD\\Assets\\Photon\\PhotonUnityNetworking\\Code\\Views\\PhotonTransformView.cs",
+              "RelativeDocumentMoniker": "Assets\\Photon\\PhotonUnityNetworking\\Code\\Views\\PhotonTransformView.cs",
+              "ToolTip": "D:\\Unity_project\\My project\\GOD\\Assets\\Photon\\PhotonUnityNetworking\\Code\\Views\\PhotonTransformView.cs",
+              "RelativeToolTip": "Assets\\Photon\\PhotonUnityNetworking\\Code\\Views\\PhotonTransformView.cs",
+              "ViewState": "AgIAAC4AAAAAAAAAAADgvzwAAAAoAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-09-27T14:30:17.114Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 14,
+              "Title": "SceneChanger_Room.cs",
+              "DocumentMoniker": "D:\\Unity_project\\My project\\GOD\\Assets\\Scripts\\SceneChanger_Room.cs",
+              "RelativeDocumentMoniker": "Assets\\Scripts\\SceneChanger_Room.cs",
+              "ToolTip": "D:\\Unity_project\\My project\\GOD\\Assets\\Scripts\\SceneChanger_Room.cs",
+              "RelativeToolTip": "Assets\\Scripts\\SceneChanger_Room.cs",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-09-27T14:00:27.305Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 16,
+              "Title": "OnClickRpc.cs",
+              "DocumentMoniker": "D:\\Unity_project\\My project\\GOD\\Assets\\Photon\\PhotonUnityNetworking\\UtilityScripts\\Prototyping\\OnClickRpc.cs",
+              "RelativeDocumentMoniker": "Assets\\Photon\\PhotonUnityNetworking\\UtilityScripts\\Prototyping\\OnClickRpc.cs",
+              "ToolTip": "D:\\Unity_project\\My project\\GOD\\Assets\\Photon\\PhotonUnityNetworking\\UtilityScripts\\Prototyping\\OnClickRpc.cs",
+              "RelativeToolTip": "Assets\\Photon\\PhotonUnityNetworking\\UtilityScripts\\Prototyping\\OnClickRpc.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-09-27T13:51:17.727Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 17,
+              "Title": "PhotonManager.cs",
+              "DocumentMoniker": "D:\\Unity_project\\My project\\GOD\\Assets\\Scripts\\PhotonManager.cs",
+              "RelativeDocumentMoniker": "Assets\\Scripts\\PhotonManager.cs",
+              "ToolTip": "D:\\Unity_project\\My project\\GOD\\Assets\\Scripts\\PhotonManager.cs",
+              "RelativeToolTip": "Assets\\Scripts\\PhotonManager.cs",
+              "ViewState": "AgIAAF8AAAAAAAAAAAAkwBUAAAArAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-09-27T12:56:22.628Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 18,
+              "Title": "EventSystemSpawner.cs",
+              "DocumentMoniker": "D:\\Unity_project\\My project\\GOD\\Assets\\Photon\\PhotonChat\\Demos\\Common\\EventSystemSpawner.cs",
+              "RelativeDocumentMoniker": "Assets\\Photon\\PhotonChat\\Demos\\Common\\EventSystemSpawner.cs",
+              "ToolTip": "D:\\Unity_project\\My project\\GOD\\Assets\\Photon\\PhotonChat\\Demos\\Common\\EventSystemSpawner.cs",
+              "RelativeToolTip": "Assets\\Photon\\PhotonChat\\Demos\\Common\\EventSystemSpawner.cs",
+              "ViewState": "AgIAABUAAAAAAAAAAAA9wCEAAAASAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-09-27T12:40:47.105Z"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
