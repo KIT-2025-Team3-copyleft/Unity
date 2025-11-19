@@ -10,6 +10,13 @@ public class RoomManager : MonoBehaviour
 
     private string currentRoomId;
     private bool currentRoomPrivate;
+
+    // 현재 방 ID 가져가기
+    public string CurrentRoomId => currentRoomId;
+
+    // 현재 방이 private인지 가져가기
+    public bool IsCurrentRoomPrivate => currentRoomPrivate;
+
     public List<string> roomList = new List<string>();
 
     // FastStart 관련 이벤트
