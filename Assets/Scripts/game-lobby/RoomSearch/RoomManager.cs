@@ -7,7 +7,6 @@ using UnityEngine.SceneManagement;
 public class RoomManager : MonoBehaviour
 {
     public static RoomManager Instance;
-
     private string currentRoomId;
     private bool currentRoomPrivate;
 
@@ -23,6 +22,9 @@ public class RoomManager : MonoBehaviour
     public event Action OnFastStartNoRoom;
     public event Action<string> OnFastStartFoundRoom;
     public event Action<List<string>> OnRoomListUpdated;
+
+    private bool isHost = false;
+    public bool IsHost => isHost;
 
     void Awake()
     {
@@ -87,6 +89,8 @@ public class RoomManager : MonoBehaviour
                 currentRoomId = created.room_id;
                 currentRoomPrivate = created.isPrivate;
 
+                isHost = true;
+
                 PlayerPrefs.SetString("RoomID", currentRoomId);
                 PlayerPrefs.SetInt("IsPrivate", currentRoomPrivate ? 1 : 0);
                 PlayerPrefs.Save();
@@ -107,6 +111,9 @@ public class RoomManager : MonoBehaviour
 
                 // 여기가 추가된 부분
                 currentRoomId = join.room_id;
+
+                isHost = false;
+
                 PlayerPrefs.SetString("RoomID", currentRoomId);
                 PlayerPrefs.Save();
 
@@ -127,6 +134,8 @@ public class RoomManager : MonoBehaviour
             // 핵심 수정 — fastStartRoom 도착 시 RoomID 저장하고 JoinRoom
             case "fastStartRoom":
                 FastStartRoom fs = JsonUtility.FromJson<FastStartRoom>(json);
+
+                isHost = false;
 
                 currentRoomId = fs.room_id;
                 PlayerPrefs.SetString("RoomID", currentRoomId);

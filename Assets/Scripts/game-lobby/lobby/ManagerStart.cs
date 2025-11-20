@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.UI;   // 버튼 사용하려면 필요!
 using TMPro;
 using System.Collections;
 using UnityEngine.SceneManagement;
@@ -8,16 +9,21 @@ public class GameStartManager : MonoBehaviour
     [Header("UI")]
     public TMP_Text countdownText;
     public TMP_Text warningText;
-    public GameObject startButton;
+    public Button startButton;   // GameObject → Button으로 변경
 
     void Start()
     {
-        // 처음에는 카운트다운 텍스트 숨기기
         countdownText.gameObject.SetActive(false);
 
-        // 경고 메시지도 기본 비활성화
         if (warningText != null)
             warningText.gameObject.SetActive(false);
+
+        startButton.gameObject.SetActive(false);
+        // 방장이면 버튼 활성화
+        if(startButton.interactable = RoomManager.Instance.IsHost)
+        {
+            startButton.gameObject.SetActive(true);
+        }
     }
 
     public void OnStartButtonPressed()
@@ -28,7 +34,7 @@ public class GameStartManager : MonoBehaviour
             return;
         }
 
-        startButton.SetActive(false);
+        startButton.gameObject.SetActive(false);
         StartCoroutine(StartCountdown());
     }
 

@@ -2260,7 +2260,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::GameStartManager
   countdownText: {fileID: 1746175478}
   warningText: {fileID: 1824844384}
-  startButton: {fileID: 1751637287}
+  startButton: {fileID: 1751637289}
 --- !u!4 &1843715804
 Transform:
   m_ObjectHideFlags: 0
