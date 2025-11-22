@@ -1,17 +1,18 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 using System.Collections.Generic;
+using TMPro;
 
 public class HistoryItem : MonoBehaviour
 {
     // 완성 문장 (4개 단어)
-    public List<Text> wordTexts;
+    public List<TextMeshProUGUI> wordTexts;
 
     // 신의 반응 (이모지)
-    public Text reactionText;
+    public TextMeshProUGUI reactionText;
 
     // 신의 평가
-    public Text evaluationText;
+    public TextMeshProUGUI evaluationText;
 
     public void SetData(RoundResult result, Dictionary<string, string> slotColors, int roundNumber, List<string> finalWords)
     {
