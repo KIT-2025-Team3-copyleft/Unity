@@ -18,7 +18,6 @@ public class UIManager : MonoBehaviour
     public Text persistentOracleText;
 
     [Header("Traitor Info")]
-    public GameObject traitorPanel;
     public Text traitorText;
 
     [Header("History Panel")]
