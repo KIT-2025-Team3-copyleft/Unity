@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using TMPro;
 
 public class UIManager : MonoBehaviour
 {
@@ -17,7 +18,6 @@ public class UIManager : MonoBehaviour
     public Text persistentOracleText;
 
     [Header("Traitor Info")]
-    public GameObject traitorPanel;
     public Text traitorText;
 
     [Header("History Panel")]
