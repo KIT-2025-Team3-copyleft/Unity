@@ -63,8 +63,8 @@ public class HistoryItem : MonoBehaviour
                 return new Color(1f, 0.41f, 0.71f); 
             default:
                 // 매칭되는 색이 없을 경우 디버그 메시지를 출력하고 기본 색상을 반환
-                Debug.LogWarning($"Unknown color name: {colorName}. Defaulting to white.");
-                return Color.white;
+                Debug.LogWarning($"Unknown color name: {colorName}. Defaulting to green.");
+                return Color.green;
         }
     }
 }
