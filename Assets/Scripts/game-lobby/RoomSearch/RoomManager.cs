@@ -7,15 +7,24 @@ using UnityEngine.SceneManagement;
 public class RoomManager : MonoBehaviour
 {
     public static RoomManager Instance;
-
     private string currentRoomId;
     private bool currentRoomPrivate;
+
+    // 현재 방 ID 가져가기
+    public string CurrentRoomId => currentRoomId;
+
+    // 현재 방이 private인지 가져가기
+    public bool IsCurrentRoomPrivate => currentRoomPrivate;
+
     public List<string> roomList = new List<string>();
 
     // FastStart 관련 이벤트
     public event Action OnFastStartNoRoom;
     public event Action<string> OnFastStartFoundRoom;
     public event Action<List<string>> OnRoomListUpdated;
+
+    private bool isHost = false;
+    public bool IsHost => isHost;
 
     void Awake()
     {
@@ -40,10 +49,19 @@ public class RoomManager : MonoBehaviour
         Debug.Log("[RoomManager] WebSocket 이벤트 구독 완료");
     }
 
+    void OnEnable()
+    {
+        if (WebSocketManager.Instance != null)
+        {
+            WebSocketManager.Instance.OnServerMessage += Handle;
+        }
+    }
     void OnDisable()
     {
         if (WebSocketManager.Instance != null)
+        {
             WebSocketManager.Instance.OnServerMessage -= Handle;
+        }
     }
 
     void Handle(string json)
@@ -65,10 +83,13 @@ public class RoomManager : MonoBehaviour
 
         switch (baseMsg.action)
         {
+            // 방 생성 (정상 작동 중)
             case "roomCreated":
                 RoomCreated created = JsonUtility.FromJson<RoomCreated>(json);
                 currentRoomId = created.room_id;
                 currentRoomPrivate = created.isPrivate;
+
+                isHost = true;
 
                 PlayerPrefs.SetString("RoomID", currentRoomId);
                 PlayerPrefs.SetInt("IsPrivate", currentRoomPrivate ? 1 : 0);
@@ -77,16 +98,27 @@ public class RoomManager : MonoBehaviour
                 SceneManager.LoadScene("LobbyScene");
                 break;
 
+            // 방 목록
             case "roomList":
                 RoomList list = JsonUtility.FromJson<RoomList>(json);
                 roomList = new List<string>(list.rooms);
-                Debug.Log("[RoomManager] roomList 업데이트 완료");
-
-                OnRoomListUpdated?.Invoke(roomList); // UI 알림
+                OnRoomListUpdated?.Invoke(roomList);
                 break;
 
+            // 핵심 수정 — joinSuccess 시 RoomID 저장해야 함!
             case "joinSuccess":
+                RoomJoinSuccess join = JsonUtility.FromJson<RoomJoinSuccess>(json);
+
+                // 여기가 추가된 부분
+                currentRoomId = join.room_id;
+
+                isHost = false;
+
+                PlayerPrefs.SetString("RoomID", currentRoomId);
+                PlayerPrefs.Save();
+
                 NotifyRoomJoinResult(true);
+
                 SceneManager.LoadScene("LobbyScene");
                 break;
 
@@ -94,19 +126,35 @@ public class RoomManager : MonoBehaviour
                 NotifyRoomJoinResult(false);
                 break;
 
+            // 빠른 시작에서 방 없음
             case "noRoom":
-                Debug.Log("[RoomManager] FastStart - noRoom");
                 OnFastStartNoRoom?.Invoke();
                 break;
 
+            // 핵심 수정 — fastStartRoom 도착 시 RoomID 저장하고 JoinRoom
             case "fastStartRoom":
                 FastStartRoom fs = JsonUtility.FromJson<FastStartRoom>(json);
-                Debug.Log("[RoomManager] FastStart - fastStartRoom: " + fs.room_id);
 
+                isHost = false;
+
+                currentRoomId = fs.room_id;
+                PlayerPrefs.SetString("RoomID", currentRoomId);
+                PlayerPrefs.Save();
+
+                // UI 알림
                 OnFastStartFoundRoom?.Invoke(fs.room_id);
+
+                // 실제 입장 요청
                 JoinRoom(fs.room_id);
+
                 break;
         }
+    }
+
+    [Serializable]
+    public class RoomJoinSuccess : BaseMsg
+    {
+        public string room_id;
     }
 
     public void RequestFastStart()

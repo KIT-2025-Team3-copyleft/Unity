@@ -25,6 +25,14 @@ public class FastStartButton : MonoBehaviour
         // 그냥 JoinRoom은 RoomManager가 알아서 처리함
     }
 
+    void OnDestroy()
+    {
+        if (RoomManager.Instance != null)
+        {
+            RoomManager.Instance.OnFastStartNoRoom -= ShowNoRoomPopup;
+            RoomManager.Instance.OnFastStartFoundRoom -= OnFastStartFoundRoom;
+        }
+    }
     private void ShowNoRoomPopup()
     {
         noRoomPopup.SetActive(true);

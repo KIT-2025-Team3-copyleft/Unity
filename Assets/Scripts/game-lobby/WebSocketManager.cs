@@ -18,6 +18,7 @@ public class WebSocketManager : MonoBehaviour
     [SerializeField]
     private string serverUrl = "ws://localhost:7777/";
     public event Action OnConnected;
+
     void Awake()
     {
         if (Instance != null && Instance != this)
@@ -25,8 +26,12 @@ public class WebSocketManager : MonoBehaviour
             Destroy(gameObject);
             return;
         }
+
         Instance = this;
-        DontDestroyOnLoad(gameObject);
+
+        // <-- 중요: DontDestroyOnLoad는 루트 오브젝트에 적용해야 안전
+        GameObject root = transform.root != null ? transform.root.gameObject : gameObject;
+        DontDestroyOnLoad(root);
     }
 
     void Start()
@@ -54,7 +59,7 @@ public class WebSocketManager : MonoBehaviour
 
             OnConnected?.Invoke();
 
-            // 초기 메시지 예: Unity 식별
+            // Unity 식별 (서버가 이걸 받도록 되어있다면)
             ws.Send("{\"action\":\"unity\"}");
         };
 
@@ -68,7 +73,7 @@ public class WebSocketManager : MonoBehaviour
                     // 메인 쓰레드에서 실행
                     UnityMainThreadDispatcher.Instance.Enqueue(() =>
                     {
-                        OnServerMessage?.Invoke(msg); // 여기서 PlayerPrefs, UI 등 안전하게 실행 가능
+                        OnServerMessage?.Invoke(msg);
                     });
                 }
             }

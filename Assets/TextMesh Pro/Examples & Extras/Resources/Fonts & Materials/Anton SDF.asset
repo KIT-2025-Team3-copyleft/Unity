@@ -2,17 +2,23 @@
 %TAG !u! tag:unity3d.com,2011:
 --- !u!21 &2140474
 Material:
+<<<<<<< HEAD
   serializedVersion: 8
+=======
+>>>>>>> origin/dev
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: Anton SDF Material
   m_Shader: {fileID: 4800000, guid: fe393ace9b354375a9cb14cdbbc28be4, type: 3}
+<<<<<<< HEAD
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords: []
   m_InvalidKeywords: []
+=======
+>>>>>>> origin/dev
   m_LightmapFlags: 5
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
