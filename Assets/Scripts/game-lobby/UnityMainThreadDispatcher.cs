@@ -11,6 +11,10 @@ public class UnityMainThreadDispatcher : MonoBehaviour
     {
         get
         {
+            if (_instance == null)
+            {
+                Debug.LogError("UnityMainThreadDispatcher가 씬에 존재하지 않습니다!");
+            }
             return _instance;
         }
     }
@@ -38,8 +42,13 @@ public class UnityMainThreadDispatcher : MonoBehaviour
         }
     }
 
-    public void Enqueue(Action job)
+    public static void EnqueueOnMainThread(Action job)
     {
+        if (_instance == null)
+        {
+            Debug.LogError("UnityMainThreadDispatcher가 씬에 존재하지 않습니다!");
+            return;
+        }
         lock (_jobs)
         {
             _jobs.Enqueue(job);

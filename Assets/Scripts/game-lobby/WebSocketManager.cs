@@ -59,7 +59,7 @@ public class WebSocketManager : MonoBehaviour
             string msg = e.Data;
             if (!string.IsNullOrEmpty(msg))
             {
-                UnityMainThreadDispatcher.Instance.Enqueue(() =>
+                UnityMainThreadDispatcher.EnqueueOnMainThread(() =>
                 {
                     OnServerMessage?.Invoke(msg);
                 });

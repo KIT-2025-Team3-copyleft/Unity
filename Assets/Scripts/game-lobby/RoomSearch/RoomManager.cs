@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using ExitGames.Client.Photon;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -29,7 +30,10 @@ public class RoomManager : MonoBehaviour
         while (WebSocketManager.Instance == null)
             yield return null;
 
+        // 중복 구독 방지
+        WebSocketManager.Instance.OnServerMessage -= Handle;
         WebSocketManager.Instance.OnServerMessage += Handle;
+
         Debug.Log("[RoomManager] WebSocket 이벤트 구독 완료");
     }
 
@@ -82,7 +86,21 @@ public class RoomManager : MonoBehaviour
 
             case "JOIN_FAILED":
                 var failed = JsonUtility.FromJson<JoinFailedEvent>(json);
+                // 메시지 표시
+                UnityMainThreadDispatcher.EnqueueOnMainThread(() => {
+                    RoomJoin.Instance.ShowMessage(failed.message);
+                    // 필요하면 UI 전환도 여기서
+                    RoomJoin.Instance.ShowMessage(failed.message);  // RoomJoin 화면 열기
+                });
                 OnJoinResult?.Invoke(false);
+                break;
+
+            case "LEAVE_SUCCESS":
+                var leave = JsonUtility.FromJson<LeaveSuccessEvent>(json);
+
+                Debug.Log("▶ 방 나가기 성공 (서버 응답): " + leave.message);
+
+                // 씬 전환은 이미 ExitRoom에서 처리하므로 여기서는 생략
                 break;
         }
     }
@@ -126,6 +144,12 @@ public class RoomManager : MonoBehaviour
     // ================================
     // JSON 구조체 정의
     // ================================
+    [Serializable]
+    public class LeaveSuccessEvent : BaseEvent
+    {
+        public string message;
+    }
+
     [Serializable]
     public class BaseEvent
     {

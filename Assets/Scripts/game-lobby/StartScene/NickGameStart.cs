@@ -8,7 +8,7 @@ public class NickNameStart : MonoBehaviour
     public TMP_InputField nicknameInput;
     public TMP_Text serverMessageText;
     public UnityEngine.UI.Button startButton; // ⭐ 버튼 컴포넌트 참조 추가 (UX 개선용)
-    public string sceneName = "RoomSerach";
+    public string sceneName = "RoomSerachScene";
     public float loadDelayTime = 1.0f; // ⭐ 딜레이 시간을 인스펙터에서 조절 가능하게 변경
 
     private bool isProcessing = false; // ⭐ 상태 변수: 서버 통신 중인지 확인
@@ -63,6 +63,14 @@ public class NickNameStart : MonoBehaviour
         NickNameManager.Instance.SendNickname(nick);
     }
 
+    private void OnNicknameSet(string nickname)
+    {
+        // 구독 해제 (중복 호출 방지)
+        NickNameManager.Instance.OnNicknameSuccess -= OnNicknameSet;
+
+        // 닉네임 세팅 완료 후 방 입장
+        RoomManager.Instance.JoinRoom("입장할_방코드");
+    }
     private void OnSuccess(string nickname)
     {
         // 성공했으므로 isProcessing 해제는 필요 없음 (씬 전환 예정)

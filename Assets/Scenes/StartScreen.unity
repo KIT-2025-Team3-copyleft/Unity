@@ -838,7 +838,7 @@ MonoBehaviour:
   nicknameInput: {fileID: 176897647}
   serverMessageText: {fileID: 626181333}
   startButton: {fileID: 0}
-  sceneName: RoomSerach
+  sceneName: RoomSerachScene
   loadDelayTime: 1
 --- !u!1 &815224512
 GameObject:

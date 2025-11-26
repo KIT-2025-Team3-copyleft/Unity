@@ -1,5 +1,5 @@
 using UnityEngine;
-using UnityEngine.UI;   // 버튼 사용하려면 필요!
+using UnityEngine.UI;
 using TMPro;
 using System.Collections;
 using UnityEngine.SceneManagement;
@@ -9,75 +9,96 @@ public class GameStartManager : MonoBehaviour
     [Header("UI")]
     public TMP_Text countdownText;
     public TMP_Text warningText;
-    public Button startButton;   // GameObject → Button으로 변경
+    public Button startButton;
 
-    void Start()
+    private Coroutine countdownCoroutine;
+
+    private void Start()
     {
+        // UI 초기화
         countdownText.gameObject.SetActive(false);
-
         if (warningText != null)
             warningText.gameObject.SetActive(false);
 
         startButton.gameObject.SetActive(false);
-        // 방장이면 버튼 활성화
-        if(startButton.interactable = RoomManager.Instance.IsHost)
+
+        // 방장이면 버튼 보이기
+        if (RoomManager.Instance.IsHost)
         {
             startButton.gameObject.SetActive(true);
         }
+
+        // 서버 이벤트 구독
+        LobbyManager.Instance.OnGameStartTimer += OnGameStartTimer;
+        LobbyManager.Instance.OnTimerCancelled += OnTimerCancelled;
+        LobbyManager.Instance.OnLoadGameScene += OnLoadGameScene;
     }
 
+    private void OnDestroy()
+    {
+        // 이벤트 해제
+        if (LobbyManager.Instance != null)
+        {
+            LobbyManager.Instance.OnGameStartTimer -= OnGameStartTimer;
+            LobbyManager.Instance.OnTimerCancelled -= OnTimerCancelled;
+            LobbyManager.Instance.OnLoadGameScene -= OnLoadGameScene;
+        }
+    }
+
+    // -----------------------
+    // 1. 방장 버튼 클릭 → 서버 요청
+    // -----------------------
     public void OnStartButtonPressed()
     {
-        if (CounterManager.Instance.playerCount != 4)
-        {
-            StartCoroutine(ShowNotEnoughPlayers());
-            return;
-        }
+        if (!RoomManager.Instance.IsHost) return;
 
-        startButton.gameObject.SetActive(false);
-        StartCoroutine(StartCountdown());
+        // 서버에 START_GAME 요청
+        LobbyManager.Instance.StartGame();
     }
 
-    private IEnumerator ShowNotEnoughPlayers()
+    // -----------------------
+    // 2. 서버 → GAME_START_TIMER
+    // -----------------------
+    private void OnGameStartTimer(int seconds)
     {
-        warningText.gameObject.SetActive(true);
-        warningText.text = "4명이 아닙니다!";
-        yield return new WaitForSeconds(2f);
-        warningText.gameObject.SetActive(false);
+        if (countdownCoroutine != null)
+            StopCoroutine(countdownCoroutine);
+
+        countdownCoroutine = StartCoroutine(ShowCountdown(seconds));
     }
 
-    private IEnumerator StartCountdown()
+    private IEnumerator ShowCountdown(int seconds)
     {
         countdownText.gameObject.SetActive(true);
 
-        countdownText.text = "3";
-        yield return new WaitForSeconds(1f);
+        while (seconds > 0)
+        {
+            countdownText.text = seconds.ToString();
+            yield return new WaitForSeconds(1f);
+            seconds--;
+        }
 
-        countdownText.text = "2";
-        yield return new WaitForSeconds(1f);
-
-        countdownText.text = "1";
-        yield return new WaitForSeconds(1f);
-
-        countdownText.gameObject.SetActive(false);
-
-        SendPlayerCountToServer(CounterManager.Instance.playerCount);
-
-        yield return new WaitForSeconds(0.5f);
-        SceneManager.LoadScene("GameScene");
+        countdownText.text = "";
     }
 
-    private void SendPlayerCountToServer(int count)
+    // -----------------------
+    // 3. 서버 → TIMER_CANCELLED
+    // -----------------------
+    private void OnTimerCancelled()
     {
-        if (WebSocketManager.Instance != null &&
-            WebSocketManager.Instance.IsConnected)
-        {
-            string json = "{\"type\":\"playerCount\",\"count\":" + count + "}";
-            WebSocketManager.Instance.Send(json);
-        }
-        else
-        {
-            Debug.LogWarning("웹소켓 연결 안됨!");
-        }
+        if (countdownCoroutine != null)
+            StopCoroutine(countdownCoroutine);
+
+        countdownText.gameObject.SetActive(false);
+        countdownText.text = "";
+    }
+
+    // -----------------------
+    // 4. 서버 → LOAD_GAME_SCENE
+    // -----------------------
+    private void OnLoadGameScene(Room room)
+    {
+        countdownText.gameObject.SetActive(false);
+        SceneManager.LoadScene("GameScene");
     }
 }

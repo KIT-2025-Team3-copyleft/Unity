@@ -1,16 +1,27 @@
-﻿using UnityEngine;
-using TMPro;
-using UnityEngine.SceneManagement;
+﻿using TMPro;
+using UnityEngine;
+
 
 public class RoomJoin : MonoBehaviour
 {
+    public static RoomJoin Instance; // 싱글톤
+
     public TMP_InputField codeInput;
     public GameObject messageObject;
     public float messageDuration = 1f;
 
+    private void Awake()
+    {
+        if (Instance != null && Instance != this)
+        {
+            Destroy(gameObject);
+            return;
+        }
+        Instance = this;
+    }
+
     private void OnEnable()
     {
-        // RoomManager 이벤트 구독
         if (RoomManager.Instance != null)
             RoomManager.Instance.OnJoinResult += HandleJoinResult;
     }
@@ -31,14 +42,14 @@ public class RoomJoin : MonoBehaviour
     {
         if (RoomManager.Instance == null)
         {
-            Show("RoomManager 없음!");
+            ShowMessage("RoomManager 없음!");
             return;
         }
 
         string code = codeInput.text.Trim();
         if (string.IsNullOrEmpty(code))
         {
-            Show("코드를 입력하세요.");
+            ShowMessage("코드를 입력하세요!");
             return;
         }
 
@@ -46,30 +57,34 @@ public class RoomJoin : MonoBehaviour
         RoomManager.Instance.JoinRoom(code);
     }
 
-    // RoomManager에서 이벤트로 호출됨
+    // RoomManager 이벤트에서 호출
     private void HandleJoinResult(bool success)
     {
         if (success)
         {
             Debug.Log("[RoomJoin] 방 입장 성공!");
-            // Scene 이동 등
-            // SceneManager.LoadScene("RoomScene");
         }
         else
         {
-            // 실패 메시지 표시
-            Show("방을 찾을 수 없습니다."); // 여기서 JOIN_FAILED 메시지 표시
+            ShowMessage("존재하지 않는 방입니다."); // 실패 메시지 표시
         }
     }
 
-    void Show(string msg)
+    public void ShowMessage(string msg)
     {
-        messageObject.SetActive(true);
-        Debug.Log(msg);
-        CancelInvoke(nameof(Hide));
-        Invoke(nameof(Hide), messageDuration);
+        if (messageObject != null)
+        {
+            messageObject.SetActive(true);
+            var tmp = messageObject.GetComponentInChildren<TMPro.TextMeshProUGUI>();
+            if (tmp != null)
+                tmp.text = msg;
+
+            CancelInvoke(nameof(HideMessage));
+            Invoke(nameof(HideMessage), messageDuration);
+        }
     }
-    void Hide()
+
+    void HideMessage()
     {
         if (messageObject != null)
             messageObject.SetActive(false);
