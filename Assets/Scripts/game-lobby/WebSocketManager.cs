@@ -12,12 +12,10 @@ public class WebSocketManager : MonoBehaviour
 
     public bool IsConnected => ws != null && ws.ReadyState == WebSocketState.Open;
 
-    // 외부에서 메시지 수신 시 구독 가능
     public event Action<string> OnServerMessage;
-
-    [SerializeField]
-    private string serverUrl = "ws://localhost:7777/";
     public event Action OnConnected;
+
+    [SerializeField] private string serverUrl = "ws://168.107.19.253/ws/";
 
     void Awake()
     {
@@ -28,10 +26,7 @@ public class WebSocketManager : MonoBehaviour
         }
 
         Instance = this;
-
-        // <-- 중요: DontDestroyOnLoad는 루트 오브젝트에 적용해야 안전
-        GameObject root = transform.root != null ? transform.root.gameObject : gameObject;
-        DontDestroyOnLoad(root);
+        DontDestroyOnLoad(gameObject);
     }
 
     void Start()
@@ -56,31 +51,20 @@ public class WebSocketManager : MonoBehaviour
         {
             Debug.Log("[WS] 연결 성공");
             isConnecting = false;
-
             OnConnected?.Invoke();
-
-            // Unity 식별 (서버가 이걸 받도록 되어있다면)
-            ws.Send("{\"action\":\"unity\"}");
         };
 
-        ws.OnMessage += (sender, e) =>
+        ws.OnMessage += (s, e) =>
         {
-            try
+            string msg = e.Data;
+            if (!string.IsNullOrEmpty(msg))
             {
-                string msg = e.Data;
-                if (!string.IsNullOrEmpty(msg))
+                UnityMainThreadDispatcher.Instance.Enqueue(() =>
                 {
-                    // 메인 쓰레드에서 실행
-                    UnityMainThreadDispatcher.Instance.Enqueue(() =>
-                    {
-                        OnServerMessage?.Invoke(msg);
-                    });
-                }
+                    OnServerMessage?.Invoke(msg);
+                });
             }
-            catch (Exception ex)
-            {
-                Debug.LogError("[WS] OnMessage 예외: " + ex);
-            }
+            Debug.Log("[WS] 서버 → 클라: " + msg);
         };
 
         ws.OnClose += (s, e) =>
@@ -105,6 +89,7 @@ public class WebSocketManager : MonoBehaviour
         Connect();
     }
 
+    // 🔹 순수 송신만
     public void Send(string json)
     {
         if (!IsConnected)
@@ -112,7 +97,9 @@ public class WebSocketManager : MonoBehaviour
             Debug.LogWarning("[WS] 연결 안됨");
             return;
         }
+
         ws.Send(json);
+        Debug.Log("[WS] 클라 → 서버: " + json);
     }
 
     private void OnApplicationQuit()
