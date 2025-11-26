@@ -21,7 +21,7 @@ public class RoomCreator : MonoBehaviour
     {
         bool isPrivate = privateModeToggle != null && privateModeToggle.GetPrivateState();
 
-        var request = new CreateRoomRequest { action = "createRoom", isPrivate = isPrivate };
+        var request = new CreateRoomRequest { action = "CREATE_ROOM", isPrivate = isPrivate };
         string json = JsonUtility.ToJson(request);
 
         Debug.Log($"[RoomCreator] Sending CreateRoom Request: {json}");
