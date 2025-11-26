@@ -5,12 +5,28 @@ using UnityEngine.UI;
 
 public class GameManager : MonoBehaviour
 {
+
     public static GameManager Instance;
 
+
+    [Header("Camera")]
+    public Camera firstPersonCamera;
+    public Camera observerCamera;
+    public Camera topDownCamera;
+
     [Header("UI References")]
-    public Text systemMessageText;
-    public InputField chatInput;
+    public Text systemMessageText; // 디버그 용도 
     public Button trialButton;
+    public InputField chatInput; // TMP InputField로 변경 요망
+
+    [Header("Judgment Animation Positions")]
+    public Transform judgmentZoomPosition;  //  줌인 목표 위치
+    public Transform judgmentFinalPosition; //  줌인 후 최종 정착 위치
+    public float zoomDuration = 0.8f;
+    public float settleDuration = 0.7f;
+
+    [Header("Village State")]
+    public int currentHP = 100;
 
     public string PlayerName;
     public int CurrentRoomId;
@@ -91,7 +107,7 @@ public class GameManager : MonoBehaviour
             yield return new WaitForSeconds(1f);
             count--;
         }
-    }
+    } // 씬 변경 용도, 현재 미사용
 
     public void AddPlayer(string playerId, PlayerManager player)
     {
@@ -103,12 +119,116 @@ public class GameManager : MonoBehaviour
 
     public void OnCardSelected(string card)
     {
-        PlayerManager myPlayer = players[mySlot]; 
+        PlayerManager myPlayer = players[mySlot];
         if (myPlayer != null && !myPlayer.actionCompleted)
         {
             NetworkManager.Instance.SendCardSelection(mySlot, card);
-            myPlayer.actionCompleted = true; 
-            UIManager.Instance.DisableMyCards(); 
+            myPlayer.actionCompleted = true;
+            UIManager.Instance.DisableMyCards();
         }
+    }
+
+
+    public void StartJudgmentSequence(RoundResult msg)
+    {
+        // UIManager에 완성 문장을 미리 전달
+        UIManager.Instance.DisplaySentence(msg.finalSentence);
+
+        // 코루틴 시작
+        StartCoroutine(JudgmentSequence(msg));
+    }
+
+    // [3] 카메라 이동 애니메이션 헬퍼 함수
+    private IEnumerator AnimateCameraTransform(Camera cameraToMove, Transform targetTransform, float duration)
+    {
+        if (cameraToMove == null || !cameraToMove.enabled) yield break;
+
+        Transform camTransform = cameraToMove.transform;
+        Vector3 startPos = camTransform.position;
+        Quaternion startRot = camTransform.rotation;
+        Vector3 targetPos = targetTransform.position;
+        Quaternion targetRot = targetTransform.rotation;
+        float elapsedTime = 0f;
+
+        while (elapsedTime < duration)
+        {
+            elapsedTime += Time.deltaTime;
+            float t = elapsedTime / duration;
+            float smoothT = t * t * (3f - 2f * t); // EaseInOut
+
+            camTransform.position = Vector3.Lerp(startPos, targetPos, smoothT);
+            camTransform.rotation = Quaternion.Slerp(startRot, targetRot, smoothT);
+            yield return null;
+        }
+        camTransform.position = targetPos;
+        camTransform.rotation = targetRot;
+    }
+
+    // 심판 연출 
+    private IEnumerator JudgmentSequence(RoundResult msg)
+    {
+        // 카메라 전환 준비
+        topDownCamera.transform.position = firstPersonCamera.transform.position;
+        topDownCamera.transform.rotation = firstPersonCamera.transform.rotation;
+        SwitchCamera(topDownCamera);
+
+        // 1. 줌인
+        yield return StartCoroutine(AnimateCameraTransform(
+            topDownCamera, judgmentZoomPosition, zoomDuration
+        ));
+
+        // 살짝 돌아오기
+        yield return StartCoroutine(AnimateCameraTransform(
+            topDownCamera, judgmentFinalPosition, settleDuration
+        ));
+
+        // 양피지 UI 활성화
+        if (UIManager.Instance.judgmentScroll != null)
+        {
+            UIManager.Instance.judgmentScroll.SetActive(true);
+        }
+        yield return new WaitForSeconds(3f);
+
+        // 심판 이유 출력
+        UIManager.Instance.DisplayJudgmentReason(msg.reason);
+        yield return new WaitForSeconds(1.0f);
+
+        // 옵저버 카메라로 전환
+        SwitchCamera(observerCamera);
+
+        // 꽃/번개 이펙트 출력
+        UIManager.Instance.PlayVisualCue(msg.visualCue);
+        yield return new WaitForSeconds(2.0f);
+
+        // 1인칭 카메라로 전환
+        SwitchCamera(firstPersonCamera);
+        if (UIManager.Instance.judgmentScroll != null)
+        {
+            UIManager.Instance.judgmentScroll.SetActive(false);
+        }
+        yield return new WaitForSeconds(1.0f);
+    }
+
+    // 카메라 전환 및 UI 제어
+    public void SwitchCamera(Camera targetCamera)
+    {
+        bool isFirstPerson = (targetCamera == firstPersonCamera);
+
+        if (firstPersonCamera != null) firstPersonCamera.enabled = isFirstPerson;
+        if (observerCamera != null) observerCamera.enabled = (targetCamera == observerCamera);
+        if (topDownCamera != null) topDownCamera.enabled = (targetCamera == topDownCamera);
+
+        if (UIManager.Instance != null)
+        {
+            UIManager.Instance.SetGameUIActive(isFirstPerson);
+        }
+    }
+
+    public void UpdateVillageHP(int scoreChange)
+    {
+        currentHP = Mathf.Clamp(currentHP + scoreChange, int.MinValue, 1000000);
+
+        Debug.Log($"마을 HP가 {scoreChange}만큼 변경되었습니다. 현재 HP: {currentHP}");
+
     }
 }

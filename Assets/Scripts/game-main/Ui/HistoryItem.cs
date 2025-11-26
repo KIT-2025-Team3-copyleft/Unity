@@ -59,7 +59,6 @@ public class HistoryItem : MonoBehaviour
             case "yellow":
                 return Color.yellow;
             case "pink":
-                // 핑크색
                 return new Color(1f, 0.41f, 0.71f); 
             default:
                 // 매칭되는 색이 없을 경우 디버그 메시지를 출력하고 기본 색상을 반환

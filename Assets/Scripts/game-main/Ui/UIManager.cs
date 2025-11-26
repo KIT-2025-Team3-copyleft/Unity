@@ -1,53 +1,13 @@
-using System;
+ï»¿using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
-using TMPro;
+using TMPro; 
 
 public class UIManager : MonoBehaviour
 {
     public static UIManager Instance;
-
-
-    [Header("Oracle & Role")]
-    public GameObject oraclePanel;
-    public Text oracleText;
-    public Text roleText;
-    public GameObject persistentOraclePanel; 
-    public Text persistentOracleText;
-
-    [Header("Traitor Info")]
-    public Text traitorText;
-
-    [Header("History Panel")]
-    public RectTransform historyPanel; 
-    public Button historyToggleButton;    
-    public Text toggleButtonText;        
-    public Transform historyContentParent; 
-
-    public GameObject historyItemPrefab;             
-    private bool isHistoryOpen = false;
-    private float closedYPosition;
-    private float openedYPosition;
-    private float slideDuration = 0.3f;
-
-    [Header("Card UI")]
-    public GameObject cardSelectionPanel;
-    public GameObject cardButtonPrefab;
-    public Transform cardContainer;
-    private List<GameObject> cardButtons = new List<GameObject>();
-
-    [Header("Sentence Slots")]
-    public List<Image> playerSlotImages; 
-    public List<Text> playerSlotTexts;
-
-    [Header("Visual Cue")]
-    public Animator visualCueAnimator;
-
-    [Header("Timer")]
-    public Text countdownText;
-    public Image timerCircle;
 
     private void Awake()
     {
@@ -57,19 +17,61 @@ public class UIManager : MonoBehaviour
         SetupHistoryPanel();
     }
 
-    // È÷½ºÅä¸® ÆĞ³Î
+    [Header("Oracle & Role")]
+    public GameObject oraclePanel;
+    public TextMeshProUGUI oracleText;
+    public TextMeshProUGUI roleText;
+    public GameObject persistentOraclePanel;
+    public TextMeshProUGUI persistentOracleText;
+
+    [Header("Traitor Info")]
+    public TextMeshProUGUI traitorText;
+
+    [Header("History Panel")]
+    public RectTransform historyPanel;
+    public Button historyToggleButton;
+    public TextMeshProUGUI toggleButtonText;
+    public Transform historyContentParent;
+
+    public GameObject historyItemPrefab;
+    private bool isHistoryOpen = false;
+    private float closedYPosition;
+    public float targetOpenedYPosition; 
+    private float slideDuration = 0.3f;
+
+    [Header("Card UI")]
+    public GameObject cardSelectionPanel;
+    public GameObject cardButtonPrefab;
+    public Transform cardContainer;
+    private List<GameObject> cardButtons = new List<GameObject>();
+
+    [Header("Sentence Slots")]
+    public List<Image> playerSlotImages;
+    public List<TextMeshProUGUI> playerSlotTexts;
+
+    [Header("Judgment Scroll UI")]
+    public GameObject judgmentScroll;
+    public TextMeshProUGUI judgmentText;
+
+    [Header("Visual Cue")]
+    public Animator visualCueAnimator;
+
+    [Header("Timer")]
+    public TextMeshProUGUI countdownText;
+    public Image timerCircle;
+
+
+    // íˆìŠ¤í† ë¦¬ íŒ¨ë„ ì´ˆê¸° ì„¤ì •
     private void SetupHistoryPanel()
     {
         if (historyPanel != null)
         {
             closedYPosition = historyPanel.anchoredPosition.y;
 
-            openedYPosition = closedYPosition + historyPanel.sizeDelta.y;
-
-            isHistoryOpen = true;
+            isHistoryOpen = true; 
             historyPanel.anchoredPosition = new Vector2(
                 historyPanel.anchoredPosition.x,
-                openedYPosition
+                targetOpenedYPosition
             );
         }
 
@@ -78,19 +80,24 @@ public class UIManager : MonoBehaviour
             historyToggleButton.onClick.AddListener(ToggleHistoryPanel);
             UpdateToggleButtonText();
         }
+
+        if (cardSelectionPanel != null)
+        {
+            cardSelectionPanel.SetActive(false);
+        }
     }
 
-    // È÷½ºÅä¸® ÆĞ³Î ¿­±â/´İ±â Åä±Û ÇÔ¼ö
+    // íˆìŠ¤í† ë¦¬ íŒ¨ë„ ì—´ê¸°/ë‹«ê¸° í† ê¸€ í•¨ìˆ˜
     public void ToggleHistoryPanel()
     {
         isHistoryOpen = !isHistoryOpen;
-        float targetY = isHistoryOpen ? openedYPosition : closedYPosition;
+        float targetY = isHistoryOpen ? targetOpenedYPosition : closedYPosition;
 
         StartCoroutine(SlidePanel(targetY));
         UpdateToggleButtonText();
     }
 
-    // ÆĞ³Î ÀÌµ¿ ÄÚ·çÆ¾
+    // íŒ¨ë„ ì´ë™ ì½”ë£¨í‹´
     private IEnumerator SlidePanel(float targetY)
     {
         float startTime = Time.time;
@@ -112,40 +119,49 @@ public class UIManager : MonoBehaviour
     {
         if (toggleButtonText != null)
         {
-            toggleButtonText.text = isHistoryOpen ? "¡ã" : "¡å";
+            // ì—´ë¦° ìƒíƒœì¼ ë•ŒëŠ” ë‹«ìœ¼ë¼ëŠ” ì˜ë¯¸ì˜ â–¼ë¥¼ í‘œì‹œ
+            toggleButtonText.text = isHistoryOpen ? "â–¼" : "â–²";
         }
     }
 
-    public void AddHistoryEntry(string roundResultText, int roundNumber, int scoreChange)
+    // íˆìŠ¤í† ë¦¬ ê¸°ë¡ í•­ëª© ì¶”ê°€ 
+    public void AddHistoryItem(RoundResult msg, int roundNumber, Dictionary<string, string> slotColors, List<string> finalWords)
     {
         if (historyItemPrefab == null || historyContentParent == null)
         {
-            Debug.LogError("History Item Prefab ¶Ç´Â Content Parent°¡ UIManager¿¡ ¿¬°áµÇÁö ¾Ê¾Ò½À´Ï´Ù!");
+            Debug.LogError("History Item Prefab ë˜ëŠ” Content Parentê°€ UIManagerì— ì—°ê²°ë˜ì§€ ì•Šì•˜ìŠµë‹ˆë‹¤!");
             return;
         }
 
         GameObject newItem = Instantiate(historyItemPrefab, historyContentParent);
 
-        Text itemText = newItem.GetComponentInChildren<Text>();
+        HistoryItem historyItem = newItem.GetComponent<HistoryItem>();
 
-        
+        if (historyItem != null)
+        {
+            historyItem.SetData(msg, slotColors, roundNumber, finalWords);
+        }
     }
 
 
 
-    // ½ÅÅ¹ ¹× ¿ªÇÒ °ø°³(¿ªÇÒÀº 1¶ó¿îµå¿¡¸¸)
+    // ì‹ íƒ ë° ì—­í•  ê³µê°œ(ì—­í• ì€ 1ë¼ìš´ë“œì—ë§Œ)
     public void ShowOracleAndRole(string oracle, string role, int round)
     {
-
         if (round == 1)
             roleText.text = role;
         else
             roleText.text = "";
 
-
         oraclePanel.SetActive(true);
         oracleText.text = oracle;
-        
+
+        // ì˜êµ¬ ì‹ íƒ í…ìŠ¤íŠ¸ í‘œì‹œ
+        if (persistentOracleText != null)
+        {
+            persistentOracleText.text = $"ì‹ íƒ: {oracle}";
+            persistentOracleText.gameObject.SetActive(true);
+        }
 
         StartCoroutine(HideOraclePanelAfterSeconds(3f));
     }
@@ -154,25 +170,25 @@ public class UIManager : MonoBehaviour
     {
         yield return new WaitForSeconds(seconds);
         oraclePanel.SetActive(false);
-        
+
     }
 
     public void ShowTraitorInfo(string godPersonality)
     {
         //traitorPanel.SetActive(true);
-        traitorText.text = $"½ÅÀÇ Æä¸£¼Ò³ª: {godPersonality}";
+        traitorText.text = $"ì‹ ì˜ í˜ë¥´ì†Œë‚˜: {godPersonality}";
     }
 
-    // Ä«µå ¼±ÅÃ (Ä«µå »ı¼º)
+    // ì¹´ë“œ ì„ íƒ (ì¹´ë“œ ìƒì„±)
     public void SetupCardButtons(List<string> cards)
     {
-        // 1. Ä«µå ¼±ÅÃ UI ÆË¾÷ È°¼ºÈ­
+        // 1. ì¹´ë“œ ì„ íƒ UI íŒì—… í™œì„±í™”
         if (cardSelectionPanel != null)
         {
             cardSelectionPanel.SetActive(true);
         }
 
-        // ±âÁ¸ ¹öÆ° Á¦°Å ¹× ¸®½ºÆ® ÃÊ±âÈ­
+        // ê¸°ì¡´ ë²„íŠ¼ ì œê±° ë° ë¦¬ìŠ¤íŠ¸ ì´ˆê¸°í™”
         foreach (var btn in cardButtons) Destroy(btn);
         cardButtons.Clear();
 
@@ -180,18 +196,27 @@ public class UIManager : MonoBehaviour
         {
             string cardCopy = card;
             GameObject newBtn = Instantiate(cardButtonPrefab, cardContainer);
-            newBtn.GetComponentInChildren<Text>().text = cardCopy;
+
+            TextMeshProUGUI tmpText = newBtn.GetComponentInChildren<TextMeshProUGUI>();
+            if (tmpText != null)
+            {
+                tmpText.text = cardCopy;
+            }
+
             cardButtons.Add(newBtn);
+
+            CardHoverHandler hoverHandler = newBtn.AddComponent<CardHoverHandler>();
+            hoverHandler.targetSlotId = GameManager.Instance.mySlot;
 
             newBtn.GetComponent<Button>().onClick.AddListener(() => GameManager.Instance.OnCardSelected(cardCopy));
         }
     }
 
 
-    // Ä«µå ¼±ÅÃ ¿Ï·á ½Ã ¹öÆ° ºñÈ°¼ºÈ­ 
+    // ì¹´ë“œ ì„ íƒ ì™„ë£Œ ì‹œ ë²„íŠ¼ ë¹„í™œì„±í™” 
     public void DisableMyCards()
     {
-        // Ä«µå ¼±ÅÃÀÌ ¿Ï·áµÇ¸é ¸ğµç ¹öÆ°À» ºñÈ°¼ºÈ­
+        // ì¹´ë“œ ì„ íƒì´ ì™„ë£Œë˜ë©´ ëª¨ë“  ë²„íŠ¼ì„ ë¹„í™œì„±í™”
         foreach (var btn in cardButtons) btn.GetComponent<Button>().interactable = false;
 
         if (cardSelectionPanel != null)
@@ -204,13 +229,16 @@ public class UIManager : MonoBehaviour
     {
         if (cardButtons.Count == 0) return;
         int index = UnityEngine.Random.Range(0, cardButtons.Count);
-        string card = cardButtons[index].GetComponentInChildren<Text>().text;
+
+        TextMeshProUGUI tmpText = cardButtons[index].GetComponentInChildren<TextMeshProUGUI>();
+        string card = tmpText != null ? tmpText.text : "";
+
         GameManager.Instance.OnCardSelected(card);
     }
 
     public void HighlightSlot(string slotId, bool highlight)
     {
-        // ½½·Ô ID¿¡¼­ ÀÎµ¦½º ÃßÃâ
+        // ìŠ¬ë¡¯ IDì—ì„œ ì¸ë±ìŠ¤ ì¶”ì¶œ
         if (slotId.StartsWith("slot") && int.TryParse(slotId.Substring(4), out int slotIndex))
         {
             int index = slotIndex - 1;
@@ -219,19 +247,17 @@ public class UIManager : MonoBehaviour
             {
                 Image slotImage = playerSlotImages[index];
 
-                // °­Á¶ »ö»ó ¼³Á¤ (¿¹½Ã: °­Á¶ ½Ã ¹à¾ÆÁü, ÇØÁ¦ ½Ã ±âº»»öÀ¸·Î º¹±Í)
                 Color baseColor = slotImage.color;
                 Color targetColor = baseColor;
 
                 if (highlight)
                 {
-                    // °­Á¶ »ö»ó (¿øÇÏ´Â »ö»óÀ¸·Î ¼³Á¤, ¿¹: ¾ËÆÄ °ªÀ» ³ô¿© ´õ ¹à°Ô)
+                    // ê°•ì¡° ìƒ‰ìƒ (ì•ŒíŒŒ 1.0f)
                     targetColor = new Color(baseColor.r, baseColor.g, baseColor.b, 1f);
                 }
                 else
                 {
-                    // ±âº» »ö»ó (Unity Editor¿¡¼­ ¼³Á¤µÈ ±âº» »ö»ó/Åõ¸íµµ)
-                    // ¸¸¾à ±âº»ÀûÀ¸·Î ¹İÅõ¸íÇÏ°Ô ¼³Á¤Çß´Ù¸é, ÇØ´ç ¾ËÆÄ °ªÀ¸·Î º¹±Í
+                    // ê¸°ë³¸ ìƒ‰ìƒ (ì•ŒíŒŒ 0.5f)
                     targetColor = new Color(baseColor.r, baseColor.g, baseColor.b, 0.5f);
                 }
 
@@ -241,7 +267,7 @@ public class UIManager : MonoBehaviour
     }
 
 
-    // ½½·Ô¿¡ ´Ü¾î¸¦ Ç¥½ÃÇÏ´Â ÇÔ¼ö 
+    // ìŠ¬ë¡¯ì— ë‹¨ì–´ë¥¼ í‘œì‹œí•˜ëŠ” í•¨ìˆ˜ 
     public void UpdateMySentenceSlot(string slotId, string selectedWord)
     {
         if (slotId.StartsWith("slot") && int.TryParse(slotId.Substring(4), out int slotIndex))
@@ -255,12 +281,76 @@ public class UIManager : MonoBehaviour
         }
     }
 
-    public void PlayVisualCue(VisualCue cue)
+
+    public void SetGameUIActive(bool isActive)
     {
-        if (visualCueAnimator != null) visualCueAnimator.SetTrigger(cue.effect);
+        // ìƒì‹œ ì‹ íƒ
+        if (persistentOraclePanel != null)
+        {
+            persistentOraclePanel.SetActive(isActive);
+        }
+
+        // íˆìŠ¤í† ë¦¬ íŒ¨ë„ 
+        if (historyPanel != null)
+        {
+            historyPanel.gameObject.SetActive(isActive);
+        }
+        if (historyToggleButton != null)
+        {
+            historyToggleButton.gameObject.SetActive(isActive);
+        }
+
+        // ì±„íŒ…ì°½ (ì—¬ê¸°ë¡œ ì˜®ê²¨ì•¼í•¨)
+        //if (chatWindowObject != null)
+        //{
+        //    chatWindowObject.SetActive(isActive);
+        //}
+
+        // ë‹¨ì–´ ì„ íƒ ì°½ ë„ìš°ëŠ” ë²„íŠ¼ (ì—¬ê¸°ë¡œ ì˜®ê²¨ì•¼í•¨)
+
+        // ì‹¬íŒ ì œì•ˆ (ì—¬ê¸°ë¡œ ì˜®ê²¨ì•¼í•¨)
+        //if (trialButton != null)
+        //{
+        //    trialButton.gameObject.SetActive(isActive);
+        //}
     }
 
-    // Å¸ÀÌ¸Ó (Ä«µå ¼±ÅÃ, ¹è½ÅÀÚ ÅõÇ¥)
+
+    // ì™„ì„±ëœ ë¬¸ì¥ ì¶œë ¥ 
+    public void DisplaySentence(string sentence)
+    {
+        if (judgmentText != null)
+        {
+            string resultMessage = $"--- ì™„ì„±ëœ ë¬¸ì¥ ---\n\n";
+            resultMessage += $"{sentence}";
+            judgmentText.text = resultMessage;
+        }
+    }
+
+    // ì‹¬íŒ ì´ìœ  ì¶œë ¥ 
+    public void DisplayJudgmentReason(string reason)
+    {
+        if (judgmentText != null)
+        {
+            string resultMessage = $"{reason}";
+            judgmentText.text = resultMessage;
+        }
+    }
+
+
+    public void PlayVisualCue(VisualCue cue)
+    {
+        if (visualCueAnimator != null)
+        {
+            visualCueAnimator.SetTrigger(cue.effect);
+        }
+        else
+        {
+            Debug.LogWarning($"VisualCue Animator is not connected in UIManager.");
+        }
+    }
+
+    // íƒ€ì´ë¨¸ (ì¹´ë“œ ì„ íƒ, ë°°ì‹ ì íˆ¬í‘œ)
     public IEnumerator StartTimer(float totalTime, Action onTimerEnd)
     {
         float timer = totalTime;
@@ -283,7 +373,7 @@ public class UIManager : MonoBehaviour
         if (timerCircle != null)
             timerCircle.fillAmount = 0;
 
-        // Å¸ÀÌ¸Ó ³¡³ª¸é UI ¼û±â±â
+        // íƒ€ì´ë¨¸ ëë‚˜ë©´ UI ìˆ¨ê¸°ê¸°
         if (countdownText != null) countdownText.gameObject.SetActive(false);
         if (timerCircle != null) timerCircle.gameObject.SetActive(false);
 

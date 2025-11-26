@@ -35,6 +35,12 @@ public class RoundResult
     public int scoreChange;
     public VisualCue visualCue;
     public TrialProposalPhase trialProposalPhase;
+
+    public string reason;
+
+    public List<string> finalWords;
+
+    public Dictionary<string, string> slotColors;
 }
 
 [Serializable]
@@ -46,9 +52,12 @@ public class VisualCue
     public string action;
 }
 
+
+
 [Serializable]
 public class TrialProposalPhase
 {
     public bool active;
     public int timeLimit;
 }
+
