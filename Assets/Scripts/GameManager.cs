@@ -13,6 +13,8 @@ public class GameManager : MonoBehaviour
     public Camera firstPersonCamera;
     public Camera observerCamera;
     public Camera topDownCamera;
+    public Vector3 topDownStartPos;
+    public Quaternion topDownStartRot;
 
     [Header("UI References")]
     public Text systemMessageText; // 디버그 용도 
@@ -47,6 +49,13 @@ public class GameManager : MonoBehaviour
             Instance = this;
         else
             Destroy(gameObject);
+        
+        // 탑다운 카메라 초기위치 저장
+        if (topDownCamera != null)
+        {
+            topDownStartPos = topDownCamera.transform.position;
+            topDownStartRot = topDownCamera.transform.rotation;
+        }
     }
 
     public void AssignColorToPlayer(PlayerManager player)
@@ -138,7 +147,7 @@ public class GameManager : MonoBehaviour
         StartCoroutine(JudgmentSequence(msg));
     }
 
-    // [3] 카메라 이동 애니메이션 헬퍼 함수
+    // 카메라 이동 
     private IEnumerator AnimateCameraTransform(Camera cameraToMove, Transform targetTransform, float duration)
     {
         if (cameraToMove == null || !cameraToMove.enabled) yield break;
@@ -167,9 +176,12 @@ public class GameManager : MonoBehaviour
     // 심판 연출 
     private IEnumerator JudgmentSequence(RoundResult msg)
     {
-        // 카메라 전환 준비
-        topDownCamera.transform.position = firstPersonCamera.transform.position;
-        topDownCamera.transform.rotation = firstPersonCamera.transform.rotation;
+        // 카메라 전환
+        if (topDownCamera != null)
+        {
+            topDownCamera.transform.position = topDownStartPos;
+            topDownCamera.transform.rotation = topDownStartRot;
+        }
         SwitchCamera(topDownCamera);
 
         // 1. 줌인
@@ -192,6 +204,7 @@ public class GameManager : MonoBehaviour
         // 심판 이유 출력
         UIManager.Instance.DisplayJudgmentReason(msg.reason);
         yield return new WaitForSeconds(1.0f);
+
 
         // 옵저버 카메라로 전환
         SwitchCamera(observerCamera);
@@ -226,7 +239,7 @@ public class GameManager : MonoBehaviour
 
     public void UpdateVillageHP(int scoreChange)
     {
-        currentHP = Mathf.Clamp(currentHP + scoreChange, int.MinValue, 1000000);
+        currentHP = Mathf.Clamp(currentHP + scoreChange, int.MinValue, 10000);
 
         Debug.Log($"마을 HP가 {scoreChange}만큼 변경되었습니다. 현재 HP: {currentHP}");
 

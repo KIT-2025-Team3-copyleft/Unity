@@ -1,12 +1,11 @@
 using UnityEngine;
 using UnityEngine.EventSystems;
-
+using TMPro; 
 public class CardHoverHandler : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
 {
     public string targetSlotId;
-
     private UIManager uiManager;
-
+    private TMP_Text buttonText; 
 
     private void Awake()
     {
@@ -14,23 +13,22 @@ public class CardHoverHandler : MonoBehaviour, IPointerEnterHandler, IPointerExi
         {
             uiManager = UIManager.Instance;
         }
+        buttonText = GetComponentInChildren<TMP_Text>();
     }
 
-    // 마우스 포인터가 버튼 위에 들어왔을 때
     public void OnPointerEnter(PointerEventData eventData)
     {
-        if (uiManager != null && !string.IsNullOrEmpty(targetSlotId))
+        if (uiManager != null && !string.IsNullOrEmpty(targetSlotId) && buttonText != null)
         {
-            uiManager.HighlightSlot(targetSlotId, true);
+            uiManager.HighlightSlot(targetSlotId, true, buttonText.text);
         }
     }
 
-    // 마우스 포인터가 버튼에서 벗어났을 때
     public void OnPointerExit(PointerEventData eventData)
     {
         if (uiManager != null && !string.IsNullOrEmpty(targetSlotId))
         {
-            uiManager.HighlightSlot(targetSlotId, false);
+            uiManager.HighlightSlot(targetSlotId, false, "");
         }
     }
 }

@@ -68,7 +68,6 @@ public class RoundManager : MonoBehaviour
 
         GameManager.Instance.StartJudgmentSequence(msg);
 
-        // 5.History Panel 업데이트
         UIManager.Instance.AddHistoryItem(
            msg,
            currentRound,

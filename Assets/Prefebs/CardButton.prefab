@@ -188,8 +188,8 @@ MonoBehaviour:
       m_Calls: []
   m_text: Cards
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 69b4c6382e3351e4ca7b20ee5e7a55c3, type: 2}
-  m_sharedMaterial: {fileID: 2806189551461477825, guid: 69b4c6382e3351e4ca7b20ee5e7a55c3, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: fcb313d7878c87f46b48d9be5cc0dc9e, type: 2}
+  m_sharedMaterial: {fileID: 4602936894701910498, guid: fcb313d7878c87f46b48d9be5cc0dc9e, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []

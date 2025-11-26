@@ -17,6 +17,8 @@ public class UIManager : MonoBehaviour
         SetupHistoryPanel();
     }
 
+    private Dictionary<int, Color> defaultSlotColors = new Dictionary<int, Color>();
+
     [Header("Oracle & Role")]
     public GameObject oraclePanel;
     public TextMeshProUGUI oracleText;
@@ -31,9 +33,8 @@ public class UIManager : MonoBehaviour
     public RectTransform historyPanel;
     public Button historyToggleButton;
     public TextMeshProUGUI toggleButtonText;
-    public Transform historyContentParent;
+    public List<HistoryItem> HistoryItems;
 
-    public GameObject historyItemPrefab;
     private bool isHistoryOpen = false;
     private float closedYPosition;
     public float targetOpenedYPosition; 
@@ -41,9 +42,8 @@ public class UIManager : MonoBehaviour
 
     [Header("Card UI")]
     public GameObject cardSelectionPanel;
-    public GameObject cardButtonPrefab;
-    public Transform cardContainer;
-    private List<GameObject> cardButtons = new List<GameObject>();
+    public List<Button> cardButtons;
+    public List<TextMeshProUGUI> cardTexts;
 
     [Header("Sentence Slots")]
     public List<Image> playerSlotImages;
@@ -68,11 +68,7 @@ public class UIManager : MonoBehaviour
         {
             closedYPosition = historyPanel.anchoredPosition.y;
 
-            isHistoryOpen = true; 
-            historyPanel.anchoredPosition = new Vector2(
-                historyPanel.anchoredPosition.x,
-                targetOpenedYPosition
-            );
+            isHistoryOpen = false; 
         }
 
         if (historyToggleButton != null)
@@ -124,21 +120,23 @@ public class UIManager : MonoBehaviour
         }
     }
 
-    // 히스토리 기록 항목 추가 
     public void AddHistoryItem(RoundResult msg, int roundNumber, Dictionary<string, string> slotColors, List<string> finalWords)
     {
-        if (historyItemPrefab == null || historyContentParent == null)
+        // 0. 리스트 유효성 및 라운드 번호 확인
+        if (HistoryItems == null || HistoryItems.Count < roundNumber || roundNumber < 1)
         {
-            Debug.LogError("History Item Prefab 또는 Content Parent가 UIManager에 연결되지 않았습니다!");
+            Debug.LogError($"HistoryItem list is invalid or round number ({roundNumber}) is out of bounds.");
             return;
         }
 
-        GameObject newItem = Instantiate(historyItemPrefab, historyContentParent);
+        int targetIndex = roundNumber - 1;
 
-        HistoryItem historyItem = newItem.GetComponent<HistoryItem>();
+        HistoryItem historyItem = HistoryItems[targetIndex];
 
         if (historyItem != null)
         {
+            historyItem.gameObject.SetActive(true);
+
             historyItem.SetData(msg, slotColors, roundNumber, finalWords);
         }
     }
@@ -179,36 +177,38 @@ public class UIManager : MonoBehaviour
         traitorText.text = $"신의 페르소나: {godPersonality}";
     }
 
-    // 카드 선택 (카드 생성)
+
     public void SetupCardButtons(List<string> cards)
     {
-        // 1. 카드 선택 UI 팝업 활성화
         if (cardSelectionPanel != null)
         {
             cardSelectionPanel.SetActive(true);
         }
 
-        // 기존 버튼 제거 및 리스트 초기화
-        foreach (var btn in cardButtons) Destroy(btn);
-        cardButtons.Clear();
-
-        foreach (string card in cards)
+        for (int i = 0; i < cardButtons.Count; i++)
         {
-            string cardCopy = card;
-            GameObject newBtn = Instantiate(cardButtonPrefab, cardContainer);
+            Button button = cardButtons[i];
+            TextMeshProUGUI textComponent = cardTexts[i];
 
-            TextMeshProUGUI tmpText = newBtn.GetComponentInChildren<TextMeshProUGUI>();
-            if (tmpText != null)
+            if (i < cards.Count)
             {
-                tmpText.text = cardCopy;
+                string cardCopy = cards[i];
+
+                button.gameObject.SetActive(true); 
+                textComponent.text = cardCopy;    
+
+                button.onClick.RemoveAllListeners();
+                button.onClick.AddListener(() => GameManager.Instance.OnCardSelected(cardCopy));
+
+                CardHoverHandler hoverHandler = button.GetComponent<CardHoverHandler>();
+                if (hoverHandler == null) hoverHandler = button.gameObject.AddComponent<CardHoverHandler>();
+
+                hoverHandler.targetSlotId = GameManager.Instance.mySlot;
             }
-
-            cardButtons.Add(newBtn);
-
-            CardHoverHandler hoverHandler = newBtn.AddComponent<CardHoverHandler>();
-            hoverHandler.targetSlotId = GameManager.Instance.mySlot;
-
-            newBtn.GetComponent<Button>().onClick.AddListener(() => GameManager.Instance.OnCardSelected(cardCopy));
+            else
+            {
+                button.gameObject.SetActive(false);
+            }
         }
     }
 
@@ -236,32 +236,36 @@ public class UIManager : MonoBehaviour
         GameManager.Instance.OnCardSelected(card);
     }
 
-    public void HighlightSlot(string slotId, bool highlight)
+    public void HighlightSlot(string slotId, bool highlight, string hoveredWord) 
     {
-        // 슬롯 ID에서 인덱스 추출
         if (slotId.StartsWith("slot") && int.TryParse(slotId.Substring(4), out int slotIndex))
         {
             int index = slotIndex - 1;
 
-            if (index >= 0 && index < playerSlotImages.Count)
+            if (index >= 0 && index < playerSlotTexts.Count)
             {
-                Image slotImage = playerSlotImages[index];
+                TextMeshProUGUI slotText = playerSlotTexts[index];
 
-                Color baseColor = slotImage.color;
-                Color targetColor = baseColor;
+                if (!defaultSlotColors.ContainsKey(index))
+                {
+                    defaultSlotColors[index] = slotText.color;
+                }
 
+                
                 if (highlight)
                 {
-                    // 강조 색상 (알파 1.0f)
-                    targetColor = new Color(baseColor.r, baseColor.g, baseColor.b, 1f);
+                    slotText.color = Color.black; 
+                    slotText.text = hoveredWord;  
                 }
                 else
                 {
-                    // 기본 색상 (알파 0.5f)
-                    targetColor = new Color(baseColor.r, baseColor.g, baseColor.b, 0.5f);
-                }
+                    if (defaultSlotColors.ContainsKey(index))
+                    {
+                        slotText.color = defaultSlotColors[index];
+                    }
 
-                slotImage.color = targetColor;
+                    slotText.text = "";
+                }
             }
         }
     }
@@ -300,13 +304,13 @@ public class UIManager : MonoBehaviour
             historyToggleButton.gameObject.SetActive(isActive);
         }
 
-        // 채팅창 (여기로 옮겨야함)
+        // 채팅창 
         //if (chatWindowObject != null)
         //{
         //    chatWindowObject.SetActive(isActive);
         //}
 
-        // 단어 선택 창 띄우는 버튼 (여기로 옮겨야함)
+        // 단어 선택 창 띄우는 버튼 
 
         // 심판 제안 (여기로 옮겨야함)
         //if (trialButton != null)
