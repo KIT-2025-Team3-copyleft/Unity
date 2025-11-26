@@ -34,7 +34,7 @@ public class RoundManager : MonoBehaviour
     private IEnumerator StartCardSelection(List<string> cards, int selectionTime)
     {
         yield return new WaitForSeconds(2f);
-        UIManager.Instance.SetupCardButtons(cards); 
+        UIManager.Instance.SetupCardButtons(cards);
 
         StartCoroutine(
             UIManager.Instance.StartTimer(selectionTime, () => UIManager.Instance.AutoSelectRandomCard())
@@ -62,13 +62,17 @@ public class RoundManager : MonoBehaviour
     // 라운드 종료
     public void HandleRoundResult(RoundResult msg)
     {
-        GameManager.Instance.systemMessageText.text = $"신의 평가: {msg.finalSentence} (+{msg.scoreChange})";
-        UIManager.Instance.PlayVisualCue(msg.visualCue);
+        GameManager.Instance.systemMessageText.text = $"신의 심판: {msg.finalSentence} (HP {msg.scoreChange})";
 
-        UIManager.Instance.AddHistoryEntry(
-            msg.finalSentence,
-            currentRound,
-            msg.scoreChange // 이 값은 상승, 하락에 따라 1,0?
-            ); 
+        GameManager.Instance.UpdateVillageHP(msg.scoreChange);
+
+        GameManager.Instance.StartJudgmentSequence(msg);
+
+        UIManager.Instance.AddHistoryItem(
+           msg,
+           currentRound,
+           msg.slotColors,
+           msg.finalWords
+        );
     }
 }
