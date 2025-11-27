@@ -6,6 +6,19 @@ public class LobbyManager : MonoBehaviour
 {
     public static LobbyManager Instance;
 
+    public Room currentRoom;
+
+    public string mySessionId;
+    public int MyPlayerNumber { get; private set; }
+    public bool IsHost { get; private set; }
+
+    public event Action<Room> OnLobbyUpdated;
+    public event Action<int> OnGameStartTimer;
+    public event Action OnTimerCancelled;
+    public event Action<Room> OnLoadGameScene;
+    public event Action OnMySpawnReady;
+
+
     private void Awake()
     {
         if (Instance != null && Instance != this)
@@ -16,17 +29,19 @@ public class LobbyManager : MonoBehaviour
         Instance = this;
     }
 
-    public Room currentRoom;
-
-    public event Action<Room> OnLobbyUpdated;
-    public event Action<int> OnGameStartTimer;
-    public event Action OnTimerCancelled;
-    public event Action<Room> OnLoadGameScene;
-
     private void Start()
     {
         if (WebSocketManager.Instance != null)
             WebSocketManager.Instance.OnServerMessage += HandleServerMessage;
+    }
+    private void OnEnable()
+    {
+        OnMySpawnReady += SpawnMyPlayer;
+    }
+
+    private void OnDisable()
+    {
+        OnMySpawnReady -= SpawnMyPlayer;
     }
 
     private void OnDestroy()
@@ -34,9 +49,7 @@ public class LobbyManager : MonoBehaviour
         if (WebSocketManager.Instance != null)
             WebSocketManager.Instance.OnServerMessage -= HandleServerMessage;
     }
-    public string mySessionId; // WebSocket 연결 시 서버에서 받아온 세션ID
-    public int MyPlayerNumber { get; private set; } // 1,2,3,4
-    public bool IsHost { get; private set; }
+
     private void HandleServerMessage(string json)
     {
         BaseEvent baseEvent = JsonUtility.FromJson<BaseEvent>(json);
@@ -44,7 +57,7 @@ public class LobbyManager : MonoBehaviour
         switch (baseEvent.eventType)
         {
             case "LOBBY_UPDATE":
-                var lobbyEvent = JsonUtility.FromJson<LobbyUpdateEvent>(json);
+                LobbyUpdateEvent lobbyEvent = JsonUtility.FromJson<LobbyUpdateEvent>(json);
                 currentRoom = lobbyEvent.room;
                 UpdateMyPlayerNumber(currentRoom);
                 UpdatePlayerStatus();
@@ -70,25 +83,43 @@ public class LobbyManager : MonoBehaviour
 
     private void UpdatePlayerStatus()
     {
-        if (currentRoom == null || currentRoom.players == null) return;
+        if (currentRoom?.players == null) return;
 
-        // 플레이어 번호 (players 배열 index)
         for (int i = 0; i < currentRoom.players.Length; i++)
         {
-            if (currentRoom.players[i] == mySessionId)
+            if (currentRoom.players[i].sessionId == mySessionId)
             {
-                MyPlayerNumber = i + 1; // index 0 → Player1
+                MyPlayerNumber = i + 1;
                 break;
             }
         }
 
-        // 방장 여부 체크
         IsHost = (currentRoom.hostSessionId == mySessionId);
 
-        Debug.Log($"[Lobby] 내 Player 번호: {MyPlayerNumber}, 방장?: {IsHost}");
+        Debug.Log($"[Lobby] PlayerNum={MyPlayerNumber}, Host={IsHost}");
     }
 
-    // 방 나가기 요청
+    public void UpdateMyPlayerNumber(Room room)
+    {
+        if (room.players == null) return;
+
+        for (int i = 0; i < room.players.Length; i++)
+        {
+            if (room.players[i].sessionId == mySessionId)
+            {
+                MyPlayerNumber = i + 1;
+                Debug.Log($"[Lobby] I am Player {MyPlayerNumber}");
+                OnMySpawnReady?.Invoke();
+                return;
+            }
+        }
+    }
+   
+
+    public void NotifyLobbyUpdated(Room room)
+    {
+        OnLobbyUpdated?.Invoke(room);
+    }
     public void LeaveRoom()
     {
         if (WebSocketManager.Instance == null) return;
@@ -100,7 +131,6 @@ public class LobbyManager : MonoBehaviour
         UnityEngine.SceneManagement.SceneManager.LoadScene("LobbyScene");
     }
 
-    // 게임 시작 요청
     public void StartGame()
     {
         if (WebSocketManager.Instance == null) return;
@@ -110,78 +140,48 @@ public class LobbyManager : MonoBehaviour
         WebSocketManager.Instance.Send(json);
     }
 
-    public event Action OnMySpawnReady;
-
-    public void UpdateMyPlayerNumber(Room room)
+    private void SpawnMyPlayer()
     {
-        if (room.players == null) return;
+        if (SpawnManager.Instance == null || currentRoom == null) return;
 
-        for (int i = 0; i < room.players.Length; i++)
+        int index = MyPlayerNumber - 1;
+        Vector3 spawnPos = SpawnManager.Instance.GetSpawnPosition(index);
+
+        if (PlayerSpawnManager.Instance.GetPlayerObject(mySessionId) == null)
         {
-            if (room.players[i] == mySessionId)
-            {
-                MyPlayerNumber = i + 1; // 번호는 1부터
-                Debug.Log($"[LobbyManager] 나는 Player {MyPlayerNumber} 입니다.");
-                OnMySpawnReady?.Invoke();
-                return;
-            }
+            GameObject player = Instantiate(RoomManager.Instance.playerPrefab, spawnPos, Quaternion.identity);
+            PlayerSpawnManager.Instance.RegisterPlayer(mySessionId, player);
         }
+        else
+        {
+            GameObject player = PlayerSpawnManager.Instance.GetPlayerObject(mySessionId);
+            player.transform.position = spawnPos;
+        }
+
+        Debug.Log("SpawnManager.Instance: " + SpawnManager.Instance);
+        Debug.Log("PlayerSpawnManager.Instance: " + PlayerSpawnManager.Instance);
+        Debug.Log("currentRoom: " + currentRoom);
     }
+
 }
 
 [Serializable]
-public class LeaveRoomRequest
-{
-    public string action = "LEAVE_ROOM";
-}
+public class BaseEvent { public string eventType; }
 
 [Serializable]
-public class StartGameRequest
-{
-    public string action = "START_GAME";
-}
-
-// 서버 → 클라이언트 이벤트 DTO
-[Serializable]
-public class BaseEvent
-{
-    public string eventType;
-}
+public class LobbyUpdateEvent { public string eventType; public Room room; }
 
 [Serializable]
-public class LobbyUpdateEvent
-{
-    public string eventType;
-    public Room room;
-}
+public class GameStartTimerEvent { public string eventType; public int seconds; }
 
 [Serializable]
-public class GameStartTimerEvent
-{
-    public string eventType;
-    public int seconds;
-}
+public class TimerCancelledEvent { public string eventType; }
 
 [Serializable]
-public class TimerCancelledEvent
-{
-    public string eventType;
-}
+public class LoadGameSceneEvent { public string eventType; public Room room; }
 
 [Serializable]
-public class LoadGameSceneEvent
-{
-    public string eventType;
-    public Room room;
-}
+public class LeaveRoomRequest { public string action = "LEAVE_ROOM"; }
 
-// Room DTO
 [Serializable]
-public class Room
-{
-    public string roomId;
-    public string roomTitle;
-    public string hostSessionId;
-    public string[] players;
-    public string status;
-}
+public class StartGameRequest { public string action = "START_GAME"; }

@@ -8,17 +8,17 @@ public class GetRoomId : MonoBehaviour
     void Start()
     {
         // RoomManager에서 roomId 가져오기
-        string roomId = RoomManager.Instance.CurrentRoomId;
+        string roomCode = RoomManager.Instance.CurrentRoomCode;
 
-        if (string.IsNullOrEmpty(roomId))
+        if (string.IsNullOrEmpty(roomCode))
         {
             roomIdText.text = "방 ID: 없음";
             Debug.LogWarning("RoomID가 비어 있음. 아직 서버에서 못 받은 상태?");
         }
         else
         {
-            roomIdText.text = roomId;
-            Debug.Log("로비에 진입 — 현재 방 ID: " + roomId);
+            roomIdText.text = roomCode;
+            Debug.Log("로비에 진입 — 현재 방 ID: " + roomCode);
         }
     }
 }
