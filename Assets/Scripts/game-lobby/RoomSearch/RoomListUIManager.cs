@@ -6,19 +6,21 @@ public class RoomListUIManager : MonoBehaviour
 {
     public GameObject roomItemPrefab;
     public Transform content;
-
+    private bool IsDestroyed(UnityEngine.Object obj)
+    {
+        return obj == null || obj.Equals(null);
+    }
     private void OnEnable()
     {
-        if (RoomManager.Instance != null)
+        if (!IsDestroyed(RoomManager.Instance))
             RoomManager.Instance.OnRoomListUpdated += UpdateRoomList;
     }
 
     private void OnDisable()
     {
-        if (RoomManager.Instance != null)
+        if (!IsDestroyed(RoomManager.Instance))
             RoomManager.Instance.OnRoomListUpdated -= UpdateRoomList;
     }
-
     void Start()
     {
         if (WebSocketManager.Instance != null)

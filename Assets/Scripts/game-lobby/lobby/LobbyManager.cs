@@ -1,187 +1,70 @@
+﻿using System;
 using UnityEngine;
-using System;
-using static RoomManager;
 
 public class LobbyManager : MonoBehaviour
 {
     public static LobbyManager Instance;
 
-    public Room currentRoom;
-
-    public string mySessionId;
-    public int MyPlayerNumber { get; private set; }
+    [Header("현재 방 정보")]
+    public RoomManager.Room CurrentRoom { get; private set; }
     public bool IsHost { get; private set; }
 
-    public event Action<Room> OnLobbyUpdated;
-    public event Action<int> OnGameStartTimer;
-    public event Action OnTimerCancelled;
-    public event Action<Room> OnLoadGameScene;
-    public event Action OnMySpawnReady;
+    public string MySessionId => WebSocketManager.Instance.ClientSessionId;
 
+    // 🔹 이벤트: UI, SpawnManager, HostUI에서 구독
+    public event Action<RoomManager.Room> OnLobbyUpdated;
+    public event Action<bool> OnHostChanged;
 
     private void Awake()
     {
-        if (Instance != null && Instance != this)
+        if (Instance == null)
+        {
+            Instance = this;
+            DontDestroyOnLoad(gameObject);
+            Debug.Log("[LobbyManager] Awake: Instance set");
+        }
+        else
         {
             Destroy(gameObject);
-            return;
+            Debug.Log("[LobbyManager] Awake: Duplicate destroyed");
         }
-        Instance = this;
     }
 
-    private void Start()
-    {
-        if (WebSocketManager.Instance != null)
-            WebSocketManager.Instance.OnServerMessage += HandleServerMessage;
-    }
     private void OnEnable()
     {
-        OnMySpawnReady += SpawnMyPlayer;
+        if (RoomManager.Instance != null)
+        {
+            RoomManager.Instance.OnLobbyUpdated += HandleLobby;
+            HandleLobby(RoomManager.Instance.CurrentRoom);
+            Debug.Log("[LobbyManager] OnEnable: Subscribed to RoomManager.OnLobbyUpdated");
+        }
     }
 
     private void OnDisable()
     {
-        OnMySpawnReady -= SpawnMyPlayer;
-    }
-
-    private void OnDestroy()
-    {
-        if (WebSocketManager.Instance != null)
-            WebSocketManager.Instance.OnServerMessage -= HandleServerMessage;
-    }
-
-    private void HandleServerMessage(string json)
-    {
-        BaseEvent baseEvent = JsonUtility.FromJson<BaseEvent>(json);
-
-        switch (baseEvent.eventType)
+        if (RoomManager.Instance != null)
         {
-            case "LOBBY_UPDATE":
-                LobbyUpdateEvent lobbyEvent = JsonUtility.FromJson<LobbyUpdateEvent>(json);
-                currentRoom = lobbyEvent.room;
-                UpdateMyPlayerNumber(currentRoom);
-                UpdatePlayerStatus();
-                OnLobbyUpdated?.Invoke(currentRoom);
-                break;
-
-            case "GAME_START_TIMER":
-                GameStartTimerEvent timerEvent = JsonUtility.FromJson<GameStartTimerEvent>(json);
-                OnGameStartTimer?.Invoke(timerEvent.seconds);
-                break;
-
-            case "TIMER_CANCELLED":
-                OnTimerCancelled?.Invoke();
-                break;
-
-            case "LOAD_GAME_SCENE":
-                LoadGameSceneEvent loadEvent = JsonUtility.FromJson<LoadGameSceneEvent>(json);
-                currentRoom = loadEvent.room;
-                OnLoadGameScene?.Invoke(currentRoom);
-                break;
+            RoomManager.Instance.OnLobbyUpdated -= HandleLobby;
+            Debug.Log("[LobbyManager] OnDisable: Unsubscribed from RoomManager.OnLobbyUpdated");
         }
     }
 
-    private void UpdatePlayerStatus()
+    // 🔹 서버에서 받은 LOBBY_UPDATE를 모든 구독자에게 전달
+    private void HandleLobby(RoomManager.Room room)
     {
-        if (currentRoom?.players == null) return;
-
-        for (int i = 0; i < currentRoom.players.Length; i++)
+        if (room == null)
         {
-            if (currentRoom.players[i].sessionId == mySessionId)
-            {
-                MyPlayerNumber = i + 1;
-                break;
-            }
+            Debug.Log("[LobbyManager] HandleLobby: Room is null");
+            return;
         }
 
-        IsHost = (currentRoom.hostSessionId == mySessionId);
+        CurrentRoom = room;
+        IsHost = (CurrentRoom.hostSessionId == MySessionId);
 
-        Debug.Log($"[Lobby] PlayerNum={MyPlayerNumber}, Host={IsHost}");
-    }
+        Debug.Log($"[LobbyManager] HandleLobby: RoomId={CurrentRoom.roomId}, Players={CurrentRoom.players.Length}, IsHost={IsHost}");
 
-    public void UpdateMyPlayerNumber(Room room)
-    {
-        if (room.players == null) return;
-
-        for (int i = 0; i < room.players.Length; i++)
-        {
-            if (room.players[i].sessionId == mySessionId)
-            {
-                MyPlayerNumber = i + 1;
-                Debug.Log($"[Lobby] I am Player {MyPlayerNumber}");
-                OnMySpawnReady?.Invoke();
-                return;
-            }
-        }
-    }
-   
-
-    public void NotifyLobbyUpdated(Room room)
-    {
+        OnHostChanged?.Invoke(IsHost);
         OnLobbyUpdated?.Invoke(room);
-    }
-    public void LeaveRoom()
-    {
-        if (WebSocketManager.Instance == null) return;
-
-        LeaveRoomRequest dto = new LeaveRoomRequest();
-        string json = JsonUtility.ToJson(dto);
-        WebSocketManager.Instance.Send(json);
-
-        UnityEngine.SceneManagement.SceneManager.LoadScene("LobbyScene");
-    }
-
-    public void StartGame()
-    {
-        if (WebSocketManager.Instance == null) return;
-
-        StartGameRequest dto = new StartGameRequest();
-        string json = JsonUtility.ToJson(dto);
-        WebSocketManager.Instance.Send(json);
-    }
-
-    private void SpawnMyPlayer()
-    {
-        if (SpawnManager.Instance == null || currentRoom == null) return;
-
-        int index = MyPlayerNumber - 1;
-        Vector3 spawnPos = SpawnManager.Instance.GetSpawnPosition(index);
-
-        if (PlayerSpawnManager.Instance.GetPlayerObject(mySessionId) == null)
-        {
-            GameObject player = Instantiate(RoomManager.Instance.playerPrefab, spawnPos, Quaternion.identity);
-            PlayerSpawnManager.Instance.RegisterPlayer(mySessionId, player);
-        }
-        else
-        {
-            GameObject player = PlayerSpawnManager.Instance.GetPlayerObject(mySessionId);
-            player.transform.position = spawnPos;
-        }
-
-        Debug.Log("SpawnManager.Instance: " + SpawnManager.Instance);
-        Debug.Log("PlayerSpawnManager.Instance: " + PlayerSpawnManager.Instance);
-        Debug.Log("currentRoom: " + currentRoom);
     }
 
 }
-
-[Serializable]
-public class BaseEvent { public string eventType; }
-
-[Serializable]
-public class LobbyUpdateEvent { public string eventType; public Room room; }
-
-[Serializable]
-public class GameStartTimerEvent { public string eventType; public int seconds; }
-
-[Serializable]
-public class TimerCancelledEvent { public string eventType; }
-
-[Serializable]
-public class LoadGameSceneEvent { public string eventType; public Room room; }
-
-[Serializable]
-public class LeaveRoomRequest { public string action = "LEAVE_ROOM"; }
-
-[Serializable]
-public class StartGameRequest { public string action = "START_GAME"; }

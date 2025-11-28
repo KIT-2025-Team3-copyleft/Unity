@@ -122,31 +122,67 @@ public class WebSocketManager : MonoBehaviour
     {
         if (string.IsNullOrEmpty(json)) return;
 
-        // ★ 서버가 CONNECTED 이벤트로 내려주는 경우 처리
-        if (json.Contains("\"sessionId\""))
+        // 1) CONNECTED 같은 메시지에서 sessionId 바로 오는 경우
+        if (json.Contains("\"sessionId\"") && json.Contains("\"event\":\"CONNECTED\""))
         {
-            // JSON 안에 "sessionId":"xxxx" 있으면 파싱
             try
             {
-                SessionWrapper wrapper =
-                    JsonUtility.FromJson<SessionWrapper>(json);
-
-                if (!string.IsNullOrEmpty(wrapper.sessionId))
+                SessionDirect direct = JsonUtility.FromJson<SessionDirect>(json);
+                if (!string.IsNullOrEmpty(direct.sessionId))
                 {
-                    ClientSessionId = wrapper.sessionId;
-                    Debug.Log("[WS] 세션 ID 저장됨 : " + ClientSessionId);
+                    ClientSessionId = direct.sessionId;
+                    Debug.Log("[WS] sessionId 저장됨 (CONNECTED): " + ClientSessionId);
+                    return;
                 }
             }
-            catch
+            catch { }
+        }
+
+        // 2) JOIN_SUCCESS 또는 LOBBY_UPDATE 안 players[] 에서 sessionId 찾기
+        if (json.Contains("\"players\""))
+        {
+            try
             {
-                // 무시 (JsonUtility는 배열/중첩구조에서 실패할 수 있음)
+                JoinSessionExtractor wrapper = JsonUtility.FromJson<JoinSessionExtractor>(json);
+                if (wrapper != null && wrapper.data != null && wrapper.data.players != null)
+                {
+                    foreach (var p in wrapper.data.players)
+                    {
+                        if (!string.IsNullOrEmpty(p.sessionId))
+                        {
+                            ClientSessionId = p.sessionId;
+                            Debug.Log("[WS] sessionId 저장됨 (players 배열): " + ClientSessionId);
+                            return;
+                        }
+                    }
+                }
             }
+            catch { }
         }
     }
 
     [Serializable]
-    private class SessionWrapper
+    private class SessionDirect
     {
         public string sessionId;
     }
+
+    [Serializable]
+    private class JoinSessionExtractor
+    {
+        public JoinData data;
+
+        [Serializable]
+        public class JoinData
+        {
+            public Player[] players;
+        }
+
+        [Serializable]
+        public class Player
+        {
+            public string sessionId;
+        }
+    }
+
 }

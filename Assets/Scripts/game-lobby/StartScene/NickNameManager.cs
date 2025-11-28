@@ -147,9 +147,12 @@ public class NickNameManager : MonoBehaviour
 
         Debug.Log("[NickNameManager] 닉네임 성공 처리: " + nickname);
 
-        // RoomManager 유무 확인 로직은 유지
-        if (RoomManager.Instance != null)
-            Debug.Log("[NickNameManager] RoomManager에 닉네임 전달됨: " + nickname);
+        // 닉네임만 처리하면 NickNameManager 는 더 이상 서버 이벤트를 받을 필요 없음
+        if (WebSocketManager.Instance != null)
+        {
+            WebSocketManager.Instance.OnServerMessage -= HandleEvent;
+            Debug.Log("[NickNameManager] 닉네임 설정 완료 → WebSocket 구독 해제");
+        }
 
         OnNicknameSuccess?.Invoke(nickname);
     }

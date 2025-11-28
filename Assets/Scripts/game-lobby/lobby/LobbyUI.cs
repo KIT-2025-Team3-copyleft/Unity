@@ -1,36 +1,68 @@
-using UnityEngine;
+Ôªøusing UnityEngine;
 using TMPro;
-using Room = RoomManager.Room;
-
+using System.Collections;
+using System.Linq;
 
 public class LobbyUI : MonoBehaviour
 {
     [SerializeField] private GameObject startButton;
     [SerializeField] private TMP_Text playerCountText;
+    [SerializeField] private Transform playerListContainer;
+    [SerializeField] private GameObject playerListItemPrefab;
 
     private void Start()
     {
-        // Ω√¿€ πˆ∆∞ »∞º∫»≠¥¬ IsHost ±‚¡ÿ
-        if (LobbyManager.Instance != null)
-            startButton.SetActive(LobbyManager.Instance.IsHost);
+        StartCoroutine(SubscribeRoomManager());
+    }
 
-        // LobbyManager¿« ¿Ã∫•∆Æ ±∏µ∂
-        LobbyManager.Instance.OnLobbyUpdated += HandleLobbyUpdate;
+    private IEnumerator SubscribeRoomManager()
+    {
+        while (RoomManager.Instance == null)
+            yield return null;
+
+        RoomManager.Instance.OnLobbyUpdated += UpdateLobbyUI;
+        Debug.Log("[LobbyUI] Subscribed to RoomManager.OnLobbyUpdated");
+
+        if (RoomManager.Instance.CurrentRoom != null)
+            UpdateLobbyUI(RoomManager.Instance.CurrentRoom);
     }
 
     private void OnDestroy()
     {
-        if (LobbyManager.Instance != null)
-            LobbyManager.Instance.OnLobbyUpdated -= HandleLobbyUpdate;
+        if (RoomManager.Instance != null)
+            RoomManager.Instance.OnLobbyUpdated -= UpdateLobbyUI;
     }
 
-    private void HandleLobbyUpdate(Room room)
+    private void UpdateHostButton(bool isHost)
     {
-        // «√∑π¿ÃæÓ ºˆ æ˜µ•¿Ã∆Æ
-        if (room.players != null)
-            playerCountText.text = $"{room.players.Length}/4";
+        if (startButton != null)
+            startButton.SetActive(isHost);
+    }
 
-        // πÊ¿Â¿Ã πŸ≤Óæ˙¿ª ºˆµµ ¿÷¿∏¥œ ¥ŸΩ√ ∞ªΩ≈
-        startButton.SetActive(LobbyManager.Instance.IsHost);
+    private void UpdateLobbyUI(RoomManager.Room room)
+    {
+        if (room == null || room.players == null) return;
+
+        Debug.Log($"[LobbyUI] Updating UI, Players={room.players.Length}");
+
+        // ÌîåÎ†àÏù¥Ïñ¥ Ïàò UI
+        playerCountText.text = $"{room.players.Length}/4";
+
+        // Í∏∞Ï°¥ Î¶¨Ïä§Ìä∏ ÏÇ≠Ï†ú
+        foreach (Transform child in playerListContainer)
+            Destroy(child.gameObject);
+
+        // ÌîåÎ†àÏù¥Ïñ¥ Î™©Î°ù ÏÉùÏÑ±
+        foreach (var p in room.players)
+        {
+            var obj = Instantiate(playerListItemPrefab, playerListContainer);
+            var text = obj.GetComponent<TMP_Text>();
+            if (text != null)
+                text.text = $"{p.nickname}" + (p.host ? " (Host)" : "");
+        }
+
+        // Ìò∏Ïä§Ìä∏ Î≤ÑÌäº Í∞±Ïã† (Î°úÏª¨ ÏÑ∏ÏÖò Í∏∞Ï§Ä)
+        bool isLocalHost = room.players.Any(p => p.sessionId == WebSocketManager.Instance.ClientSessionId && p.host);
+        UpdateHostButton(isLocalHost);
     }
 }
