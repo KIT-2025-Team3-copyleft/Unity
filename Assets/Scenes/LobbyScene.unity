@@ -987,10 +987,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerSpawnManager
   spawnPoints:
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
+  - {fileID: 2015156934}
+  - {fileID: 467821565}
+  - {fileID: 1477850635}
+  - {fileID: 919032050}
 --- !u!4 &478458985
 Transform:
   m_ObjectHideFlags: 0
@@ -1363,16 +1363,25 @@ MonoBehaviour:
   currentRoom:
     roomId: 
     roomCode: 
-    roomTitle: 
-    status: 
     hostSessionId: 
-    players: []
-    current_hp: 0
-    current_round: 0
-    god_personality: 
-    is_voting_disabled: 0
-    currentPhase: 
-    createdAt: 
+    players:
+    - sessionId: 
+      nickname: 
+      color: 
+      host: 0
+    - sessionId: 
+      nickname: 
+      color: 
+      host: 0
+    - sessionId: 
+      nickname: 
+      color: 
+      host: 0
+    - sessionId: 
+      nickname: 
+      color: 
+      host: 0
+    status: 
   mySessionId: 
 --- !u!1001 &919032049
 PrefabInstance:
