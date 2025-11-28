@@ -1,5 +1,7 @@
 using UnityEngine;
 using TMPro;
+using Room = RoomManager.Room;
+
 
 public class LobbyUI : MonoBehaviour
 {

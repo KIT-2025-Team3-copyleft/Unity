@@ -5,7 +5,7 @@ public class SafeSpawnHandler : MonoBehaviour
     public static SafeSpawnHandler Instance;
     public int MyPlayerNumber;        // 1부터 시작
     public string mySessionId;
-    public Room currentRoom;
+    public RoomManager.Room currentRoom;
 
     public delegate void SpawnReady();
     public static event SpawnReady OnMySpawnReady;

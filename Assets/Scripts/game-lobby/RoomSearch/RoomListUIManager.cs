@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+Ôªøusing System.Collections.Generic;
 using UnityEngine;
 using TMPro;
 
@@ -9,7 +9,6 @@ public class RoomListUIManager : MonoBehaviour
 
     private void OnEnable()
     {
-        // RoomManager ¿Ã∫•∆Æ ±∏µ∂
         if (RoomManager.Instance != null)
             RoomManager.Instance.OnRoomListUpdated += UpdateRoomList;
     }
@@ -22,7 +21,6 @@ public class RoomListUIManager : MonoBehaviour
 
     void Start()
     {
-        // WebSocket ø¨∞·µ«∏È ¿⁄µø¿∏∑Œ πÊ ∏Ò∑œ ø‰√ª
         if (WebSocketManager.Instance != null)
         {
             WebSocketManager.Instance.OnConnected += OnWebSocketConnected;
@@ -34,8 +32,7 @@ public class RoomListUIManager : MonoBehaviour
 
     private void OnWebSocketConnected()
     {
-        Debug.Log("[RoomListUIManager] WebSocket connected °Ê πÊ ∏Ò∑œ ø‰√ª");
-
+        Debug.Log("[RoomListUIManager] WebSocket connected ‚Üí Î∞© Î™©Î°ù ÏöîÏ≤≠");
         RequestRefresh();
     }
 
@@ -51,19 +48,30 @@ public class RoomListUIManager : MonoBehaviour
         }
     }
 
-    private void UpdateRoomList(List<string> rooms)
+    private void UpdateRoomList(List<RoomManager.Room> rooms)
     {
-        // ±‚¡∏ «◊∏Ò ¡¶∞≈
+        // Í∏∞Ï°¥ UI ÏÇ≠Ï†ú
         foreach (Transform child in content)
             Destroy(child.gameObject);
 
-        // ªı∑ŒøÓ «◊∏Ò ª˝º∫
-        foreach (string room in rooms)
+        if (rooms == null)
+        {
+            Debug.Log("[RoomListUIManager] rooms is null");
+            return;
+        }
+
+        // UI ÏÉùÏÑ±
+        foreach (var room in rooms)
         {
             var obj = Instantiate(roomItemPrefab, content);
             var txt = obj.GetComponentInChildren<TMP_Text>();
+
             if (txt != null)
-                txt.text = room;
+            {
+                int playerCount = room.players != null ? room.players.Length : 0;
+
+                txt.text = $"{room.roomCode} - {playerCount}Î™Ö Ï∞∏Ïó¨ Ï§ë";
+            }
         }
     }
 

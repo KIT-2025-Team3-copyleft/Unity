@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using ExitGames.Client.Photon;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -9,15 +8,19 @@ public class RoomManager : MonoBehaviour
 {
     public static RoomManager Instance;
 
-    private string currentRoomId;
-    private string currentRoomCode;            // 추가: roomCode 보관
-    public string CurrentRoomId => currentRoomId;
-    public string CurrentRoomCode => currentRoomCode; // 추가: 외부에서 접근 가능
+    public GameObject playerPrefab;
+
+    private Room room;
+
+    public event Action<List<Room>> OnRoomListUpdated;
+    // 🔹 현재 접속한 방 정보
+    public string CurrentRoomId { get; private set; }
+    public string CurrentRoomCode { get; private set; }
     public bool IsHost { get; private set; }
 
-    public GameObject playerPrefab;
-    public string myPlayerId; 
-    public List<PlayerInfo> playersInRoom = new List<PlayerInfo>();
+    // 🔹 JOIN 결과 이벤트
+    public event Action<bool> OnJoinResult;
+
     void Awake()
     {
         if (Instance != null && Instance != this)
@@ -25,146 +28,141 @@ public class RoomManager : MonoBehaviour
             Destroy(gameObject);
             return;
         }
+
         Instance = this;
         DontDestroyOnLoad(gameObject);
-        StartCoroutine(RegisterWebSocketEvent());
     }
 
-    IEnumerator RegisterWebSocketEvent()
+    void Start()
+    {
+        StartCoroutine(RegisterWebSocket());
+    }
+
+    // 🔹 WebSocket 준비되면 메세지 등록
+    IEnumerator RegisterWebSocket()
     {
         while (WebSocketManager.Instance == null)
             yield return null;
 
-        // 중복 구독 방지
         WebSocketManager.Instance.OnServerMessage -= Handle;
         WebSocketManager.Instance.OnServerMessage += Handle;
-
-        Debug.Log("[RoomManager] WebSocket 이벤트 구독 완료");
     }
 
-    void OnEnable()
-    {
-        if (WebSocketManager.Instance != null)
-            WebSocketManager.Instance.OnServerMessage += Handle;
-    }
-
-    void OnDisable()
-    {
-        if (WebSocketManager.Instance != null)
-            WebSocketManager.Instance.OnServerMessage -= Handle;
-    }
-
-    // ================================
-    // 서버 메시지 처리
-    // ================================
+    // 🔹 서버 메세지 처리
     void Handle(string json)
     {
-        Debug.Log("[RoomManager] Handle : " + json);
-        BaseEvent baseMsg;
+        BaseEvent b;
+        try { b = JsonUtility.FromJson<BaseEvent>(json); }
+        catch { return; }
 
-        try
-        {
-            baseMsg = JsonUtility.FromJson<BaseEvent>(json);
-        }
-        catch
-        {
-            return; // action/event 존재 안하면 무시
-        }
+        if (b == null || string.IsNullOrEmpty(b.@event))
+            return;
 
-        if (baseMsg == null) return;
-
-        switch (baseMsg.@event)
+        switch (b.@event)
         {
             case "JOIN_SUCCESS":
-                var join = JsonUtility.FromJson<JoinSuccessEvent>(json);
-
-                // 기존 roomId 저장
-                currentRoomId = join.room.roomId;
-                PlayerPrefs.SetString("RoomID", currentRoomId);
-
-                // 추가: roomCode 저장 (UI에 띄울 때 사용)
-                currentRoomCode = join.room.roomCode;
-                PlayerPrefs.SetString("RoomCode", currentRoomCode);
-
-                PlayerPrefs.Save();
-
-                // host 여부 판단 (기존 코드 유지)
-                IsHost = false;
-                if (join.room.players != null)
-                {
-                    foreach (var p in join.room.players)
-                    {
-                        if (p.host)
-                        {
-                            IsHost = true;
-                            break;
-                        }
-                    }
-                }
-
-                Debug.Log($"[RoomManager] JOIN_SUCCESS roomCode={currentRoomCode} IsHost={IsHost}");
-
-                OnJoinResult?.Invoke(true);
-                SceneManager.LoadScene("LobbyScene");
-                break;
-
-                Debug.Log("[RoomManager] IsHost = " + IsHost);
-
-                OnJoinResult?.Invoke(true);
-                SceneManager.LoadScene("LobbyScene");
+                HandleJoinSuccess(json);
                 break;
 
             case "LOBBY_UPDATE":
-                var update = JsonUtility.FromJson<LobbyUpdateEvent>(json);
-                LobbyManager.Instance?.NotifyLobbyUpdated(update.room);                
+                HandleLobbyUpdate(json);
                 break;
 
             case "JOIN_FAILED":
-                var failed = JsonUtility.FromJson<JoinFailedEvent>(json);
-                // 메시지 표시
-                UnityMainThreadDispatcher.EnqueueOnMainThread(() => {
-                    RoomJoin.Instance.ShowMessage(failed.message);
-                    // 필요하면 UI 전환도 여기서
-                    RoomJoin.Instance.ShowMessage(failed.message);  // RoomJoin 화면 열기
-                });
-                OnJoinResult?.Invoke(false);
+                HandleJoinFailed(json);
                 break;
 
             case "LEAVE_SUCCESS":
-                var leave = JsonUtility.FromJson<LeaveSuccessEvent>(json);
-
-                Debug.Log("▶ 방 나가기 성공 (서버 응답): " + leave.message);
-
-                // 씬 전환은 이미 ExitRoom에서 처리하므로 여기서는 생략
+                HandleLeave(json);
                 break;
         }
-
-
     }
 
-    // ================================
-    // Unity → 서버 요청
-    // ================================
+    // -----------------------------
+    // 🔥 이벤트 처리
+    // -----------------------------
+
+    void HandleJoinSuccess(string json)
+    {
+        var join = JsonUtility.FromJson<JoinSuccessEvent>(json);
+
+        CurrentRoomId = join.data.roomId;
+        CurrentRoomCode = join.data.roomCode;
+
+        PlayerPrefs.SetString("RoomID", CurrentRoomId);
+        PlayerPrefs.SetString("RoomCode", CurrentRoomCode);
+        PlayerPrefs.Save();
+
+        // 🔹 players 배열에서 자기 세션 ID 찾기
+        string mySessionId = WebSocketManager.Instance.ClientSessionId;
+
+        foreach (var player in join.data.players)
+        {
+            Debug.Log($"Player {player.nickname}, sessionId={player.sessionId}, host={player.host}");
+
+            IsHost = player.host;
+            break;
+        }
+        
+
+        Debug.Log($"[JOIN_SUCCESS] roomCode={CurrentRoomCode}, isHost={IsHost}");
+
+        OnJoinResult?.Invoke(true);
+
+        SceneManager.LoadScene("LobbyScene");
+    }
+
+    void HandleLobbyUpdate(string json)
+    {
+        var lobby = JsonUtility.FromJson<LobbyUpdateEvent>(json);
+
+        if (lobby == null || lobby.data == null)
+        {
+            Debug.LogError("LobbyUpdateEvent parsing failed: data is null");
+            return;
+        }
+
+        LobbyManager.Instance?.NotifyLobbyUpdated(lobby.data);
+    }
+
+    void HandleJoinFailed(string json)
+    {
+        var fail = JsonUtility.FromJson<JoinFailedEvent>(json);
+
+        UnityMainThreadDispatcher.EnqueueOnMainThread(() =>
+        {
+            RoomJoin.Instance.ShowMessage(fail.message);
+        });
+
+        OnJoinResult?.Invoke(false);
+    }
+
+    void HandleLeave(string json)
+    {
+        var leave = JsonUtility.FromJson<LeaveSuccessEvent>(json);
+        Debug.Log("[LEAVE] " + leave.message);
+    }
+
+    // -----------------------------
+    // 🔥 요청 함수
+    // -----------------------------
+
     public void RequestQuickJoin()
     {
-        string json = "{ \"action\": \"QUICK_JOIN\" }";
-        Debug.Log("[SEND] " + json);
-        WebSocketManager.Instance.Send(json);
+        SendAction("QUICK_JOIN");
     }
 
     public void RequestCreateRoom()
     {
-        string json = "{ \"action\": \"CREATE_ROOM\" }";
-        Debug.Log("[SEND] " + json);
-        WebSocketManager.Instance.Send(json);
+        SendAction("CREATE_ROOM");
     }
 
-    public void JoinRoom(string roomCode)
+    public void JoinRoom(string code)
     {
         var payload = new Dictionary<string, object>
         {
-            { "roomCode", roomCode },
-            { "nickname", PlayerPrefs.GetString("PlayerNickname", "Guest") } // payload 추가 예시
+            { "roomCode", code },
+            { "nickname", PlayerPrefs.GetString("PlayerNickname", "Guest") }
         };
 
         var data = new Dictionary<string, object>
@@ -174,35 +172,65 @@ public class RoomManager : MonoBehaviour
         };
 
         string json = MiniJSON.Json.Serialize(data);
-        Debug.Log("[SEND] " + json);
         WebSocketManager.Instance.Send(json);
     }
 
-    // ================================
-    // JSON 구조체 정의
-    // ================================
-    [Serializable]
-    public class LeaveSuccessEvent : BaseEvent
+    void SendAction(string action)
     {
-        public string message;
+        string json = "{ \"action\": \"" + action + "\" }";
+        WebSocketManager.Instance.Send(json);
     }
+
+    // -----------------------------
+    // 🔥 JSON 구조체들
+    // -----------------------------
 
     [Serializable]
     public class BaseEvent
     {
-        public string @event; // event 이름
+        public string @event;
     }
 
     [Serializable]
     public class JoinSuccessEvent : BaseEvent
     {
-        public Room room;
+        public string message;
+        public JoinSuccessData data;
+    }
+
+    [Serializable]
+    public class JoinSuccessData
+    {
+        public string roomTitle;
+        public string roomId;
+        public string roomCode;
+        public string hostSessionId;
+        public PlayerData[] players;
+    }
+
+    [Serializable]
+    public class PlayerData
+    {
+        public string sessionId;
+        public string nickname;
+        public string color;
+        public bool host;
     }
 
     [Serializable]
     public class LobbyUpdateEvent : BaseEvent
     {
-        public Room room;
+        public Room data;
+    }
+
+    [Serializable]
+    public class Room
+    {
+        public string roomId;
+        public string roomCode;
+        public string hostSessionId;
+        public PlayerData[] players;
+        public string status;
     }
 
     [Serializable]
@@ -212,13 +240,9 @@ public class RoomManager : MonoBehaviour
         public string message;
     }
 
-
     [Serializable]
-    public class PlayerInfo
+    public class LeaveSuccessEvent : BaseEvent
     {
-        public string id; public string nickname; public bool host;
+        public string message;
     }
-
-    public event Action<List<string>> OnRoomListUpdated;
-    public event Action<bool> OnJoinResult;
 }
