@@ -180,6 +180,7 @@ public class PlayerSpawnManager : MonoBehaviour
         Debug.LogWarning("❌ ReTryFindSpawnRoot: SpawnRoot를 찾지 못함 (타임아웃)");
     }
     #endregion
+   
 
     private void OnLobbyUpdated(RoomManager.Room room)
     {
@@ -197,6 +198,8 @@ public class PlayerSpawnManager : MonoBehaviour
 
         // SpawnPoints 최신화 시도 (없으면 ReTry 코루틴이 동작함)
         RefreshSpawnPoints();
+
+        StartCoroutine(SpawnPlayersAndUpdateUI(room));
 
         // spawnPoints 배열 자체에 Destroy된 Transform이 들어있을 수 있음 -> 필터링해서 로컬 복사
         var localSpawnPoints = spawnPoints?.Where(t => t != null).ToArray() ?? new Transform[0];
@@ -401,9 +404,97 @@ public class PlayerSpawnManager : MonoBehaviour
             }
         }
 
+        if (playerPrefabs.Length == 0)
+        {
+            Debug.LogError("❌ playerPrefabs 배열이 비어있습니다.");
+            return;
+        }
+
+        if (spawnPoints.Length == 0)
+        {
+            Debug.LogError("❌ spawnPoints 배열이 비어있습니다.");
+            return;
+        }
 
         Debug.Log("▶ OnLobbyUpdated() 종료");
 
 
     }
+
+    private IEnumerator SpawnPlayersAndUpdateUI(RoomManager.Room room)
+    {
+        // 플레이어 스폰
+        PlayerSpawnManager.Instance.SpawnPlayers(room);
+
+        // 스폰 완료까지 대기 (잠시 동안 스폰 상태를 확인)
+        yield return new WaitForSeconds(1f); // 혹은 SpawnPlayers 완료를 기다리는 다른 조건
+
+        // UI 업데이트는 스폰 후에 실행
+        Debug.Log("[PlayerSpawnManager] UI 업데이트는 자동으로 처리됩니다.");
+    }
+
+    private bool playersSpawned = false;
+    public void SpawnPlayers(RoomManager.Room room)
+    {
+        if (room == null || room.players == null || room.players.Length == 0)
+        {
+            Debug.LogError("❌ SpawnPlayers failed: No players found in room.");
+            return;
+        }
+
+        // 이미 플레이어가 스폰되었으면 다시 스폰하지 않음
+        if (playersSpawned)
+        {
+            Debug.Log("Players have already been spawned.");
+            return;
+        }
+
+        for (int i = 0; i < room.players.Length; i++)
+        {
+            var playerData = room.players[i];
+            Transform spawnPoint = spawnPoints[i % spawnPoints.Length];
+
+            if (spawnPoint != null)
+            {
+                Vector3 spawnPos = spawnPoint.position;
+                Quaternion spawnRot = spawnPoint.rotation;
+
+                // playerNumber가 없으면 할당하기
+                if (playerData.playerNumber == -1) // 예시: -1이면 아직 playerNumber가 할당되지 않은 상태
+                {
+                    playerData.playerNumber = i;  // 플레이어 순서대로 번호 할당
+                    Debug.Log($"Assigning playerNumber: {playerData.nickname} -> {playerData.playerNumber}");
+                }
+
+                // Ensure prefab is not null
+                GameObject prefab = playerPrefabs.Length > 0 ? playerPrefabs[i % playerPrefabs.Length] : null;
+                if (prefab == null)
+                {
+                    Debug.LogError($"❌ playerPrefabs[{i}]가 null 또는 playerPrefabs 비어있음");
+                    continue;
+                }
+
+                GameObject newPlayer = Instantiate(prefab, spawnPos, spawnRot, playerRoot);
+                var camera = newPlayer.GetComponentInChildren<Camera>();
+                if (camera != null)
+                {
+                    bool isLocalPlayer = (playerData.sessionId == WebSocketManager.Instance.ClientSessionId);
+                    camera.gameObject.SetActive(isLocalPlayer);
+                    camera.tag = isLocalPlayer ? "MainCamera" : "Untagged";
+                }
+
+                spawnedPlayers[playerData.sessionId] = newPlayer;
+
+                // 이제 playerNumber가 할당되었음을 로그로 확인할 수 있음
+                Debug.Log($"Player {playerData.nickname} spawned with playerNumber {playerData.playerNumber}");
+            }
+        }
+
+        // 플레이어가 모두 스폰된 후 flag 설정
+        playersSpawned = true;
+
+        Debug.Log($"✔ {room.players.Length} players spawned.");
+    }
+
+
 }

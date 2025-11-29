@@ -1195,6 +1195,7 @@ MonoBehaviour:
   playerCountText: {fileID: 44198482}
   playerListContainer: {fileID: 1192081391}
   playerListItemPrefab: {fileID: 6430172184379074280, guid: ebcbbc4b5c607fe418d1ece64691a194, type: 3}
+  errorText: {fileID: 1824844384}
 --- !u!4 &669436579
 Transform:
   m_ObjectHideFlags: 0
@@ -2207,9 +2208,9 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 0}
-        m_TargetAssemblyTypeName: GameStartManager, Assembly-CSharp
-        m_MethodName: OnStartButtonPressed
+      - m_Target: {fileID: 669436578}
+        m_TargetAssemblyTypeName: LobbyUI, Assembly-CSharp
+        m_MethodName: OnClickStartGame
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -2322,8 +2323,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 14.63, y: 0}
-  m_SizeDelta: {x: 300, y: 50}
+  m_AnchoredPosition: {x: 156.6, y: 0}
+  m_SizeDelta: {x: 1000, y: 50}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1824844384
 MonoBehaviour:
@@ -2354,7 +2355,7 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4294967295
+    rgba: 4278585075
   m_fontColor: {r: 0.9528302, g: 0.022472408, b: 0.022472408, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
@@ -2378,7 +2379,7 @@ MonoBehaviour:
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
   m_fontSizeMax: 72
-  m_fontStyle: 0
+  m_fontStyle: 1
   m_HorizontalAlignment: 1
   m_VerticalAlignment: 256
   m_textAlignment: 65535
