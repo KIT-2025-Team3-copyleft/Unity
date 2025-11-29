@@ -426,14 +426,17 @@ public class PlayerSpawnManager : MonoBehaviour
         // 플레이어 스폰
         PlayerSpawnManager.Instance.SpawnPlayers(room);
 
-        // 스폰 완료까지 대기 (잠시 동안 스폰 상태를 확인)
-        yield return new WaitForSeconds(1f); // 혹은 SpawnPlayers 완료를 기다리는 다른 조건
+        // 스폰 완료까지 대기 (여기서 1초 정도 딜레이를 추가)
+        yield return new WaitForSeconds(1f); // 스폰 후 약간의 여유를 두기 위해 1초 대기
+
+        // playersSpawned 플래그가 true로 설정될 때까지 기다림
+        yield return new WaitUntil(() => PlayerSpawnManager.Instance.playersSpawned); // 플레이어 스폰 완료될 때까지 기다리기
 
         // UI 업데이트는 스폰 후에 실행
         Debug.Log("[PlayerSpawnManager] UI 업데이트는 자동으로 처리됩니다.");
     }
 
-    private bool playersSpawned = false;
+    public bool playersSpawned = false;
     public void SpawnPlayers(RoomManager.Room room)
     {
         if (room == null || room.players == null || room.players.Length == 0)
@@ -485,7 +488,8 @@ public class PlayerSpawnManager : MonoBehaviour
 
                 spawnedPlayers[playerData.sessionId] = newPlayer;
 
-                // 이제 playerNumber가 할당되었음을 로그로 확인할 수 있음
+                // 이름 설정을 완료하고 그 후에 playersSpawned 플래그를 true로 설정
+                newPlayer.name = $"{prefab.name}_{playerData.nickname}";
                 Debug.Log($"Player {playerData.nickname} spawned with playerNumber {playerData.playerNumber}");
             }
         }

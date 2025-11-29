@@ -253,40 +253,68 @@ public class RoomManager : MonoBehaviour
     // ===============================================================
     // 🔥 LOBBY_UPDATE
     // ===============================================================
+    private bool isLobbyUpdatedProcessed = false;
+
     void HandleLobbyUpdate(string json)
     {
+        if (isLobbyUpdatedProcessed) return;
+        isLobbyUpdatedProcessed = true;
+
         Debug.Log("[RoomManager] LOBBY_UPDATE received");
         var lobby = JsonUtility.FromJson<LobbyUpdateEvent>(json);
 
-        // ⭐ 1) 방 정보 최신화
+        // 방 정보 최신화
         CurrentRoom = lobby.data;
 
         string mySession = WebSocketManager.Instance.ClientSessionId;
 
-        // ⭐ 2) 내 호스트 여부 갱신
+        // 내 호스트 여부 갱신
         IsHost = (CurrentRoom.hostSessionId == mySession);
-
         Debug.Log($"[RoomManager] LOBBY_UPDATE processed: RoomId={CurrentRoom.roomId}, Players={(CurrentRoom.players != null ? CurrentRoom.players.Length : 0)}, IsHost={IsHost}");
 
-        // 🔎 디버깅용 (각 플레이어 정보 출력)
+        // 디버깅용 (각 플레이어 정보 출력)
         if (CurrentRoom.players != null)
         {
             foreach (var player in CurrentRoom.players)
             {
                 bool playerIsHost = (player.sessionId == CurrentRoom.hostSessionId);
-                Debug.Log($"Player {player.nickname}, sessionId={player.sessionId}, isHost={playerIsHost}, playerNumber={(player.playerNumber)}");
+                Debug.Log($"Player {player.nickname}, sessionId={player.sessionId}, isHost={playerIsHost}, playerNumber={player.playerNumber}");
             }
         }
 
-        // ⭐ 3) 내 PlayerNumber 찾기 (스폰/카메라용)
+        // 내 PlayerNumber 찾기 (스폰/카메라용)
         SetMyPlayerNumber();
 
-        // ⭐ 4) UI 갱신 이벤트 (LobbyUI가 동작)
+        // 플레이어 번호 할당
+        AssignPlayerNumbers();
+
+        IsHost = (CurrentRoom.hostSessionId == mySession);
+
+        // UI 갱신 이벤트 (LobbyUI가 동작)
         OnLobbyUpdated?.Invoke(CurrentRoom);
 
-        // ⭐ 5) 스폰 실행 (씬 안에 존재할 때만)
-
+        // 스폰 실행 (씬 안에 존재할 때만)
         PlayerSpawnManager.Instance?.SpawnPlayers(CurrentRoom);
+
+      
+        CurrentRoom = lobby.data;
+
+       
+         // 호스트 여부 갱신
+
+        // UI 갱신 (게임 시작 버튼 상태 업데이트)
+    }
+
+    void AssignPlayerNumbers()
+    {
+        if (CurrentRoom.players != null)
+        {
+            for (int i = 0; i < CurrentRoom.players.Length; i++)
+            {
+                CurrentRoom.players[i].playerNumber = i;  // 순차적으로 playerNumber 할당
+                Debug.Log($"Player {CurrentRoom.players[i].nickname} assigned playerNumber: {CurrentRoom.players[i].playerNumber}");
+            }
+        }
     }
 
     void SetMyPlayerNumber()
@@ -296,7 +324,7 @@ public class RoomManager : MonoBehaviour
         {
             if (player.sessionId == mySession)
             {
-                MyPlayerNumber = player.playerNumber;  // 서버 또는 클라이언트에서 할당된 playerNumber 사용
+                MyPlayerNumber = player.playerNumber;
                 Debug.Log($"My player number is {MyPlayerNumber}");
                 return;
             }
@@ -304,10 +332,7 @@ public class RoomManager : MonoBehaviour
         MyPlayerNumber = -1;  // 내 playerNumber를 찾지 못했을 경우
         Debug.LogWarning("My playerNumber not found");
     }
-
-
-
-
+       
     // ===============================================================
     // 🔥 JOIN_FAILED
     // ===============================================================
