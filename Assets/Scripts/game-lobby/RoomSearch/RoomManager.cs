@@ -123,6 +123,7 @@ public class RoomManager : MonoBehaviour
 
         // 1) 씬 로드 (동기 로드; 비동기 원하면 LoadSceneAsync 사용)
         Debug.Log("[RoomManager] Loading LobbyScene due to JOIN_SUCCESS");
+        ClearListeners();
         SceneManager.LoadScene("LobbyScene");
 
         // 2) sceneLoaded 콜백을 통해 씬 로드 완료 후 안전하게 이벤트 호출
@@ -138,6 +139,11 @@ public class RoomManager : MonoBehaviour
 
         // 이벤트 지연 실행
         StartCoroutine(DelayedLobbyUpdated());
+    }
+
+    public void InvokeLobbyUpdated(Room room)
+    {
+        OnLobbyUpdated?.Invoke(room);
     }
 
     private IEnumerator DelayedLobbyUpdated()
@@ -158,9 +164,19 @@ public class RoomManager : MonoBehaviour
         CurrentRoom = lobby.data;
 
         string mySession = WebSocketManager.Instance.ClientSessionId;
+
+        // 로컬 클라이언트 기준 호스트 여부만 판단
         IsHost = (CurrentRoom.hostSessionId == mySession);
 
         Debug.Log($"[RoomManager] LOBBY_UPDATE processed: RoomId={CurrentRoom.roomId}, Players={(CurrentRoom.players != null ? CurrentRoom.players.Length : 0)}, IsHost={IsHost}");
+
+        // 새로 들어온 플레이어들의 호스트 여부를 함께 확인하고 싶다면
+        foreach (var player in CurrentRoom.players)
+        {
+            bool playerIsHost = (player.sessionId == CurrentRoom.hostSessionId);
+            Debug.Log($"Player {player.nickname}, sessionId={player.sessionId}, isHost={playerIsHost}");
+            // 필요하면 Dictionary 등으로 저장해서 다른 로직에서 활용 가능
+        }
 
         OnLobbyUpdated?.Invoke(CurrentRoom);
     }
@@ -186,6 +202,12 @@ public class RoomManager : MonoBehaviour
         Debug.Log("[RoomManager] HandleRoomListUpdated: " + rooms.Count + " rooms");
         OnRoomListUpdated?.Invoke(rooms);
     }
+
+    public void ClearListeners()
+    {
+        OnLobbyUpdated = null;
+    }
+
 
     // ===============================================================
     // 🔥 요청 API

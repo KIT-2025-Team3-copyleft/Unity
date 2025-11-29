@@ -10,11 +10,15 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 789461324328659636, guid: 757d8dbd961147048b58626f010f98f4, type: 3}
       propertyPath: m_Name
-      value: model Variant
+      value: model1
       objectReference: {fileID: 0}
     - target: {fileID: 789461324328659636, guid: 757d8dbd961147048b58626f010f98f4, type: 3}
       propertyPath: m_IsActive
       value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 789461324328659636, guid: 757d8dbd961147048b58626f010f98f4, type: 3}
+      propertyPath: m_TagString
+      value: model1
       objectReference: {fileID: 0}
     - target: {fileID: 994218278630130670, guid: 757d8dbd961147048b58626f010f98f4, type: 3}
       propertyPath: m_AnchorMax.x
@@ -27,6 +31,10 @@ PrefabInstance:
     - target: {fileID: 994218278630130670, guid: 757d8dbd961147048b58626f010f98f4, type: 3}
       propertyPath: m_AnchorMin.y
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2934476869123480701, guid: 757d8dbd961147048b58626f010f98f4, type: 3}
+      propertyPath: m_TagString
+      value: model1
       objectReference: {fileID: 0}
     - target: {fileID: 3474808093602193689, guid: 757d8dbd961147048b58626f010f98f4, type: 3}
       propertyPath: m_SizeDelta.y

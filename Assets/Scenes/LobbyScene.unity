@@ -1193,8 +1193,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::LobbyUI
   startButton: {fileID: 1751637287}
   playerCountText: {fileID: 44198482}
-  playerListContainer: {fileID: 685253326}
-  playerListItemPrefab: {fileID: 4055626626590750623, guid: d8804e9894e544a4a9a1292e60777817, type: 3}
+  playerListContainer: {fileID: 1192081391}
+  playerListItemPrefab: {fileID: 6430172184379074280, guid: ebcbbc4b5c607fe418d1ece64691a194, type: 3}
 --- !u!4 &669436579
 Transform:
   m_ObjectHideFlags: 0
@@ -1412,6 +1412,37 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1959808496}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1192081390
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1192081391}
+  m_Layer: 0
+  m_Name: LobbyUIList
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1192081391
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1192081390}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0.73852, y: 1.49999, z: -0.20336}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1302267908
 GameObject:
@@ -2111,7 +2142,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &1751637288
 RectTransform:
   m_ObjectHideFlags: 0
@@ -2536,3 +2567,4 @@ SceneRoots:
   - {fileID: 669436579}
   - {fileID: 478458985}
   - {fileID: 205131687}
+  - {fileID: 1192081391}
