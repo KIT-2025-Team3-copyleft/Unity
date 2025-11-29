@@ -20,17 +20,14 @@ public class RoomManager : MonoBehaviour
 
     private void Awake()
     {
-        if (Instance == null)
-        {
-            Instance = this;
-            DontDestroyOnLoad(gameObject);
-            Debug.Log("[RoomManager] Awake: Instance set");
-        }
-        else
+        if (Instance != null && Instance != this)
         {
             Destroy(gameObject);
-            Debug.Log("[RoomManager] Awake: Duplicate destroyed");
+            return;
         }
+
+        Instance = this;
+        DontDestroyOnLoad(gameObject);
     }
 
     private void Start()
@@ -104,7 +101,6 @@ public class RoomManager : MonoBehaviour
         ProcessJoinSuccess(json);
     }
 
-
     IEnumerator WaitForSession(string json)
     {
         while (string.IsNullOrEmpty(WebSocketManager.Instance.ClientSessionId))
@@ -125,14 +121,30 @@ public class RoomManager : MonoBehaviour
         string mySession = WebSocketManager.Instance.ClientSessionId;
         IsHost = (CurrentRoom.hostSessionId == mySession);
 
-        // JOIN_SUCCESS 안에 이미 플레이어 정보가 있으므로 바로 호출
-        OnLobbyUpdated?.Invoke(CurrentRoom);
-
-        // 씬 전환
+        // 1) 씬 로드 (동기 로드; 비동기 원하면 LoadSceneAsync 사용)
+        Debug.Log("[RoomManager] Loading LobbyScene due to JOIN_SUCCESS");
         SceneManager.LoadScene("LobbyScene");
-        Debug.Log("[RoomManager] LobbyScene loaded with JOIN_SUCCESS players");
+
+        // 2) sceneLoaded 콜백을 통해 씬 로드 완료 후 안전하게 이벤트 호출
+        SceneManager.sceneLoaded += OnSceneLoaded_InvokeLobbyUpdated;
 
         OnJoinResult?.Invoke(true);
+    }
+
+    // sceneLoaded 이벤트에서 한 번만 호출하고 자동으로 언레지스터
+    private void OnSceneLoaded_InvokeLobbyUpdated(Scene scene, LoadSceneMode mode)
+    {
+        Debug.Log("[RoomManager] Scene loaded callback: " + scene.name);
+
+        // 이벤트 지연 실행
+        StartCoroutine(DelayedLobbyUpdated());
+    }
+
+    private IEnumerator DelayedLobbyUpdated()
+    {
+        yield return null; // 1프레임 대기
+        Debug.Log("[RoomManager] Invoking OnLobbyUpdated (delayed 1 frame)");
+        OnLobbyUpdated?.Invoke(CurrentRoom);
     }
 
     // ===============================================================
@@ -148,10 +160,9 @@ public class RoomManager : MonoBehaviour
         string mySession = WebSocketManager.Instance.ClientSessionId;
         IsHost = (CurrentRoom.hostSessionId == mySession);
 
-        Debug.Log($"[RoomManager] LOBBY_UPDATE processed: RoomId={CurrentRoom.roomId}, Players={CurrentRoom.players.Length}, IsHost={IsHost}");
+        Debug.Log($"[RoomManager] LOBBY_UPDATE processed: RoomId={CurrentRoom.roomId}, Players={(CurrentRoom.players != null ? CurrentRoom.players.Length : 0)}, IsHost={IsHost}");
 
         OnLobbyUpdated?.Invoke(CurrentRoom);
-
     }
 
     // ===============================================================
@@ -195,16 +206,16 @@ public class RoomManager : MonoBehaviour
     {
         Debug.Log("[RoomManager] JoinRoom called with code: " + code);
         var payload = new Dictionary<string, object>
-    {
-        { "roomCode", code },
-        { "nickname", PlayerPrefs.GetString("PlayerNickname", "Guest") }
-    };
+        {
+            { "roomCode", code },
+            { "nickname", PlayerPrefs.GetString("PlayerNickname", "Guest") }
+        };
 
         var data = new Dictionary<string, object>
-    {
-        { "action", "JOIN_BY_CODE" },
-        { "payload", payload }
-    };
+        {
+            { "action", "JOIN_BY_CODE" },
+            { "payload", payload }
+        };
 
         string json = MiniJSON.Json.Serialize(data);
         WebSocketManager.Instance.Send(json);
