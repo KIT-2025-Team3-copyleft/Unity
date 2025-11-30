@@ -32,6 +32,10 @@ PrefabInstance:
       propertyPath: m_AnchorMin.y
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 2934476869123480701, guid: 757d8dbd961147048b58626f010f98f4, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 3474808093602193689, guid: 757d8dbd961147048b58626f010f98f4, type: 3}
       propertyPath: m_SizeDelta.y
       value: 0

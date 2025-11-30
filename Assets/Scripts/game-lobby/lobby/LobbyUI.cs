@@ -185,9 +185,7 @@ public class LobbyUI : MonoBehaviour
         WebSocketManager.Instance.Send(json);
         Debug.Log("[LobbyUI] START_GAME sent to server (by host)");
 
-        // 버튼 연타 방지
-        if (startButton != null)
-            startButton.SetActive(false);
+
     }
 
     // -----------------------------

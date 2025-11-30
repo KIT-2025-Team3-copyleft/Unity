@@ -6,6 +6,7 @@ using UnityEngine.SceneManagement;
 
 public class RoomManager : MonoBehaviour
 {
+    public string MySessionId { get; private set; }
     public static RoomManager Instance;
 
     public string MyNickname { get; private set; }
@@ -160,6 +161,19 @@ public class RoomManager : MonoBehaviour
 
         // 내 닉네임
         string myNick = PlayerPrefs.GetString("PlayerNickname", "Guest");
+        MySessionId = null;
+
+        if (CurrentRoom.players != null)
+        {
+            foreach (var p in CurrentRoom.players)
+            {
+                if (p.nickname == myNick)
+                {
+                    MySessionId = p.sessionId;
+                    break;
+                }
+            }
+        }
 
         // 호스트 여부
         IsHost = false;

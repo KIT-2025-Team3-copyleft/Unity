@@ -105,10 +105,7 @@ public class PlayerSpawnManager : MonoBehaviour
     private void OnLobbyUpdated(RoomManager.Room room)
     {
         if (SceneManager.GetActiveScene().name != "LobbyScene")
-        {
-            // 로비씬 아닐 때는 스폰 안 함
             return;
-        }
 
         SpawnPlayers(room);
     }
@@ -129,8 +126,6 @@ public class PlayerSpawnManager : MonoBehaviour
             Debug.LogError("❌ SpawnPlayers: spawnPoints가 아직 설정되지 않음. RefreshSpawnPoints 먼저 필요");
             return;
         }
-
-        string myNick = PlayerPrefs.GetString("PlayerNickname", "Guest");
 
         Debug.Log($"[SpawnDebug] ===== SpawnPlayers 시작: players={room.players.Length} =====");
 
@@ -158,7 +153,6 @@ public class PlayerSpawnManager : MonoBehaviour
             if (playersBySessionId.TryGetValue(p.sessionId, out GameObject existing) && existing != null)
             {
                 existing.transform.SetPositionAndRotation(pos, rot);
-                SetupCameras(existing, p.nickname == myNick);
 
                 Debug.Log($"[SpawnDebug] ↻ Move player={p.nickname}, playerNumber={p.playerNumber}, " +
                           $"seatIndex={seatIndex}, pos={pos}, rot={rot.eulerAngles}");
@@ -171,7 +165,6 @@ public class PlayerSpawnManager : MonoBehaviour
                 obj.name = $"{prefab.name}_{p.nickname}";
 
                 playersBySessionId[p.sessionId] = obj;
-                SetupCameras(obj, p.nickname == myNick);
 
                 Debug.Log($"[SpawnDebug] ✚ Instantiate player={p.nickname}, playerNumber={p.playerNumber}, " +
                           $"seatIndex={seatIndex}, pos={pos}, rot={rot.eulerAngles}");
@@ -195,52 +188,8 @@ public class PlayerSpawnManager : MonoBehaviour
             playersBySessionId.Remove(key);
         }
 
-        ActivateOnlyLocalCamera();
         playersSpawned = true;
 
         Debug.Log($"✔ [SpawnDebug] SpawnPlayers 완료. 현재 인원: {playersBySessionId.Count}");
-    }
-
-    // =====================================================================
-    //  카메라 세팅 / 한 개만 활성화
-    // =====================================================================
-    private void SetupCameras(GameObject playerObj, bool isLocal)
-    {
-        var cams = playerObj.GetComponentsInChildren<Camera>(true);
-        foreach (var cam in cams)
-        {
-            cam.gameObject.SetActive(isLocal);
-            cam.tag = isLocal ? "MainCamera" : "Untagged";
-        }
-    }
-
-    private void ActivateOnlyLocalCamera()
-    {
-        var cams = FindObjectsByType<Camera>(FindObjectsSortMode.None);
-        if (cams == null || cams.Length == 0) return;
-
-        Camera main = null;
-        foreach (var cam in cams)
-        {
-            if (cam.CompareTag("MainCamera"))
-            {
-                main = cam;
-                break;
-            }
-        }
-
-        if (main == null)
-        {
-            Debug.LogWarning("[SpawnDebug] MainCamera 태그를 가진 카메라가 없음");
-            return;
-        }
-
-        foreach (var cam in cams)
-        {
-            cam.enabled = (cam == main);
-        }
-
-        Debug.Log($"[SpawnDebug] LOCAL MAIN CAMERA: {main.name}, " +
-                  $"pos={main.transform.position}, rot={main.transform.rotation.eulerAngles}");
     }
 }
