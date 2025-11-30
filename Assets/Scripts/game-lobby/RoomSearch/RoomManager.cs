@@ -8,6 +8,8 @@ public class RoomManager : MonoBehaviour
 {
     public static RoomManager Instance;
 
+    public string MyNickname { get; private set; }
+
     // 이벤트들
     public event Action<string> OnErrorMessage;
     public event Action<int> OnGameStartTimer;   // seconds

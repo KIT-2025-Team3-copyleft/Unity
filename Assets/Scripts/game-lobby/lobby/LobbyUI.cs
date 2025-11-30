@@ -13,7 +13,10 @@ public class LobbyUI : MonoBehaviour
     [SerializeField] private Transform playerListContainer;
     [SerializeField] private GameObject playerListItemPrefab;
     [SerializeField] private TextMeshProUGUI errorText;
-    [SerializeField] private TMP_Text countdownText;  // 3초 카운트다운용
+    [SerializeField] private TMP_Text countdownText;  // 3초 카운트다운용 (화면 중앙 크게 배치 추천)
+
+    private Coroutine countdownRoutine;
+    private bool countdownCancelled = false;
 
     private void Awake()
     {
@@ -24,7 +27,7 @@ public class LobbyUI : MonoBehaviour
         }
 
         Instance = this;
-        // ❌ DontDestroyOnLoad 안 씀. 로비 씬 안에서만 존재
+        // 로비씬 안에서만 존재 (DontDestroyOnLoad 안 씀)
     }
 
     private void OnEnable()
@@ -32,16 +35,28 @@ public class LobbyUI : MonoBehaviour
         if (RoomManager.Instance != null)
         {
             RoomManager.Instance.OnLobbyUpdated -= UpdateLobbyUI;
-            RoomManager.Instance.OnLobbyUpdated += UpdateLobbyUI;
-
             RoomManager.Instance.OnErrorMessage -= ShowError;
+            RoomManager.Instance.OnGameStartTimer -= HandleGameStartTimer;
+            RoomManager.Instance.OnTimerCancelled -= HandleTimerCancelled;
+            RoomManager.Instance.OnLoadGameScene -= HandleLoadGameScene;
+
+            RoomManager.Instance.OnLobbyUpdated += UpdateLobbyUI;
             RoomManager.Instance.OnErrorMessage += ShowError;
+            RoomManager.Instance.OnGameStartTimer += HandleGameStartTimer;
+            RoomManager.Instance.OnTimerCancelled += HandleTimerCancelled;
+            RoomManager.Instance.OnLoadGameScene += HandleLoadGameScene;
 
             // 이미 방 정보가 있으면 한 번 바로 그림
             if (RoomManager.Instance.CurrentRoom != null)
             {
                 UpdateLobbyUI(RoomManager.Instance.CurrentRoom);
             }
+        }
+
+        if (countdownText != null)
+        {
+            countdownText.gameObject.SetActive(false);
+            countdownText.text = string.Empty;
         }
     }
 
@@ -51,6 +66,9 @@ public class LobbyUI : MonoBehaviour
         {
             RoomManager.Instance.OnLobbyUpdated -= UpdateLobbyUI;
             RoomManager.Instance.OnErrorMessage -= ShowError;
+            RoomManager.Instance.OnGameStartTimer -= HandleGameStartTimer;
+            RoomManager.Instance.OnTimerCancelled -= HandleTimerCancelled;
+            RoomManager.Instance.OnLoadGameScene -= HandleLoadGameScene;
         }
     }
 
@@ -125,12 +143,12 @@ public class LobbyUI : MonoBehaviour
 
         // 4) 호스트 여부는 RoomManager.IsHost 를 그대로 신뢰
         bool isLocalHost = RoomManager.Instance != null && RoomManager.Instance.IsHost;
-        bool showStart = isLocalHost;
+        bool showStart = isLocalHost;   // 인원 제한을 여기서도 걸고 싶으면 && room.players.Length == 4;
 
         if (startButton != null)
             startButton.SetActive(showStart);
 
-        string myNick = PlayerPrefs.GetString("PlayerNickname", "Guest");
+        string myNick = RoomManager.Instance != null ? RoomManager.Instance.MyNickname : PlayerPrefs.GetString("PlayerNickname", "Guest");
         string hostNick = hostPlayer != null ? hostPlayer.nickname : "(null)";
 
         Debug.Log($"[LobbyUI] hostNick={hostNick}, myNick={myNick}, " +
@@ -138,7 +156,7 @@ public class LobbyUI : MonoBehaviour
     }
 
     // -----------------------------
-    // 게임 시작 처리 (호스트만)
+    // 게임 시작 버튼 (호스트만)
     // -----------------------------
     public void OnClickStartGame()
     {
@@ -154,7 +172,7 @@ public class LobbyUI : MonoBehaviour
             return;
         }
 
-        // 호스트인지 최종 확인 (세션ID 대신 RoomManager.IsHost 사용)
+        // 호스트인지 최종 확인
         if (!rm.IsHost)
         {
             ShowError("호스트만 게임을 시작할 수 있습니다.");
@@ -162,40 +180,118 @@ public class LobbyUI : MonoBehaviour
             return;
         }
 
-        // 인원 제한 다시 걸고 싶으면 주석 해제
-        // if (room.players.Length != 4)
-        // {
-        //     ShowError("게임 시작을 위해서는 4명이 필요합니다.");
-        //     Debug.LogWarning("[LobbyUI] Need 4 players to start game");
-        //     return;
-        // }
-
-        // 서버에 START_GAME 전송
+        // 여기서는 서버에 요청만 보냄. 실제 카운트다운은 GAME_START_TIMER 이벤트로 시작.
         string json = @"{ ""action"": ""START_GAME"" }";
         WebSocketManager.Instance.Send(json);
         Debug.Log("[LobbyUI] START_GAME sent to server (by host)");
 
-        // 로컬 카운트다운 (씬 전환은 서버 LOAD_GAME_SCENE 이벤트에서 처리)
-        StartCoroutine(StartGameCountdown());
+        // 버튼 연타 방지
+        if (startButton != null)
+            startButton.SetActive(false);
     }
 
-    private IEnumerator StartGameCountdown()
+    // -----------------------------
+    // 서버 → GAME_START_TIMER(seconds) 수신
+    // -----------------------------
+    private void HandleGameStartTimer(int seconds)
     {
-        float countdown = 3f;
+        Debug.Log("[LobbyUI] HandleGameStartTimer: " + seconds);
 
-        while (countdown > 0f)
+        if (countdownRoutine != null)
+            StopCoroutine(countdownRoutine);
+
+        countdownCancelled = false;
+        countdownRoutine = StartCoroutine(GameStartCountdownRoutine(seconds));
+    }
+
+    // TIMER_CANCELLED 수신
+    private void HandleTimerCancelled()
+    {
+        Debug.Log("[LobbyUI] HandleTimerCancelled");
+
+        countdownCancelled = true;
+
+        if (countdownRoutine != null)
         {
-            if (countdownText != null)
-                countdownText.text = $"게임 시작까지 {Mathf.Ceil(countdown)}초 남았습니다.";
-
-            countdown -= Time.deltaTime;
-            yield return null;
+            StopCoroutine(countdownRoutine);
+            countdownRoutine = null;
         }
 
         if (countdownText != null)
+        {
             countdownText.text = string.Empty;
+            countdownText.gameObject.SetActive(false);
+        }
 
-        Debug.Log("[LobbyUI] Countdown finished. (씬 전환은 서버 LOAD_GAME_SCENE 처리에 맞춰 진행)");
-        // SceneManager.LoadScene("GameScene");  // 서버에서 LOAD_GAME_SCENE 보낼 때 RoomManager 쪽에서 처리
+        // 호스트면 다시 버튼 활성화
+        if (startButton != null && RoomManager.Instance != null && RoomManager.Instance.IsHost)
+            startButton.SetActive(true);
+    }
+
+    // LOAD_GAME_SCENE 수신 → 실제 씬 전환
+    private void HandleLoadGameScene(RoomManager.Room room)
+    {
+        Debug.Log("[LobbyUI] HandleLoadGameScene → Load GameScene");
+
+        // 혹시 남아 있는 카운트다운 코루틴 정리
+        if (countdownRoutine != null)
+        {
+            StopCoroutine(countdownRoutine);
+            countdownRoutine = null;
+        }
+
+        if (countdownText != null)
+        {
+            countdownText.text = "게임 시작!";
+        }
+
+        // 약간의 딜레이 후 씬 전환 (무스 느낌 약간 살짝 연출)
+        StartCoroutine(LoadGameSceneAfterDelay(0.5f));
+    }
+
+    private IEnumerator LoadGameSceneAfterDelay(float delay)
+    {
+        yield return new WaitForSeconds(delay);
+        SceneManager.LoadScene("GameScene");
+    }
+
+    // -----------------------------
+    // 3,2,1 카운트다운 연출 (무스 느낌)
+    // -----------------------------
+    private IEnumerator GameStartCountdownRoutine(int seconds)
+    {
+        if (countdownText == null)
+            yield break;
+
+        countdownText.gameObject.SetActive(true);
+
+        // 예: 3 → 2 → 1 → "게임 시작!"
+        for (int t = seconds; t > 0; t--)
+        {
+            if (countdownCancelled) break;
+
+            countdownText.text = t.ToString();
+
+            // 간단한 크기 연출 (무스 느낌 살짝)
+            countdownText.fontSize = 100;
+            float time = 0f;
+            while (time < 1f)
+            {
+                if (countdownCancelled) break;
+
+                time += Time.deltaTime;
+                // 서서히 작아지게 (100 → 80 정도)
+                countdownText.fontSize = Mathf.Lerp(100f, 80f, time);
+                yield return null;
+            }
+        }
+
+        if (!countdownCancelled)
+        {
+            countdownText.text = "게임 시작!";
+        }
+
+        // 실제 씬 이동은 LOAD_GAME_SCENE 이벤트에서 처리.
+        // 여기서는 텍스트만 보여준다.
     }
 }
