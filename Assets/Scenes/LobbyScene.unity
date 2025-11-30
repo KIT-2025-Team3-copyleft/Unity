@@ -1004,7 +1004,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ba095c75026febd49bac0400ac109f18, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerSpawnManager
-  spawnRootName: SpawnRoot
+  spawnRoot: {fileID: 1959808496}
+  spawnPoints:
+  - {fileID: 1003273774}
+  - {fileID: 724323354}
+  - {fileID: 1821827576}
+  - {fileID: 1164249217}
   playerPrefabs:
   - {fileID: 4055626626590750623, guid: d8804e9894e544a4a9a1292e60777817, type: 3}
   - {fileID: 5078435917573411980, guid: 72a83cf5ecfe1e7459780ddf0e260917, type: 3}
@@ -1388,7 +1393,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 24.02, y: 0}
+  m_AnchoredPosition: {x: 126.28, y: 0}
   m_SizeDelta: {x: 522.4, y: 50}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &969825331
@@ -1420,8 +1425,8 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4294967295
-  m_fontColor: {r: 1, g: 1, b: 1, a: 1}
+    rgba: 4279428446
+  m_fontColor: {r: 0.3691052, g: 0.8962264, b: 0.07186722, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
   m_fontColorGradient:

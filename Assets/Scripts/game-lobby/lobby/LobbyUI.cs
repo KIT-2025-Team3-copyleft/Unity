@@ -13,9 +13,7 @@ public class LobbyUI : MonoBehaviour
     [SerializeField] private Transform playerListContainer;
     [SerializeField] private GameObject playerListItemPrefab;
     [SerializeField] private TextMeshProUGUI errorText;
-    [SerializeField] private TMP_Text countdownText;  // 타이머 텍스트를 위한 TMP_Text 변수 추가
-
-    private const string LOBBY_UI_ROOT_NAME = "LobbyUI_Root";
+    [SerializeField] private TMP_Text countdownText;  // 3초 카운트다운용
 
     private void Awake()
     {
@@ -26,106 +24,39 @@ public class LobbyUI : MonoBehaviour
         }
 
         Instance = this;
-        DontDestroyOnLoad(gameObject);
+        // ❌ DontDestroyOnLoad 안 씀. 로비 씬 안에서만 존재
     }
 
     private void OnEnable()
-    {
-        TrySubscribe();
-
-        SceneManager.sceneLoaded += OnSceneLoaded;
-        RoomManager.Instance.OnErrorMessage -= ShowError;
-        RoomManager.Instance.OnErrorMessage += ShowError;
-        RoomManager.Instance.OnLobbyUpdated += UpdateLobbyUI;
-    }
-
-    private void OnDisable()
-    {
-        if (RoomManager.Instance != null)
-            RoomManager.Instance.OnLobbyUpdated -= UpdateLobbyUI;
-        SceneManager.sceneLoaded -= OnSceneLoaded;
-    }
-
-    private void OnDestroy()
-    {
-        if (RoomManager.Instance != null)
-            RoomManager.Instance.OnLobbyUpdated -= UpdateLobbyUI;
-    }
-
-    // -----------------------------
-    // 씬이 바뀌면 UI 루트 다시 찾기
-    // -----------------------------
-    private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
-    {
-        if (scene.name == "LobbyScene")
-        {
-            Debug.Log("[LobbyUI] LobbyScene detected → Rebinding UI references");
-            StartCoroutine(RebindUI()); // UI 재바인딩
-        }
-    }
-
-    private IEnumerator RebindUI()
-    {
-        yield return null;
-
-        GameObject root = GameObject.Find(LOBBY_UI_ROOT_NAME);
-
-        if (root == null)
-        {
-            Debug.LogWarning($"[LobbyUI] Cannot find {LOBBY_UI_ROOT_NAME} in scene.");
-            yield break;
-        }
-
-        // 자동 재바인드
-        playerCountText = root.transform.Find("PlayerCountText")?.GetComponent<TMP_Text>();
-        startButton = root.transform.Find("StartButton")?.gameObject;
-        playerListContainer = root.transform.Find("PlayerList/Viewport/Content");
-        countdownText = root.transform.Find("CountdownText")?.GetComponent<TMP_Text>(); // 타이머 텍스트 바인딩
-
-        // startButton이 null인 경우 확인
-        if (startButton == null)
-        {
-            Debug.LogError("[LobbyUI] StartButton is missing in the scene!");
-        }
-
-        Debug.Log("[LobbyUI] UI Rebound successfully");
-
-        // 방 정보를 다시 업데이트
-        var room = RoomManager.Instance.CurrentRoom;
-        if (room != null)
-        {
-            UpdateLobbyUI(room);
-        }
-    }
-
-    // -----------------------------
-    // RoomManager 이벤트 구독
-    // -----------------------------
-    private void TrySubscribe()
     {
         if (RoomManager.Instance != null)
         {
             RoomManager.Instance.OnLobbyUpdated -= UpdateLobbyUI;
             RoomManager.Instance.OnLobbyUpdated += UpdateLobbyUI;
-            Debug.Log("[LobbyUI] Subscribed to RoomManager.OnLobbyUpdated");
-        }
-        else
-        {
-            StartCoroutine(WaitAndSubscribe());
+
+            RoomManager.Instance.OnErrorMessage -= ShowError;
+            RoomManager.Instance.OnErrorMessage += ShowError;
+
+            // 이미 방 정보가 있으면 한 번 바로 그림
+            if (RoomManager.Instance.CurrentRoom != null)
+            {
+                UpdateLobbyUI(RoomManager.Instance.CurrentRoom);
+            }
         }
     }
 
-    private IEnumerator WaitAndSubscribe()
+    private void OnDisable()
     {
-        while (RoomManager.Instance == null)
-            yield return null;
-
-        RoomManager.Instance.OnLobbyUpdated -= UpdateLobbyUI;
-        RoomManager.Instance.OnLobbyUpdated += UpdateLobbyUI;
-
-        Debug.Log("[LobbyUI] Subscribed after RoomManager ready");
+        if (RoomManager.Instance != null)
+        {
+            RoomManager.Instance.OnLobbyUpdated -= UpdateLobbyUI;
+            RoomManager.Instance.OnErrorMessage -= ShowError;
+        }
     }
 
+    // -----------------------------
+    // 에러 표시
+    // -----------------------------
     public void ShowError(string message)
     {
         if (errorText != null)
@@ -147,10 +78,6 @@ public class LobbyUI : MonoBehaviour
     }
 
     // -----------------------------
-    // Host 버튼 활성
-    // -----------------------------
-
-    // -----------------------------
     // 실제 UI 업데이트
     // -----------------------------
     public void UpdateLobbyUI(RoomManager.Room room)
@@ -158,12 +85,12 @@ public class LobbyUI : MonoBehaviour
         if (SceneManager.GetActiveScene().name != "LobbyScene")
             return;
 
-        // 플레이어 목록이 없다면 종료
-        if (room.players == null || room.players.Length == 0) return;
+        if (room == null || room.players == null || room.players.Length == 0)
+            return;
 
         Debug.Log($"[LobbyUI] Updating Lobby UI, PlayerCount={room.players.Length}");
 
-        // 1) 플레이어 수 표시
+        // 1) 인원 수 표시
         if (playerCountText != null)
             playerCountText.text = $"{room.players.Length}/4";
 
@@ -174,102 +101,101 @@ public class LobbyUI : MonoBehaviour
                 Destroy(playerListContainer.GetChild(i).gameObject);
         }
 
-        // 3) 새로운 플레이어 리스트 생성
+        // 3) 새 리스트 생성 + Host 표시
         string hostSessionId = room.hostSessionId;
+        RoomManager.PlayerData hostPlayer = null;
 
         foreach (var p in room.players)
         {
-            var obj = Instantiate(playerListItemPrefab, playerListContainer);
-            var text = obj.GetComponentInChildren<TextMeshProUGUI>(true);
+            if (p.sessionId == hostSessionId)
+                hostPlayer = p;
 
-            if (text != null)
+            if (playerListItemPrefab != null && playerListContainer != null)
             {
-                text.text = $"{p.nickname}" + (p.sessionId == hostSessionId ? " (Host)" : "");
+                var obj = Instantiate(playerListItemPrefab, playerListContainer);
+                var text = obj.GetComponentInChildren<TMP_Text>(true);
+
+                if (text != null)
+                {
+                    bool isHostOfRoom = (p.sessionId == hostSessionId);
+                    text.text = p.nickname + (isHostOfRoom ? " (Host)" : "");
+                }
             }
         }
 
-        // 4) 본인이 호스트인지 판단해서 버튼 활성
-        bool isLocalHost = WebSocketManager.Instance.ClientSessionId == hostSessionId;
-        UpdateHostButton(isLocalHost);  // 호스트일 경우만 Start 버튼 활성화
-    }
+        // 4) 호스트 여부는 RoomManager.IsHost 를 그대로 신뢰
+        bool isLocalHost = RoomManager.Instance != null && RoomManager.Instance.IsHost;
+        bool showStart = isLocalHost;
 
-    public void UpdateHostButton(bool isHost)
-    {
         if (startButton != null)
-            startButton.SetActive(isHost);  // 호스트만 활성화
-    }
+            startButton.SetActive(showStart);
 
+        string myNick = PlayerPrefs.GetString("PlayerNickname", "Guest");
+        string hostNick = hostPlayer != null ? hostPlayer.nickname : "(null)";
+
+        Debug.Log($"[LobbyUI] hostNick={hostNick}, myNick={myNick}, " +
+                  $"IsHost(From RM)={isLocalHost}, players={room.players.Length}, showStart={showStart}");
+    }
 
     // -----------------------------
-    // 게임 시작 처리
+    // 게임 시작 처리 (호스트만)
     // -----------------------------
     public void OnClickStartGame()
     {
         Debug.Log("[LobbyUI] Start Game button clicked!");
 
-        var room = RoomManager.Instance.CurrentRoom; // 또는 currentRoom
+        var rm = RoomManager.Instance;
+        var room = rm != null ? rm.CurrentRoom : null;
 
-        if (room == null)
+        if (rm == null || room == null || room.players == null)
         {
-            Debug.LogError("[LobbyUI] Room is NULL!!");
+            Debug.LogError("[LobbyUI] RoomManager or Room is NULL");
+            ShowError("방 정보가 없습니다.");
             return;
         }
 
-        // 호스트인지 확인
-        if (room.hostSessionId != WebSocketManager.Instance.ClientSessionId)
+        // 호스트인지 최종 확인 (세션ID 대신 RoomManager.IsHost 사용)
+        if (!rm.IsHost)
         {
-            Debug.LogWarning("[LobbyUI] Not host — cannot start game");
+            ShowError("호스트만 게임을 시작할 수 있습니다.");
+            Debug.LogWarning("[LobbyUI] Not host — cannot start game (IsHost == false)");
             return;
         }
 
-        // 플레이어 수가 4명이 아닌 경우 게임 시작을 막음
-        if (room.players.Length != 4)
-        {
-            Debug.LogWarning("[LobbyUI] 게임 시작을 위해서는 4명이 필요합니다.");
-            ShowError("게임 시작을 위해서는 4명이 필요합니다.");
-            return;
-        }
+        // 인원 제한 다시 걸고 싶으면 주석 해제
+        // if (room.players.Length != 4)
+        // {
+        //     ShowError("게임 시작을 위해서는 4명이 필요합니다.");
+        //     Debug.LogWarning("[LobbyUI] Need 4 players to start game");
+        //     return;
+        // }
 
-        // 게임 시작 전에 잠시 대기 (플레이어 이름 설정이 완료될 때까지)
-        StartCoroutine(WaitForPlayerNamesAndStartGame(room));
-    }
-
-    private IEnumerator WaitForPlayerNamesAndStartGame(RoomManager.Room room)
-    {
-        // 플레이어가 모두 스폰되고 이름이 설정될 때까지 대기
-        while (!PlayerSpawnManager.Instance.playersSpawned)
-        {
-            yield return null;
-        }
-
-        // 게임 시작 메시지 서버로 전송
+        // 서버에 START_GAME 전송
         string json = @"{ ""action"": ""START_GAME"" }";
         WebSocketManager.Instance.Send(json);
+        Debug.Log("[LobbyUI] START_GAME sent to server (by host)");
 
-        Debug.Log("[LobbyUI] START_GAME sent to server");
-
-        // 3초 후 게임 시작
+        // 로컬 카운트다운 (씬 전환은 서버 LOAD_GAME_SCENE 이벤트에서 처리)
         StartCoroutine(StartGameCountdown());
     }
 
-
-
     private IEnumerator StartGameCountdown()
     {
-        // 3초 타이머 실행
         float countdown = 3f;
-        while (countdown > 0)
+
+        while (countdown > 0f)
         {
-            // 타이머 텍스트 갱신
             if (countdownText != null)
-                countdownText.text = $"게임 시작까지 {Mathf.Ceil(countdown)}초   남았습니다.";
+                countdownText.text = $"게임 시작까지 {Mathf.Ceil(countdown)}초 남았습니다.";
 
             countdown -= Time.deltaTime;
             yield return null;
         }
 
-        // 타이머 끝나면 게임 씬으로 전환
-        Debug.Log("게임 시작!");
-        SceneManager.LoadScene("GameScene");
+        if (countdownText != null)
+            countdownText.text = string.Empty;
+
+        Debug.Log("[LobbyUI] Countdown finished. (씬 전환은 서버 LOAD_GAME_SCENE 처리에 맞춰 진행)");
+        // SceneManager.LoadScene("GameScene");  // 서버에서 LOAD_GAME_SCENE 보낼 때 RoomManager 쪽에서 처리
     }
 }
