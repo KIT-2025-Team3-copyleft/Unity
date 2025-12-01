@@ -52,7 +52,8 @@ public class RoomListUIManager : MonoBehaviour
 
     private void UpdateRoomList(List<RoomManager.Room> rooms)
     {
-        // 기존 UI 삭제
+        Debug.Log("[RoomListUIManager] UpdateRoomList called");
+
         foreach (Transform child in content)
             Destroy(child.gameObject);
 
@@ -62,7 +63,8 @@ public class RoomListUIManager : MonoBehaviour
             return;
         }
 
-        // UI 생성
+        Debug.Log("[RoomListUIManager] rooms count = " + rooms.Count);
+
         foreach (var room in rooms)
         {
             var obj = Instantiate(roomItemPrefab, content);
@@ -70,9 +72,14 @@ public class RoomListUIManager : MonoBehaviour
 
             if (txt != null)
             {
-                int playerCount = room.players != null ? room.players.Length : 0;
+                int playerCount = room.players != null ? room.players.Length : room.currentCount;
 
-                txt.text = $"{room.roomCode} - {playerCount}명 참여 중";
+                // 서버 JSON에는 roomCode가 없고 roomTitle만 있음
+                // {"roomTitle":"123님의 방","currentCount":1,"maxCount":4,"playing":false}
+                var title = !string.IsNullOrEmpty(room.roomTitle) ? room.roomTitle : room.roomCode;
+
+                txt.text = $"{room.roomTitle} - {room.currentCount}/{room.maxCount}명 참여 중";
+                ;
             }
         }
     }

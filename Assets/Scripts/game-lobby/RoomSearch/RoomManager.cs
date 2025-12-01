@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using static RoomManager;
 
 public class RoomManager : MonoBehaviour
 {
@@ -91,6 +92,17 @@ public class RoomManager : MonoBehaviour
             case "LOBBY_UPDATE": HandleLobbyUpdate(json); break;
             case "JOIN_FAILED": HandleJoinFailed(json); break;
             case "LEAVE_SUCCESS": HandleLeave(json); break;
+            case "ROOM_LIST":
+                {
+                    var data = JsonUtility.FromJson<RoomListEvent>(json);
+
+                    var rooms = data?.data?.rooms;
+                    Debug.Log("[RoomManager] ROOM_LIST received: " + (rooms != null ? rooms.Count : 0) + " rooms");
+
+                    HandleRoomListUpdated(rooms);
+                }
+                break;
+
             case "ROOM_LIST_UPDATE":
                 {
                     var data = JsonUtility.FromJson<RoomListUpdateEvent>(json);
@@ -425,6 +437,11 @@ public class RoomManager : MonoBehaviour
         public string hostSessionId;
         public PlayerData[] players;
         public string status;
+
+        public string roomTitle;
+        public int currentCount;
+        public int maxCount;
+        public bool playing;
     }
 
     [Serializable]
@@ -436,4 +453,16 @@ public class RoomManager : MonoBehaviour
         public string color;
         public int playerNumber = -1;
     }
+}
+
+[Serializable]
+public class RoomListEvent : BaseEvent
+{
+    public RoomListData data;
+}
+
+[Serializable]
+public class RoomListData
+{
+    public List<Room> rooms;
 }
