@@ -118,21 +118,42 @@ public class NickNameManager : MonoBehaviour
     {
         try
         {
-            if (json.Contains("NICKNAME_SUCCESS"))
+            // 공통 파싱
+            var serverMsg = JsonUtility.FromJson<ServerMessage>(json);
+
+            if (serverMsg == null)
             {
-                var serverMsg = JsonUtility.FromJson<ServerMessage>(json);
-                if (serverMsg?.player != null)
-                    SaveAndNotify(serverMsg.player.nickname);
+                Debug.LogWarning("[NickNameManager] serverMsg null: " + json);
+                return;
             }
-            else if (json.Contains("NICKNAME_FAIL"))
+
+            switch (serverMsg.@event)
             {
-                var serverMsg = JsonUtility.FromJson<ServerMessage>(json);
-                OnNicknameFail?.Invoke(serverMsg?.message ?? "닉네임 설정 실패");
-            }
-            else
-            {
-                // 방 관련 이벤트 등은 무시
-                Debug.Log("[NickNameManager] 무시 이벤트: " + json);
+                case "NICKNAME_SUCCESS":
+                    if (serverMsg.player != null)
+                    {
+                        SaveAndNotify(serverMsg.player.nickname);
+                    }
+                    else
+                    {
+                        Debug.LogWarning("[NickNameManager] NICKNAME_SUCCESS지만 player 정보 없음");
+                    }
+                    break;
+
+                case "NICKNAME_FAIL":
+                case "NICKNAME_DUPLICATE":
+                    // 서버에서 내려준 message를 그대로 사용
+                    var msg = string.IsNullOrEmpty(serverMsg.message)
+                        ? "닉네임 설정 실패"
+                        : serverMsg.message;
+
+                    Debug.Log("[NickNameManager] 닉네임 실패/중복: " + msg);
+                    OnNicknameFail?.Invoke(msg);
+                    break;
+
+                default:
+                    Debug.Log("[NickNameManager] 무시 이벤트: " + json);
+                    break;
             }
         }
         catch (Exception e)
@@ -140,6 +161,7 @@ public class NickNameManager : MonoBehaviour
             Debug.LogError($"[NickNameManager] JSON 파싱 오류: {e.Message}\n수신 JSON: {json}");
         }
     }
+
     private void SaveAndNotify(string nickname)
     {
         PlayerPrefs.SetString(NicknameKey, nickname);

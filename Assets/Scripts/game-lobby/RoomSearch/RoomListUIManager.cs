@@ -42,7 +42,7 @@ public class RoomListUIManager : MonoBehaviour
     {
         if (WebSocketManager.Instance != null && WebSocketManager.Instance.IsConnected)
         {
-            WebSocketManager.Instance.Send("{\"action\":\"getRooms\"}");
+            WebSocketManager.Instance.Send("{\"action\":\"GET_ROOM_LIST\"}");
         }
         else
         {
