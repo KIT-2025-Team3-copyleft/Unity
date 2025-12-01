@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using TMPro;
 
 public class GameManager : MonoBehaviour
 {
@@ -17,7 +18,7 @@ public class GameManager : MonoBehaviour
     public Quaternion topDownStartRot;
 
     [Header("UI References")]
-    public Text systemMessageText; // 디버그 용도 
+    public TextMeshProUGUI systemMessageText; // 디버그 용도 
     public Button trialButton;
     public InputField chatInput; // TMP InputField로 변경 요망
 
@@ -58,6 +59,7 @@ public class GameManager : MonoBehaviour
         }
     }
 
+   
     public void AssignColorToPlayer(PlayerManager player)
     {
         if (availableColors.Count == 0)
@@ -75,6 +77,27 @@ public class GameManager : MonoBehaviour
 
         player.SetColor(chosenColor);
     }
+
+    // GameManager.cs 파일 내부 (추가)
+
+    // PlayerSpawner에서 호출되어 로컬 플레이어의 UI/카메라를 매니저에 연결합니다.
+    public void LinkLocalPlayerUI(GameObject localPlayerRoot)
+    {
+        // 1. [카메라 연결]
+        Camera fpCam = localPlayerRoot.GetComponentInChildren<Camera>();
+        if (fpCam != null)
+        {
+            firstPersonCamera = fpCam;
+        }
+
+        // 2. [UI 연결] UIManager에게 모든 UI 요소 할당을 위임합니다.
+        UIManager ui = UIManager.Instance;
+        if (ui != null)
+        {
+            ui.LinkLocalPlayerUIElements(localPlayerRoot);
+        }
+    }
+
 
     public void OnServerMessage(string json)
     {
@@ -128,14 +151,33 @@ public class GameManager : MonoBehaviour
 
     public void OnCardSelected(string card)
     {
-        PlayerManager myPlayer = players[mySlot];
-        if (myPlayer != null && !myPlayer.actionCompleted)
+        if (string.IsNullOrEmpty(mySlot))
         {
-            NetworkManager.Instance.SendCardSelection(mySlot, card);
+            Debug.LogError("mySlot이 null이거나 비어있습니다!");
+            return;
+        }
+
+        if (!players.ContainsKey(mySlot))
+        {
+            Debug.LogError($"players 딕셔너리에 mySlot({mySlot}) 키가 존재하지 않습니다!");
+            return;
+        }
+
+        PlayerManager myPlayer = players[mySlot];
+        if (myPlayer == null)
+        {
+            Debug.LogError("해당 슬롯의 PlayerManager가 null입니다!");
+            return;
+        }
+
+        if (!myPlayer.actionCompleted)
+        {
+            NetworkManager.Instance?.SendCardSelection(mySlot, card); 
             myPlayer.actionCompleted = true;
-            UIManager.Instance.DisableMyCards();
+            UIManager.Instance?.DisableMyCards(); 
         }
     }
+
 
 
     public void StartJudgmentSequence(RoundResult msg)
@@ -199,11 +241,11 @@ public class GameManager : MonoBehaviour
         {
             UIManager.Instance.judgmentScroll.SetActive(true);
         }
-        yield return new WaitForSeconds(3f);
+        yield return new WaitForSeconds(3.0f);
 
         // 심판 이유 출력
         UIManager.Instance.DisplayJudgmentReason(msg.reason);
-        yield return new WaitForSeconds(1.0f);
+        yield return new WaitForSeconds(5.0f);
 
 
         // 옵저버 카메라로 전환
@@ -211,7 +253,7 @@ public class GameManager : MonoBehaviour
 
         // 꽃/번개 이펙트 출력
         UIManager.Instance.PlayVisualCue(msg.visualCue);
-        yield return new WaitForSeconds(2.0f);
+        yield return new WaitForSeconds(5.0f);
 
         // 1인칭 카메라로 전환
         SwitchCamera(firstPersonCamera);
@@ -219,7 +261,7 @@ public class GameManager : MonoBehaviour
         {
             UIManager.Instance.judgmentScroll.SetActive(false);
         }
-        yield return new WaitForSeconds(1.0f);
+        yield return new WaitForSeconds(10.0f);
     }
 
     // 카메라 전환 및 UI 제어
