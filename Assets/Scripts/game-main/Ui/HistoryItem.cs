@@ -16,7 +16,7 @@ public class HistoryItem : MonoBehaviour
 
     public void SetData(RoundResult result, Dictionary<string, string> slotColors, int roundNumber, List<string> finalWords)
     {
-        evaluationText.text = $"신의 평가: {result.finalSentence}";
+        evaluationText.text = $"신의 평가: {result.reason}";
 
         string reactionEmoji = GetReactionEmoji(result.visualCue.effect);
         reactionText.text = $"신의 반응 : {reactionEmoji}";

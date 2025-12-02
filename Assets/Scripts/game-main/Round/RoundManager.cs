@@ -1,3 +1,9 @@
+/*
+ * 현재 시연 중, 오류 해결을 위해 채팅창 관련 코드는 주석처리됨
+ * 34, 63 LINE
+ 
+ */
+
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -25,7 +31,7 @@ public class RoundManager : MonoBehaviour
         UIManager.Instance.ShowOracleAndRole(msg.mission, msg.myRole, currentRound);
 
         if (msg.myRole == "traitor") UIManager.Instance.ShowTraitorInfo(msg.godPersonality);
-        GameManager.Instance.chatInput.interactable = msg.chatEnabled;
+        //GameManager.Instance.chatInput.interactable = msg.chatEnabled; 오류 해결을 위한 주석처리
 
         StartCoroutine(StartCardSelection(msg.cards, msg.timeLimit));
     }
@@ -33,7 +39,7 @@ public class RoundManager : MonoBehaviour
     // 카드 선택 시작
     private IEnumerator StartCardSelection(List<string> cards, int selectionTime)
     {
-        yield return new WaitForSeconds(2f);
+        yield return new WaitForSeconds(4f);
         UIManager.Instance.SetupCardButtons(cards);
 
         StartCoroutine(
@@ -55,7 +61,7 @@ public class RoundManager : MonoBehaviour
     // 카드 선택 완료(전체)
     public void HandleInterpretationEnd(InterpretationEnd msg)
     {
-        GameManager.Instance.chatInput.interactable = msg.chatEnabled;
+        //GameManager.Instance.chatInput.interactable = msg.chatEnabled; 오류 해결을 위한 임시 주석처리
         GameManager.Instance.systemMessageText.text = msg.message;
     }
 
@@ -64,9 +70,9 @@ public class RoundManager : MonoBehaviour
     {
         GameManager.Instance.systemMessageText.text = $"신의 심판: {msg.finalSentence} (HP {msg.scoreChange})";
 
-        GameManager.Instance.UpdateVillageHP(msg.scoreChange);
-
         GameManager.Instance.StartJudgmentSequence(msg);
+
+        GameManager.Instance.UpdateVillageHP(msg.scoreChange);
 
         UIManager.Instance.AddHistoryItem(
            msg,

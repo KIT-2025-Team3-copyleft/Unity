@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
-using TMPro; 
+using System.Linq;
+
 
 public class UIManager : MonoBehaviour
 {
@@ -14,7 +16,8 @@ public class UIManager : MonoBehaviour
         if (Instance == null) Instance = this;
         else Destroy(gameObject);
 
-        SetupHistoryPanel();
+
+
     }
 
     private Dictionary<int, Color> defaultSlotColors = new Dictionary<int, Color>();
@@ -37,7 +40,7 @@ public class UIManager : MonoBehaviour
 
     private bool isHistoryOpen = false;
     private float closedYPosition;
-    public float targetOpenedYPosition; 
+    public float targetOpenedYPosition;
     private float slideDuration = 0.3f;
 
     [Header("Card UI")]
@@ -61,6 +64,146 @@ public class UIManager : MonoBehaviour
     public Image timerCircle;
 
 
+    public bool IsUILinked = false;
+    public void LinkLocalPlayerUIElements(GameObject localPlayerRoot)
+    {
+        // 1. 초기화
+        HistoryItems.Clear();
+        playerSlotImages.Clear();
+        playerSlotTexts.Clear();
+        cardButtons.Clear();
+        cardTexts.Clear();
+
+        Transform canvasRoot = localPlayerRoot.transform.Find("Canvas");
+        if (canvasRoot == null) return;
+
+        // --- A. 단일 컴포넌트 할당 ---
+        Transform oracleRoot = canvasRoot.Find("Role&OraclePanel");
+        Transform persistentRoot = canvasRoot.Find("PersistentOraclePanel");
+        Transform systemPanel = canvasRoot.Find("SystemPanel");
+        Transform slotPanelRoot = canvasRoot.Find("SlotPanel"); // ◀ 핵심 루트
+
+        // 1) Oracle & Role
+        if (oracleRoot != null)
+        {
+            oraclePanel = oracleRoot.gameObject;
+            oracleText = oracleRoot.Find("oracleText")?.GetComponent<TextMeshProUGUI>();
+            roleText = oracleRoot.Find("roleText")?.GetComponent<TextMeshProUGUI>();
+            traitorText = oracleRoot.Find("traitorText")?.GetComponent<TextMeshProUGUI>();
+        }
+
+        // 2) Persistent Oracle
+        if (persistentRoot != null)
+        {
+            persistentOraclePanel = persistentRoot.gameObject;
+            persistentOracleText = persistentRoot.GetComponentInChildren<TextMeshProUGUI>(true);
+        }
+
+        // 3) System Message
+        if (systemPanel != null)
+        {
+            Transform sysText = systemPanel.Find("systemText");
+            if (sysText != null) GameManager.Instance.systemMessageText = sysText.GetComponent<TextMeshProUGUI>();
+        }
+
+        // 4) Judgment Scroll
+        Transform judgmentScrollTransform = canvasRoot.Find("JudgmentScroll");
+        if (judgmentScrollTransform != null)
+        {
+            judgmentScroll = judgmentScrollTransform.gameObject;
+            judgmentText = judgmentScrollTransform.GetComponentInChildren<TextMeshProUGUI>(true);
+        }
+
+        // 5) Visual Cue Animator
+        visualCueAnimator = localPlayerRoot.GetComponentInChildren<Animator>(true);
+
+
+
+        // 6) History Items
+        Transform historyPanelRoot = canvasRoot.Find("HistoryPanel");
+        if (historyPanelRoot != null)
+        {
+            historyPanel = historyPanelRoot.GetComponent<RectTransform>();
+            Transform toggleBtn = historyPanelRoot.Find("Button");
+            if (toggleBtn != null)
+            {
+                historyToggleButton = toggleBtn.GetComponent<Button>();
+                toggleButtonText = toggleBtn.GetComponentInChildren<TextMeshProUGUI>();
+            }
+            HistoryItems.AddRange(historyPanelRoot.GetComponentsInChildren<HistoryItem>(true));
+        }
+
+        historyPanel = historyPanelRoot.GetComponent<RectTransform>();
+
+        closedYPosition = historyPanel.anchoredPosition.y;
+        isHistoryOpen = false;
+
+        if (historyToggleButton != null)
+        {
+            historyToggleButton.onClick.RemoveAllListeners();
+            historyToggleButton.onClick.AddListener(ToggleHistoryPanel);
+            UpdateToggleButtonText();
+        }
+
+
+        if (slotPanelRoot != null)
+        {
+            cardSelectionPanel = slotPanelRoot.gameObject;
+
+            // Timer
+            Transform timerRoot = slotPanelRoot.Find("Timer");
+            if (timerRoot != null)
+            {
+                countdownText = timerRoot.GetComponentInChildren<TextMeshProUGUI>(true);
+                timerCircle = timerRoot.Find("timerCircle")?.GetComponent<Image>();
+            }
+
+            // Sentence Slots 
+            for (int i = 1; i <= 4; i++)
+            {
+                Transform container = slotPanelRoot.Find($"SlotsContainer_{i}");
+                if (container != null)
+                {
+                    // Image 
+                    Image img = container.GetComponentInChildren<Image>(true);
+                    if (img != null) playerSlotImages.Add(img);
+
+                    // Text 
+                    TextMeshProUGUI txt = container.GetComponentInChildren<TextMeshProUGUI>(true);
+                    if (txt != null) playerSlotTexts.Add(txt);
+                }
+            }
+
+            //  Card Buttons
+            Transform buttonsRoot = slotPanelRoot.Find("Buttons");
+            if (buttonsRoot != null)
+            {
+                Button[] foundButtons = buttonsRoot.GetComponentsInChildren<Button>(true);
+
+                foreach (Button btn in foundButtons)
+                {
+                    cardButtons.Add(btn);
+
+                    TextMeshProUGUI btnText = btn.GetComponentInChildren<TextMeshProUGUI>(true);
+                    if (btnText != null)
+                    {
+                        cardTexts.Add(btnText);
+                    }
+                }
+            }
+        }
+        IsUILinked = true;
+
+        // 게임 시작 직후 UI 비활성화
+        oraclePanel.SetActive(false);
+        cardSelectionPanel.SetActive(false);
+        persistentOraclePanel.SetActive(false);
+        systemPanel.gameObject.SetActive(false);
+        judgmentScroll.SetActive(false);
+
+    }
+
+
     // 히스토리 패널 초기 설정
     private void SetupHistoryPanel()
     {
@@ -68,7 +211,7 @@ public class UIManager : MonoBehaviour
         {
             closedYPosition = historyPanel.anchoredPosition.y;
 
-            isHistoryOpen = false; 
+            isHistoryOpen = false;
         }
 
         if (historyToggleButton != null)
@@ -122,7 +265,6 @@ public class UIManager : MonoBehaviour
 
     public void AddHistoryItem(RoundResult msg, int roundNumber, Dictionary<string, string> slotColors, List<string> finalWords)
     {
-        // 0. 리스트 유효성 및 라운드 번호 확인
         if (HistoryItems == null || HistoryItems.Count < roundNumber || roundNumber < 1)
         {
             Debug.LogError($"HistoryItem list is invalid or round number ({roundNumber}) is out of bounds.");
@@ -154,12 +296,10 @@ public class UIManager : MonoBehaviour
         oraclePanel.SetActive(true);
         oracleText.text = oracle;
 
-        // 영구 신탁 텍스트 표시
-        if (persistentOracleText != null)
-        {
-            persistentOracleText.text = $"신탁: {oracle}";
-            persistentOracleText.gameObject.SetActive(true);
-        }
+
+        persistentOracleText.text = $"{oracle}";
+        persistentOracleText.gameObject.SetActive(true);
+
 
         StartCoroutine(HideOraclePanelAfterSeconds(3f));
     }
@@ -167,23 +307,27 @@ public class UIManager : MonoBehaviour
     private IEnumerator HideOraclePanelAfterSeconds(float seconds)
     {
         yield return new WaitForSeconds(seconds);
-        oraclePanel.SetActive(false);
+        if (oraclePanel != null)
+        {
+            oraclePanel.SetActive(false);
+            traitorText.gameObject.SetActive(false);
+        }
 
     }
 
     public void ShowTraitorInfo(string godPersonality)
     {
-        //traitorPanel.SetActive(true);
+
         traitorText.text = $"신의 페르소나: {godPersonality}";
+        traitorText.gameObject.SetActive(true);
+
     }
 
 
     public void SetupCardButtons(List<string> cards)
     {
         if (cardSelectionPanel != null)
-        {
             cardSelectionPanel.SetActive(true);
-        }
 
         for (int i = 0; i < cardButtons.Count; i++)
         {
@@ -192,25 +336,26 @@ public class UIManager : MonoBehaviour
 
             if (i < cards.Count)
             {
-                string cardCopy = cards[i];
-
-                button.gameObject.SetActive(true); 
-                textComponent.text = cardCopy;    
+                string cardWord = cards[i];
+                textComponent.text = cardWord;
 
                 button.onClick.RemoveAllListeners();
-                button.onClick.AddListener(() => GameManager.Instance.OnCardSelected(cardCopy));
-
-                CardHoverHandler hoverHandler = button.GetComponent<CardHoverHandler>();
-                if (hoverHandler == null) hoverHandler = button.gameObject.AddComponent<CardHoverHandler>();
-
-                hoverHandler.targetSlotId = GameManager.Instance.mySlot;
+                button.onClick.AddListener(() => GameManager.Instance.OnCardSelected(cardWord));
             }
             else
             {
-                button.gameObject.SetActive(false);
+                textComponent.text = "";
+                button.onClick.RemoveAllListeners();
             }
+
+            button.gameObject.SetActive(true);
+
+            CardHoverHandler hoverHandler = button.GetComponent<CardHoverHandler>();
+            if (hoverHandler == null) hoverHandler = button.gameObject.AddComponent<CardHoverHandler>();
+            hoverHandler.targetSlotId = GameManager.Instance.mySlot;
         }
     }
+
 
 
     // 카드 선택 완료 시 버튼 비활성화 
@@ -236,7 +381,7 @@ public class UIManager : MonoBehaviour
         GameManager.Instance.OnCardSelected(card);
     }
 
-    public void HighlightSlot(string slotId, bool highlight, string hoveredWord) 
+    public void HighlightSlot(string slotId, bool highlight, string hoveredWord)
     {
         if (slotId.StartsWith("slot") && int.TryParse(slotId.Substring(4), out int slotIndex))
         {
@@ -251,11 +396,11 @@ public class UIManager : MonoBehaviour
                     defaultSlotColors[index] = slotText.color;
                 }
 
-                
+
                 if (highlight)
                 {
-                    slotText.color = Color.black; 
-                    slotText.text = hoveredWord;  
+                    slotText.color = Color.black;
+                    slotText.text = hoveredWord;
                 }
                 else
                 {
