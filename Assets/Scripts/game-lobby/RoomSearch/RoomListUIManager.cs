@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+ï»¿using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
 
@@ -6,23 +6,23 @@ public class RoomListUIManager : MonoBehaviour
 {
     public GameObject roomItemPrefab;
     public Transform content;
-
+    private bool IsDestroyed(UnityEngine.Object obj)
+    {
+        return obj == null || obj.Equals(null);
+    }
     private void OnEnable()
     {
-        // RoomManager ÀÌº¥Æ® ±¸µ¶
-        if (RoomManager.Instance != null)
+        if (!IsDestroyed(RoomManager.Instance))
             RoomManager.Instance.OnRoomListUpdated += UpdateRoomList;
     }
 
     private void OnDisable()
     {
-        if (RoomManager.Instance != null)
+        if (!IsDestroyed(RoomManager.Instance))
             RoomManager.Instance.OnRoomListUpdated -= UpdateRoomList;
     }
-
     void Start()
     {
-        // WebSocket ¿¬°áµÇ¸é ÀÚµ¿À¸·Î ¹æ ¸ñ·Ï ¿äÃ»
         if (WebSocketManager.Instance != null)
         {
             WebSocketManager.Instance.OnConnected += OnWebSocketConnected;
@@ -34,8 +34,7 @@ public class RoomListUIManager : MonoBehaviour
 
     private void OnWebSocketConnected()
     {
-        Debug.Log("[RoomListUIManager] WebSocket connected ¡æ ¹æ ¸ñ·Ï ¿äÃ»");
-
+        Debug.Log("[RoomListUIManager] WebSocket connected â†’ ë°© ëª©ë¡ ìš”ì²­");
         RequestRefresh();
     }
 
@@ -43,7 +42,7 @@ public class RoomListUIManager : MonoBehaviour
     {
         if (WebSocketManager.Instance != null && WebSocketManager.Instance.IsConnected)
         {
-            WebSocketManager.Instance.Send("{\"action\":\"getRooms\"}");
+            WebSocketManager.Instance.Send("{\"action\":\"GET_ROOM_LIST\"}");
         }
         else
         {
@@ -51,19 +50,37 @@ public class RoomListUIManager : MonoBehaviour
         }
     }
 
-    private void UpdateRoomList(List<string> rooms)
+    private void UpdateRoomList(List<RoomManager.Room> rooms)
     {
-        // ±âÁ¸ Ç×¸ñ Á¦°Å
+        Debug.Log("[RoomListUIManager] UpdateRoomList called");
+
         foreach (Transform child in content)
             Destroy(child.gameObject);
 
-        // »õ·Î¿î Ç×¸ñ »ı¼º
-        foreach (string room in rooms)
+        if (rooms == null)
+        {
+            Debug.Log("[RoomListUIManager] rooms is null");
+            return;
+        }
+
+        Debug.Log("[RoomListUIManager] rooms count = " + rooms.Count);
+
+        foreach (var room in rooms)
         {
             var obj = Instantiate(roomItemPrefab, content);
             var txt = obj.GetComponentInChildren<TMP_Text>();
+
             if (txt != null)
-                txt.text = room;
+            {
+                int playerCount = room.players != null ? room.players.Length : room.currentCount;
+
+                // ì„œë²„ JSONì—ëŠ” roomCodeê°€ ì—†ê³  roomTitleë§Œ ìˆìŒ
+                // {"roomTitle":"123ë‹˜ì˜ ë°©","currentCount":1,"maxCount":4,"playing":false}
+                var title = !string.IsNullOrEmpty(room.roomTitle) ? room.roomTitle : room.roomCode;
+
+                txt.text = $"{room.roomTitle} - {room.currentCount}/{room.maxCount}ëª… ì°¸ì—¬ ì¤‘";
+                ;
+            }
         }
     }
 

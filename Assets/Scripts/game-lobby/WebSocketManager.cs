@@ -7,6 +7,9 @@ public class WebSocketManager : MonoBehaviour
 {
     public static WebSocketManager Instance { get; private set; }
 
+    // 지금은 안 쓰지만, 나중을 위해 남겨둠
+    public string ClientSessionId { get; private set; }
+
     private WebSocket ws;
     private bool isConnecting = false;
 
@@ -57,13 +60,15 @@ public class WebSocketManager : MonoBehaviour
         ws.OnMessage += (s, e) =>
         {
             string msg = e.Data;
+
             if (!string.IsNullOrEmpty(msg))
             {
-                UnityMainThreadDispatcher.Instance.Enqueue(() =>
+                UnityMainThreadDispatcher.EnqueueOnMainThread(() =>
                 {
                     OnServerMessage?.Invoke(msg);
                 });
             }
+
             Debug.Log("[WS] 서버 → 클라: " + msg);
         };
 
@@ -89,7 +94,6 @@ public class WebSocketManager : MonoBehaviour
         Connect();
     }
 
-    // 🔹 순수 송신만
     public void Send(string json)
     {
         if (!IsConnected)

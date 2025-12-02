@@ -64,6 +64,12 @@ public class NickNameManager : MonoBehaviour
         StartCoroutine(RegisterWebSocketEvent());
     }
 
+    void OnEnable()
+    {
+        if (WebSocketManager.Instance != null)
+            WebSocketManager.Instance.OnServerMessage += HandleEvent;
+    }
+
     // ⭐ 중요: 컴포넌트 파괴 시 이벤트 구독을 반드시 해지해야 메모리 누수를 방지합니다.
     void OnDestroy()
     {
@@ -87,6 +93,8 @@ public class NickNameManager : MonoBehaviour
         Debug.Log("[NickNameManager] WebSocket 구독 완료");
     }
 
+    
+
     public void SendNickname(string nickname)
     {
         // DTO를 사용하여 요청 데이터 생성
@@ -108,43 +116,48 @@ public class NickNameManager : MonoBehaviour
 
     private void HandleEvent(string json)
     {
-        Debug.Log("[NickNameManager] 수신 JSON: " + json);
-
         try
         {
-            // JsonUtility를 사용하여 ServerMessage DTO로 역직렬화
+            // 공통 파싱
             var serverMsg = JsonUtility.FromJson<ServerMessage>(json);
 
-            if (serverMsg == null) return;
-
-            string eventType = serverMsg.@event;
-
-            if (eventType == "NICKNAME_SUCCESS")
+            if (serverMsg == null)
             {
-                // JsonUtility는 객체가 없으면 null을 반환합니다.
-                if (serverMsg.player != null)
-                {
-                    SaveAndNotify(serverMsg.player.nickname);
-                }
-                else
-                {
-                    Debug.LogError("[NickNameManager] NICKNAME_SUCCESS 응답에 'player' 데이터가 누락되었습니다.");
-                }
+                Debug.LogWarning("[NickNameManager] serverMsg null: " + json);
+                return;
             }
-            else if (eventType == "NICKNAME_FAIL")
+
+            switch (serverMsg.@event)
             {
-                // message 필드가 있을 수도 있고 없을 수도 있습니다.
-                string message = serverMsg.message ?? "닉네임 설정 실패 (서버 메시지 없음)";
-                OnNicknameFail?.Invoke(message);
-            }
-            else
-            {
-                Debug.Log($"[NickNameManager] 알 수 없는 이벤트 타입: {eventType}");
+                case "NICKNAME_SUCCESS":
+                    if (serverMsg.player != null)
+                    {
+                        SaveAndNotify(serverMsg.player.nickname);
+                    }
+                    else
+                    {
+                        Debug.LogWarning("[NickNameManager] NICKNAME_SUCCESS지만 player 정보 없음");
+                    }
+                    break;
+
+                case "NICKNAME_FAIL":
+                case "NICKNAME_DUPLICATE":
+                    // 서버에서 내려준 message를 그대로 사용
+                    var msg = string.IsNullOrEmpty(serverMsg.message)
+                        ? "닉네임 설정 실패"
+                        : serverMsg.message;
+
+                    Debug.Log("[NickNameManager] 닉네임 실패/중복: " + msg);
+                    OnNicknameFail?.Invoke(msg);
+                    break;
+
+                default:
+                    Debug.Log("[NickNameManager] 무시 이벤트: " + json);
+                    break;
             }
         }
         catch (Exception e)
         {
-            // JSON 파싱 자체에 문제가 있을 경우 예외 처리
             Debug.LogError($"[NickNameManager] JSON 파싱 오류: {e.Message}\n수신 JSON: {json}");
         }
     }
@@ -156,9 +169,12 @@ public class NickNameManager : MonoBehaviour
 
         Debug.Log("[NickNameManager] 닉네임 성공 처리: " + nickname);
 
-        // RoomManager 유무 확인 로직은 유지
-        if (RoomManager.Instance != null)
-            Debug.Log("[NickNameManager] RoomManager에 닉네임 전달됨: " + nickname);
+        // 닉네임만 처리하면 NickNameManager 는 더 이상 서버 이벤트를 받을 필요 없음
+        if (WebSocketManager.Instance != null)
+        {
+            WebSocketManager.Instance.OnServerMessage -= HandleEvent;
+            Debug.Log("[NickNameManager] 닉네임 설정 완료 → WebSocket 구독 해제");
+        }
 
         OnNicknameSuccess?.Invoke(nickname);
     }

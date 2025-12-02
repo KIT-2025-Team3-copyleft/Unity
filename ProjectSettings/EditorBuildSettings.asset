@@ -12,7 +12,7 @@ EditorBuildSettings:
     path: Assets/Scenes/StartScreen.unity
     guid: fa29f690cbc41ed428025d3b2440dce9
   - enabled: 1
-    path: Assets/Scenes/RoomSerach.unity
+    path: Assets/Scenes/RoomSerachScene.unity
     guid: a1e95127a54cc144dbe21b8d50061a82
   - enabled: 1
     path: Assets/Scenes/LobbyScene.unity
