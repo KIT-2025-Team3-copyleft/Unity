@@ -35,6 +35,7 @@ public class RoomListUIManager : MonoBehaviour
     private void OnWebSocketConnected()
     {
         Debug.Log("[RoomListUIManager] WebSocket connected → 방 목록 요청");
+
         RequestRefresh();
     }
 
@@ -79,6 +80,7 @@ public class RoomListUIManager : MonoBehaviour
                 var title = !string.IsNullOrEmpty(room.roomTitle) ? room.roomTitle : room.roomCode;
 
                 txt.text = $"{room.roomTitle} - {room.currentCount}/{room.maxCount}명 참여 중";
+
                 ;
             }
         }

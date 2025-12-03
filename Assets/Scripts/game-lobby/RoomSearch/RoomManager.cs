@@ -181,35 +181,41 @@ public class RoomManager : MonoBehaviour
             {
                 if (p.nickname == myNick)
                 {
-                    MySessionId = p.sessionId;
-                    break;
+                    {
+                        if (GameManager.Instance != null && !string.IsNullOrEmpty(p.sessionId))
+                        {
+                            // 🌟 찾은 플레이어의 sessionId를 GameManager에 할당
+                            GameManager.Instance.SetMySessionId(p.sessionId);
+                        }
+
+                    }
                 }
             }
-        }
 
-        // 호스트 여부
-        IsHost = false;
-        if (CurrentRoom.players != null)
-        {
-            foreach (var p in CurrentRoom.players)
+            // 호스트 여부
+            IsHost = false;
+            if (CurrentRoom.players != null)
             {
-                if (p.nickname == myNick && p.host)
+                foreach (var p in CurrentRoom.players)
                 {
-                    IsHost = true;
-                    break;
+                    if (p.nickname == myNick && p.host)
+                    {
+                        IsHost = true;
+                        break;
+                    }
                 }
             }
+
+            Debug.Log($"[RoomManager] ProcessJoinSuccess: roomCode={CurrentRoomCode}, myNick={myNick}, IsHost={IsHost}");
+
+            // 씬 전환
+            SceneManager.LoadScene("LobbyScene");
+
+            // LOBBY_UPDATE 처음 한 번 처리되게 플래그 초기화
+            isLobbyUpdatedProcessed = false;
+
+            OnJoinResult?.Invoke(true);
         }
-
-        Debug.Log($"[RoomManager] ProcessJoinSuccess: roomCode={CurrentRoomCode}, myNick={myNick}, IsHost={IsHost}");
-
-        // 씬 전환
-        SceneManager.LoadScene("LobbyScene");
-
-        // LOBBY_UPDATE 처음 한 번 처리되게 플래그 초기화
-        isLobbyUpdatedProcessed = false;
-
-        OnJoinResult?.Invoke(true);
     }
 
     // ===========================

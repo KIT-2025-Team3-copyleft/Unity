@@ -93,7 +93,6 @@ public class NickNameManager : MonoBehaviour
         Debug.Log("[NickNameManager] WebSocket 구독 완료");
     }
 
-    
 
     public void SendNickname(string nickname)
     {

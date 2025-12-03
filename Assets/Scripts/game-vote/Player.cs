@@ -1,4 +1,7 @@
-using UnityEngine;
+// Player 충돌로 인해 임시 주석처리
+
+
+/*using UnityEngine;
 
 [System.Serializable]
 public class Player
@@ -22,3 +25,4 @@ public class Player
         this.color = color;
     }
 }
+*/

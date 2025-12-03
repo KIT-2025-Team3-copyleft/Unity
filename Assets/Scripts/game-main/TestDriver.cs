@@ -1,4 +1,4 @@
-﻿using System;
+﻿/*using System;
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
@@ -103,8 +103,7 @@ public class TestDriver : MonoBehaviour
                 Debug.Log($"더미({pm.nickname}) 플레이어(ID: {pm.playerId}) 생성 완료.");
             }
 
-            // 색상 할당 (GameManager에 의존)
-            GameManager.Instance.AssignColorToPlayer(pm);
+   
         }
 
         // 나의 슬롯 이미지 색상 테스트를 위해 텍스트 업데이트 (GameManager에는 UpdateMySentenceSlot 함수가 없음)
@@ -208,4 +207,4 @@ public class TestDriver : MonoBehaviour
             startTestButton.interactable = true;
         }
     }
-}
+}*/

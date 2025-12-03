@@ -1,4 +1,6 @@
-using System.Collections.Generic;
+// Player 충돌로 인해 임시 주석처리
+
+/*using System.Collections.Generic;
 using UnityEngine;
 
 public class VoteManager : MonoBehaviour
@@ -35,3 +37,4 @@ public class VoteManager : MonoBehaviour
         Debug.Log("HeresyVote 종료! 결과: " + string.Join(",", result.ConvertAll(p => p.nickname)));
     }
 }
+*/

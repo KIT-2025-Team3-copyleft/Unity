@@ -36,6 +36,11 @@ public class PlayerSpawnManager : MonoBehaviour
 
         Instance = this;
         DontDestroyOnLoad(gameObject);
+
+        if (playerRoot != null)
+    {
+            DontDestroyOnLoad(playerRoot.gameObject);
+        }
     }
 
     private void OnEnable()
@@ -50,6 +55,7 @@ public class PlayerSpawnManager : MonoBehaviour
     {
         SceneManager.sceneLoaded -= OnSceneLoaded;
 
+        // RoomManager.Instance가 Destroy되었을 경우를 대비하여 null 체크를 유지합니다.
         if (RoomManager.Instance != null)
             RoomManager.Instance.OnLobbyUpdated -= OnLobbyUpdated;
     }
@@ -59,16 +65,29 @@ public class PlayerSpawnManager : MonoBehaviour
     // =====================================================================
     private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
-        if (scene.name != "LobbyScene")
-            return;
+        if (scene.name != "LobbyScene") return;
 
         RefreshSpawnPoints();
 
-        // 로비 씬으로 들어왔는데 이미 방 정보가 있다면, 바로 스폰 시도
-        if (RoomManager.Instance != null && RoomManager.Instance.CurrentRoom != null)
+        StartCoroutine(DelayedSpawn());
+    }
+
+    // PlayerSpawnManager.cs
+    private IEnumerator DelayedSpawn()
+    {
+        yield return null;
+        yield return null;
+
+        // 🌟 이 로그가 출력되는지 확인하세요!
+        Debug.Log($"[DelayedSpawn] RoomManager.Instance is: {RoomManager.Instance}");
+
+        if (RoomManager.Instance == null)
         {
-            SpawnPlayers(RoomManager.Instance.CurrentRoom);
+            Debug.LogError("[DelayedSpawn] RoomManager.Instance가 null입니다. SpawnPlayers를 호출할 수 없습니다.");
+            yield break;
         }
+
+        SpawnPlayers(RoomManager.Instance.CurrentRoom);
     }
 
     private void RefreshSpawnPoints()
@@ -111,13 +130,23 @@ public class PlayerSpawnManager : MonoBehaviour
     }
 
     // =====================================================================
-    //  실제 스폰 로직
+    //  실제 스폰 로직 (PlayerSpawner의 로직 흡수)
     // =====================================================================
     public void SpawnPlayers(RoomManager.Room room)
     {
+        if (GameManager.Instance == null)
+        {
+            Debug.LogError("❌ SpawnPlayers: GameManager.Instance가 null이어서 플레이어 세션 ID를 가져올 수 없습니다. 초기화 순서를 확인하세요.");
+            return;
+        }
+
+
         if (room == null || room.players == null || room.players.Length == 0)
         {
             Debug.LogError("❌ SpawnPlayers: room 또는 players가 비어 있음");
+
+            // 플레이어가 모두 나갔을 경우, 남아있던 오브젝트들을 정리합니다.
+            ClearExistingPlayers();
             return;
         }
 
@@ -142,17 +171,40 @@ public class PlayerSpawnManager : MonoBehaviour
 
             // 자리 인덱스는 playerNumber 우선 사용, 없으면 i
             int seatIndex = p.playerNumber >= 0 ? p.playerNumber : i;
-            Transform spawnPoint = spawnPoints[seatIndex % spawnPoints.Length];
+            if (seatIndex >= spawnPoints.Length)
+            {
+                Debug.LogWarning("스폰 포인트가 부족합니다. 이 플레이어는 스폰되지 않습니다.");
+                continue; // 스폰 포인트가 부족하면 건너뜁니다.
+            }
+
+            Transform spawnPoint = spawnPoints[seatIndex]; // % spawnPoints.Length는 필요하지 않음.
 
             Vector3 pos = spawnPoint.position;
             Quaternion rot = spawnPoint.rotation;
 
+            string mySessionId = GameManager.Instance.MySessionId; // 중복 선언 방지
+            Debug.Log($"[ID Check] Comparing Local ID: {mySessionId} with Player ID: {p.sessionId}");
+            bool isLocal = (p.sessionId == mySessionId); // 👈 이 코드는 그대로 유지
+
             aliveSessionIds.Add(p.sessionId);
 
+            aliveSessionIds.Add(p.sessionId);
+
+            GameObject playerObj;
+            PlayerManager pm;
+
             // 이미 존재하면 위치만 갱신
-            if (playersBySessionId.TryGetValue(p.sessionId, out GameObject existing) && existing != null)
+            if (playersBySessionId.TryGetValue(p.sessionId, out playerObj) && playerObj != null)
             {
-                existing.transform.SetPositionAndRotation(pos, rot);
+                playerObj.transform.SetPositionAndRotation(pos, rot);
+
+                // PlayerManager 업데이트 (호스트 여부, 색상 등)
+                pm = playerObj.GetComponent<PlayerManager>();
+                if (pm != null)
+                {
+                    pm.isHost = (p.sessionId == room.hostSessionId);
+                    pm.SetColor(p.color);
+                }
 
                 Debug.Log($"[SpawnDebug] ↻ Move player={p.nickname}, playerNumber={p.playerNumber}, " +
                           $"seatIndex={seatIndex}, pos={pos}, rot={rot.eulerAngles}");
@@ -160,25 +212,101 @@ public class PlayerSpawnManager : MonoBehaviour
             else
             {
                 // 새로 생성
+                // playerPrefabs 배열 길이 초과 방지
                 GameObject prefab = playerPrefabs[seatIndex % playerPrefabs.Length];
-                GameObject obj = Instantiate(prefab, pos, rot, playerRoot);
-                obj.name = $"{prefab.name}_{p.nickname}";
+                playerObj = Instantiate(prefab, pos, rot, playerRoot);
+                DontDestroyOnLoad(playerObj);
+                playerObj.name = $"{prefab.name}_{p.nickname}";
 
-                playersBySessionId[p.sessionId] = obj;
+                playersBySessionId[p.sessionId] = playerObj;
 
-                Debug.Log($"[SpawnDebug] ✚ Instantiate player={p.nickname}, playerNumber={p.playerNumber}, " +
-                          $"seatIndex={seatIndex}, pos={pos}, rot={rot.eulerAngles}");
+                // 🌟 PlayerManager 컴포넌트 설정 (PlayerSpawner.SpawnPlayer 로직)
+                pm = playerObj.GetComponent<PlayerManager>();
+                if (pm == null) pm = playerObj.AddComponent<PlayerManager>();
+
+                pm.playerId = p.sessionId;
+                pm.nickname = p.nickname;
+
+                // GameManager에 등록 (PlayerSpawner.SpawnPlayer 로직)
+                GameManager.Instance.AddPlayer(p.sessionId, pm);
+
+                // 로비 정보 업데이트 (PlayerSpawner.UpdateLobbyPlayers 로직)
+                pm.SetColor(p.color);
+                pm.isHost = (p.sessionId == room.hostSessionId);
+
+                // 🌟 카메라/캔버스/리스너 활성화/비활성화 (PlayerSpawner.SpawnPlayer 로직)
+                AudioListener listener = playerObj.GetComponentInChildren<AudioListener>(true);
+                Transform canvasTransform = playerObj.transform.Find("Canvas");
+                Camera cam = playerObj.GetComponentInChildren<Camera>(true);
+
+                // --------------------------------------------------------------------------
+                // 1. 기본 설정 및 원격 플레이어 처리
+                // --------------------------------------------------------------------------
+                if (cam != null)
+                {
+                    cam.enabled = isLocal;
+                    if (isLocal)
+                    {
+                        GameManager.Instance.firstPersonCamera = cam;
+                    }
+                }
+
+                if (canvasTransform != null)
+                {
+                    canvasTransform.gameObject.SetActive(false);
+                }
+
+                if (listener != null)
+                {
+                    if (!isLocal)
+                    {
+                        Destroy(listener);
+                    }
+                    else
+                    {
+                        listener.enabled = true;
+                    }
+                }
+
+                if (isLocal)
+                {
+                    GameManager.Instance.LinkLocalPlayerUI(playerObj);
+                }
             }
-        }
 
-        // 방에서 사라진 플레이어는 정리
+            // 방에서 사라진 플레이어는 정리
+            ClearRemovedPlayers(aliveSessionIds);
+
+            playersSpawned = true;
+
+            Debug.Log($"✔ [SpawnDebug] SpawnPlayers 완료. 현재 인원: {playersBySessionId.Count}");
+        }
+    }
+
+    private void ClearExistingPlayers()
+    {
+        foreach (var kv in playersBySessionId)
+        {
+            if (kv.Value != null)
+                Destroy(kv.Value);
+        }
+        playersBySessionId.Clear();
+        // GameManager에서도 정리하는 로직이 있다면 추가합니다.
+    }
+
+    private void ClearRemovedPlayers(HashSet<string> aliveSessionIds)
+    {
         List<string> toRemove = new List<string>();
         foreach (var kv in playersBySessionId)
         {
             if (!aliveSessionIds.Contains(kv.Key))
             {
                 if (kv.Value != null)
+                {
                     Destroy(kv.Value);
+                    // GameManager에서 플레이어 정보를 제거하는 로직이 있다면 여기서 호출해야 합니다.
+                    // GameManager.Instance.RemovePlayer(kv.Key);
+                }
 
                 toRemove.Add(kv.Key);
             }
@@ -187,9 +315,5 @@ public class PlayerSpawnManager : MonoBehaviour
         {
             playersBySessionId.Remove(key);
         }
-
-        playersSpawned = true;
-
-        Debug.Log($"✔ [SpawnDebug] SpawnPlayers 완료. 현재 인원: {playersBySessionId.Count}");
     }
 }
