@@ -184,6 +184,7 @@ GameObject:
   - component: {fileID: 188691892}
   - component: {fileID: 188691891}
   - component: {fileID: 188691890}
+  - component: {fileID: 188691893}
   m_Layer: 0
   m_Name: Manager
   m_TagString: Untagged
@@ -211,7 +212,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 188691888}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: fe45b13b8e4e7fa4f8cb876f39ddb678, type: 3}
   m_Name: 
@@ -224,8 +225,8 @@ MonoBehaviour:
   systemMessageText: {fileID: 0}
   trialButton: {fileID: 0}
   chatInput: {fileID: 0}
-  judgmentZoomPosition: {fileID: 983972146}
-  judgmentFinalPosition: {fileID: 983972146}
+  judgmentZoomPosition: {fileID: 999214122}
+  judgmentFinalPosition: {fileID: 1239168219}
   zoomDuration: 0.8
   settleDuration: 0.7
   currentHP: 100
@@ -249,6 +250,19 @@ Transform:
   - {fileID: 1751388264}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &188691893
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 188691888}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5f4b77cfe00d6a0468d2efc9cd84f5ed, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::WebSocketManager
+  serverUrl: ws://168.107.19.253/ws/
 --- !u!1001 &210244347
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -347,7 +361,7 @@ GameObject:
   - component: {fileID: 330585545}
   - component: {fileID: 330585547}
   m_Layer: 0
-  m_Name: Observer Camera
+  m_Name: ObserverCamera
   m_TagString: MainCamera
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -863,7 +877,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 888440488}
-  - component: {fileID: 888440487}
   m_Layer: 0
   m_Name: TEST
   m_TagString: Untagged
@@ -871,20 +884,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &888440487
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 888440486}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8e8889feaefbe51448c2e615eca28f82, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::TestDriver
-  startTestButton: {fileID: 0}
-  playerSpawner: {fileID: 1751388263}
 --- !u!4 &888440488
 Transform:
   m_ObjectHideFlags: 0
@@ -999,6 +998,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 468c919b62b99144a96c1d31327c44e2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::HistoryItem
+  roundText: {fileID: 0}
+  OracleText: {fileID: 0}
   wordTexts:
   - {fileID: 0}
   - {fileID: 0}
@@ -1033,7 +1034,7 @@ GameObject:
   - component: {fileID: 983972145}
   - component: {fileID: 983972143}
   m_Layer: 0
-  m_Name: TopDown Camera
+  m_Name: TopDownCamera
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1143,6 +1144,68 @@ Transform:
   m_GameObject: {fileID: 983972142}
   serializedVersion: 2
   m_LocalRotation: {x: 0.7071068, y: 0, z: 0, w: 0.7071068}
+  m_LocalPosition: {x: 0, y: 7, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 90, y: 0, z: 0}
+--- !u!1 &999214121
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 999214122}
+  m_Layer: 0
+  m_Name: JudgmentZoomPosition
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &999214122
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 999214121}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0.7071068, y: -0, z: -0, w: 0.7071068}
+  m_LocalPosition: {x: 0, y: 3, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 90, y: 0, z: 0}
+--- !u!1 &1239168218
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1239168219}
+  m_Layer: 0
+  m_Name: JudgmentFinalPosition
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1239168219
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1239168218}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0.7071068, y: -0, z: -0, w: 0.7071068}
   m_LocalPosition: {x: 0, y: 4, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -1407,12 +1470,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e8effbc89f37baa49b1203d059571e4a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerSpawner
-  playerPrefab: {fileID: 789461324328659636, guid: 757d8dbd961147048b58626f010f98f4, type: 3}
-  spawnPoints:
-  - {fileID: 1583101309}
-  - {fileID: 741241564}
-  - {fileID: 1524697775}
-  - {fileID: 1559134756}
 --- !u!4 &1751388264
 Transform:
   m_ObjectHideFlags: 0
@@ -1541,3 +1598,5 @@ SceneRoots:
   - {fileID: 185680420}
   - {fileID: 210244347}
   - {fileID: 888440488}
+  - {fileID: 999214122}
+  - {fileID: 1239168219}

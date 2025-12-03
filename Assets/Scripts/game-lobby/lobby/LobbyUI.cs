@@ -15,6 +15,9 @@ public class LobbyUI : MonoBehaviour
     [SerializeField] private TextMeshProUGUI errorText;
     [SerializeField] private TMP_Text countdownText;  // 3초 카운트다운용 (화면 중앙 크게 배치 추천)
 
+
+    public string sceceName;
+
     private Coroutine countdownRoutine;
     private bool countdownCancelled = false;
 
@@ -250,7 +253,7 @@ public class LobbyUI : MonoBehaviour
     private IEnumerator LoadGameSceneAfterDelay(float delay)
     {
         yield return new WaitForSeconds(delay);
-        SceneManager.LoadScene("GameScene");
+        SceneManager.LoadScene(sceceName);
     }
 
     // -----------------------------

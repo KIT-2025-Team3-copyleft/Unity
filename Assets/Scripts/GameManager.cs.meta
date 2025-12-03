@@ -1,6 +1,11 @@
 fileFormatVersion: 2
-<<<<<<< HEAD
 guid: fe45b13b8e4e7fa4f8cb876f39ddb678
-=======
-guid: 8b149eba706527c438d9d0eaa25864fa
->>>>>>> feat/game-lobby
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: -101
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

@@ -1,4 +1,6 @@
-using System.Collections.Generic;
+// Player 충돌로 인해 임시 주석처리
+
+/*using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
 using UnityEngine.UI;
@@ -74,3 +76,4 @@ public class VoteRequest : MonoBehaviour
         }
     }
 }
+*/

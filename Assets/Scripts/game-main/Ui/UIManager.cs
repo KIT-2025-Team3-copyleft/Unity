@@ -15,9 +15,6 @@ public class UIManager : MonoBehaviour
     {
         if (Instance == null) Instance = this;
         else Destroy(gameObject);
-
-
-
     }
 
     private Dictionary<int, Color> defaultSlotColors = new Dictionary<int, Color>();
@@ -76,6 +73,7 @@ public class UIManager : MonoBehaviour
 
         Transform canvasRoot = localPlayerRoot.transform.Find("Canvas");
         if (canvasRoot == null) return;
+        canvasRoot.gameObject.SetActive(true);
 
         // --- A. 단일 컴포넌트 할당 ---
         Transform oracleRoot = canvasRoot.Find("Role&OraclePanel");
@@ -263,7 +261,8 @@ public class UIManager : MonoBehaviour
         }
     }
 
-    public void AddHistoryItem(RoundResult msg, int roundNumber, Dictionary<string, string> slotColors, List<string> finalWords)
+    // 🌟 AddHistoryItem 매개변수 수정: mission 추가
+    public void AddHistoryItem(RoundResult msg, int roundNumber, string mission, Dictionary<string, string> slotColors, List<string> finalWords)
     {
         if (HistoryItems == null || HistoryItems.Count < roundNumber || roundNumber < 1)
         {
@@ -279,7 +278,8 @@ public class UIManager : MonoBehaviour
         {
             historyItem.gameObject.SetActive(true);
 
-            historyItem.SetData(msg, slotColors, roundNumber, finalWords);
+            // 🌟 SetData 호출 시 mission 전달
+            historyItem.SetData(msg, slotColors, roundNumber, mission, finalWords);
         }
     }
 
@@ -352,6 +352,8 @@ public class UIManager : MonoBehaviour
 
             CardHoverHandler hoverHandler = button.GetComponent<CardHoverHandler>();
             if (hoverHandler == null) hoverHandler = button.gameObject.AddComponent<CardHoverHandler>();
+            // 🌟 GameManager.Instance.mySlot 대신 MySessionId를 사용하여 targetSlotId를 설정할 수도 있지만, 
+            // 현재 구조상 mySlot을 사용합니다.
             hoverHandler.targetSlotId = GameManager.Instance.mySlot;
         }
     }

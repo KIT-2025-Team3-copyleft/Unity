@@ -5,6 +5,10 @@ using TMPro;
 
 public class HistoryItem : MonoBehaviour
 {
+    // 🌟 추가: 라운드 번호와 신탁
+    public TextMeshProUGUI roundText;
+    public TextMeshProUGUI OracleText;
+
     // 완성 문장 (4개 단어)
     public List<TextMeshProUGUI> wordTexts;
 
@@ -14,8 +18,13 @@ public class HistoryItem : MonoBehaviour
     // 신의 평가
     public TextMeshProUGUI evaluationText;
 
-    public void SetData(RoundResult result, Dictionary<string, string> slotColors, int roundNumber, List<string> finalWords)
+    // 🌟 SetData 매개변수 수정: roundNumber와 mission 추가
+    public void SetData(RoundResult result, Dictionary<string, string> slotColors, int roundNumber, string mission, List<string> finalWords)
     {
+        // 🌟 추가: 라운드 번호와 신탁 설정
+        roundText.text = $"라운드 {roundNumber}의 기록";
+        OracleText.text = $"신탁: {mission}";
+
         evaluationText.text = $"신의 평가: {result.reason}";
 
         string reactionEmoji = GetReactionEmoji(result.visualCue.effect);
@@ -59,7 +68,7 @@ public class HistoryItem : MonoBehaviour
             case "yellow":
                 return Color.yellow;
             case "pink":
-                return new Color(1f, 0.41f, 0.71f); 
+                return new Color(1f, 0.41f, 0.71f);
             default:
                 // 매칭되는 색이 없을 경우 디버그 메시지를 출력하고 기본 색상을 반환
                 Debug.LogWarning($"Unknown color name: {colorName}. Defaulting to green.");

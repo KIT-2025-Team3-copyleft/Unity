@@ -1,3 +1,6 @@
+﻿// 현재 미사용
+
+
 using UnityEngine;
 
 public class PlayerManager : MonoBehaviour
@@ -8,6 +11,9 @@ public class PlayerManager : MonoBehaviour
     public string slot;
     public string colorName;
     public bool actionCompleted = false;
+
+    // 🌟 추가: 로비 상태 표시용
+    public bool isHost = false;
 
     private Renderer playerRenderer;
 
@@ -20,6 +26,8 @@ public class PlayerManager : MonoBehaviour
 
     public void SetColor(string colorName)
     {
+        this.colorName = colorName;
+
         Material mat = Resources.Load<Material>(
             $"Polytope Studio/Lowpoly_Characters/Sources/Materials/{colorName}"
         );

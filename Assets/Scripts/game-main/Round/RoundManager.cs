@@ -1,10 +1,4 @@
-/*
- * ���� �ÿ� ��, ���� �ذ��� ���� ä��â ���� �ڵ�� �ּ�ó����
- * 34, 63 LINE
- 
- */
-
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -13,6 +7,7 @@ public class RoundManager : MonoBehaviour
     public static RoundManager Instance;
 
     public int currentRound = 0;
+    private string currentMission = "";
 
     private void Awake()
     {
@@ -22,61 +17,86 @@ public class RoundManager : MonoBehaviour
             Destroy(gameObject);
     }
 
-    // ���� ����
+    private void OnDestroy()
+    {
+        if (Instance == this)
+        {
+            Instance = null;
+        }
+    }
+
+    // 라운드 시작 (카드리스트 및 타이머 정보 수신)
     public void HandleRoundStart(RoundStartMessage msg)
     {
         currentRound++;
-        GameManager.Instance.myRole = msg.myRole;
+
+        currentMission = msg.mission;
+
+        // 🌟 myRole은 SHOW_ROLE에서 설정되었으므로 mySlot만 업데이트
         GameManager.Instance.mySlot = msg.mySlot;
-        UIManager.Instance.ShowOracleAndRole(msg.mission, msg.myRole, currentRound);
 
-        if (msg.myRole == "traitor") UIManager.Instance.ShowTraitorInfo(msg.godPersonality);
-        //GameManager.Instance.chatInput.interactable = msg.chatEnabled; ���� �ذ��� ���� �ּ�ó��
+        // SHOW_ORACLE, SHOW_ROLE 이벤트는 GameManager에서 이미 별도로 처리되었습니다.
 
+        // 채팅창 상호작용 가능 여부 설정 (현재 주석 처리)
+        // if (GameManager.Instance.chatInput != null) GameManager.Instance.chatInput.interactable = msg.chatEnabled; 
+
+        // 카드 선택 코루틴 시작
         StartCoroutine(StartCardSelection(msg.cards, msg.timeLimit));
     }
 
-    // ī�� ���� ����
+    // 카드 선택 시작
     private IEnumerator StartCardSelection(List<string> cards, int selectionTime)
     {
+        // SHOW_ORACLE/SHOW_ROLE 메시지의 팝업 시간(약 4초)을 기다립니다.
         yield return new WaitForSeconds(4f);
+
+        // 카드 선택 UI 활성화
         UIManager.Instance.SetupCardButtons(cards);
 
+        // 타이머 시작 (시간 종료 시 임의 카드 자동 선택)
         StartCoroutine(
             UIManager.Instance.StartTimer(selectionTime, () => UIManager.Instance.AutoSelectRandomCard())
         );
     }
-    // ī�� ���� �Ϸ�(����)
+
+    // 카드 선택 완료(개인) - 서버로부터 CARD_SELECTION_CONFIRMED 수신 시 호출
     public void HandleCardSelectionConfirmed()
     {
+        // 카드 선택 UI 비활성화
         UIManager.Instance.DisableMyCards();
-        GameManager.Instance.systemMessageText.text = "ī�� ������ Ȯ�εǾ����ϴ�.";
+        GameManager.Instance.systemMessageText.text = "카드 선택이 확인되었습니다.";
     }
 
+    // 다른 플레이어 행동 완료 업데이트
     public void HandlePlayerActionUpdate(PlayerActionUpdate msg)
     {
-        GameManager.Instance.systemMessageText.text = $"{msg.playerId}�� �ൿ�� �Ϸ��߽��ϴ�.";
+        GameManager.Instance.systemMessageText.text = $"{msg.playerId}가 행동을 완료했습니다.";
     }
 
-    // ī�� ���� �Ϸ�(��ü)
+    // 카드 선택 완료(전체) - 서버로부터 ALL_CARDS_SELECTED 수신 시 호출
     public void HandleInterpretationEnd(InterpretationEnd msg)
     {
-        //GameManager.Instance.chatInput.interactable = msg.chatEnabled; ���� �ذ��� ���� �ӽ� �ּ�ó��
+        // if (GameManager.Instance.chatInput != null) GameManager.Instance.chatInput.interactable = msg.chatEnabled; // 채팅 활성화/비활성화
         GameManager.Instance.systemMessageText.text = msg.message;
     }
 
-    // ���� ����
+    // 라운드 종료 - 서버로부터 ROUND_RESULT 수신 시 호출
     public void HandleRoundResult(RoundResult msg)
     {
-        GameManager.Instance.systemMessageText.text = $"���� ����: {msg.finalSentence} (HP {msg.scoreChange})";
+        GameManager.Instance.systemMessageText.text = $"신의 심판: {msg.finalSentence} (HP {msg.scoreChange})";
 
+        // 심판 연출 시작 (카메라 이동, UI 표시 등)
         GameManager.Instance.StartJudgmentSequence(msg);
 
+        // 마을 HP 업데이트
         GameManager.Instance.UpdateVillageHP(msg.scoreChange);
 
+        // 히스토리 패널에 기록
+        // 🌟 수정: currentRound와 currentMission을 UIManager에 전달
         UIManager.Instance.AddHistoryItem(
            msg,
            currentRound,
+           currentMission, // 🌟 신탁 전달
            msg.slotColors,
            msg.finalWords
         );
