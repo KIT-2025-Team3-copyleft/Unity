@@ -1,4 +1,4 @@
-using UnityEngine;
+/*using UnityEngine;
 using System.Collections.Generic;
 public class SpawnManager : MonoBehaviour {
     public static SpawnManager Instance; 
@@ -11,4 +11,4 @@ public class SpawnManager : MonoBehaviour {
         if (spawnPoints.Length == 0) return Vector3.zero; 
         return spawnPoints[playerIndex % spawnPoints.Length].position; 
     } 
-}
+}*/

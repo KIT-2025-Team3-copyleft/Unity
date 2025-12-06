@@ -32,8 +32,23 @@ public class RoundManager : MonoBehaviour
 
         currentMission = msg.mission;
 
-        // 🌟 myRole은 SHOW_ROLE에서 설정되었으므로 mySlot만 업데이트
+        // 🌟 mySlot 업데이트 (첫 라운드 및 후속 라운드 모두 여기서 할당됨)
         GameManager.Instance.mySlot = msg.mySlot;
+
+        // 🌟 [핵심] UIManager를 통해 슬롯 색상 업데이트
+        // 서버 메시지에 slotColors 필드가 추가되었다고 가정합니다.
+        if (UIManager.Instance != null && msg.slotColors != null)
+        {
+            // msg.slotColors는 RoundStartMessage에 포함되어 있지 않지만,
+            // 이 기능을 위해 서버에서 보내준다고 가정하고 호출합니다.
+            // GameMessages.cs에 slotColors가 추가되어야 합니다.
+            UIManager.Instance.UpdateSlotColors(msg.slotColors);
+        }
+        else if (UIManager.Instance != null)
+        {
+            // 색상 정보가 없으면 기본 색상(그린)으로 초기화 (UpdateSlotColors 내부에서 처리됨)
+            UIManager.Instance.UpdateSlotColors(new Dictionary<string, string>());
+        }
 
         // SHOW_ORACLE, SHOW_ROLE 이벤트는 GameManager에서 이미 별도로 처리되었습니다.
 

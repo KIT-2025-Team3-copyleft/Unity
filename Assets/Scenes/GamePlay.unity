@@ -1550,6 +1550,7 @@ MonoBehaviour:
   - {fileID: 0}
   targetOpenedYPosition: -389
   cardSelectionPanel: {fileID: 0}
+  toggleCardButton: {fileID: 0}
   cardButtons:
   - {fileID: 0}
   - {fileID: 0}

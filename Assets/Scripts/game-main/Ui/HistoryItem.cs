@@ -5,7 +5,7 @@ using TMPro;
 
 public class HistoryItem : MonoBehaviour
 {
-    // 🌟 추가: 라운드 번호와 신탁
+    //  라운드 번호와 신탁
     public TextMeshProUGUI roundText;
     public TextMeshProUGUI OracleText;
 
@@ -18,10 +18,8 @@ public class HistoryItem : MonoBehaviour
     // 신의 평가
     public TextMeshProUGUI evaluationText;
 
-    // 🌟 SetData 매개변수 수정: roundNumber와 mission 추가
     public void SetData(RoundResult result, Dictionary<string, string> slotColors, int roundNumber, string mission, List<string> finalWords)
     {
-        // 🌟 추가: 라운드 번호와 신탁 설정
         roundText.text = $"라운드 {roundNumber}의 기록";
         OracleText.text = $"신탁: {mission}";
 

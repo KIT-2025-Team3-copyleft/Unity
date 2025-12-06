@@ -2,9 +2,6 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-// ----------------------------------------------------
-// 🔸 통신 공통 구조 (Client <-> Server)
-// ----------------------------------------------------
 
 [System.Serializable]
 public class MessageWrapper
@@ -47,9 +44,6 @@ public class Player
     public string connectionStatus;
 }
 
-// ----------------------------------------------------
-// 🌟 게임 진행 메시지 (기존 구조)
-// ----------------------------------------------------
 
 [Serializable]
 public class RoundStartMessage
@@ -62,6 +56,7 @@ public class RoundStartMessage
     public List<string> cards;
     public bool chatEnabled;
     public string godPersonality;
+    public Dictionary<string, string> slotColors; // 👈 슬롯 색상 정보 필드 추가
 }
 
 [Serializable]

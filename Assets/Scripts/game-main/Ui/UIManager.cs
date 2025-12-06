@@ -42,6 +42,7 @@ public class UIManager : MonoBehaviour
 
     [Header("Card UI")]
     public GameObject cardSelectionPanel;
+    public Button toggleCardButton; 
     public List<Button> cardButtons;
     public List<TextMeshProUGUI> cardTexts;
 
@@ -75,11 +76,10 @@ public class UIManager : MonoBehaviour
         if (canvasRoot == null) return;
         canvasRoot.gameObject.SetActive(true);
 
-        // --- A. 단일 컴포넌트 할당 ---
         Transform oracleRoot = canvasRoot.Find("Role&OraclePanel");
         Transform persistentRoot = canvasRoot.Find("PersistentOraclePanel");
         Transform systemPanel = canvasRoot.Find("SystemPanel");
-        Transform slotPanelRoot = canvasRoot.Find("SlotPanel"); // ◀ 핵심 루트
+        Transform slotPanelRoot = canvasRoot.Find("SlotPanel");
 
         // 1) Oracle & Role
         if (oracleRoot != null)
@@ -114,7 +114,6 @@ public class UIManager : MonoBehaviour
 
         // 5) Visual Cue Animator
         visualCueAnimator = localPlayerRoot.GetComponentInChildren<Animator>(true);
-
 
 
         // 6) History Items
@@ -190,6 +189,20 @@ public class UIManager : MonoBehaviour
                 }
             }
         }
+
+        Transform toggleBtnRoot = canvasRoot.Find("toggleCardButton");
+        if (toggleBtnRoot != null)
+        {
+            toggleCardButton = toggleBtnRoot.GetComponent<Button>();
+
+            if (toggleCardButton != null)
+            {
+                toggleCardButton.onClick.RemoveAllListeners();
+                toggleCardButton.onClick.AddListener(ToggleCardPanel);
+                Debug.Log("✔ 카드 토글 버튼 리스너 연결 완료.");
+            }
+        }
+
         IsUILinked = true;
 
         // 게임 시작 직후 UI 비활성화
@@ -199,6 +212,8 @@ public class UIManager : MonoBehaviour
         systemPanel.gameObject.SetActive(false);
         judgmentScroll.SetActive(false);
 
+        // UI 연결 직후 슬롯 색상을 기본값(그린)으로 초기화
+        UpdateSlotColors(new Dictionary<string, string>());
     }
 
 
@@ -358,7 +373,59 @@ public class UIManager : MonoBehaviour
         }
     }
 
+    // 🌟 새로 추가된 카드 패널 토글 함수
+    public void ToggleCardPanel()
+    {
+        if (cardSelectionPanel != null)
+        {
+            // 현재 상태의 반대(Not)로 설정합니다.
+            bool isActive = cardSelectionPanel.activeSelf;
+            cardSelectionPanel.SetActive(!isActive);
+            Debug.Log($"[UI] 카드 패널 활성화 상태 토글: {!isActive}");
+        }
+    }
 
+    // 🌟 슬롯 테두리 색상을 업데이트하는 함수
+    public void UpdateSlotColors(Dictionary<string, string> slotPlayerColors)
+    {
+        // playerSlotImages 리스트는 slot1, slot2, ... 순서로 연결되어 있다고 가정합니다.
+        for (int i = 0; i < playerSlotImages.Count; i++)
+        {
+            string slotId = $"slot{i + 1}"; // "slot1", "slot2", "slot3", "slot4"
+
+            string colorName = "green"; // 기본 색상은 "green"
+
+            if (slotPlayerColors.ContainsKey(slotId))
+            {
+                colorName = slotPlayerColors[slotId];
+            }
+
+            // 이미지 컴포넌트 색상 업데이트
+            playerSlotImages[i].color = GetUnityColor(colorName);
+        }
+    }
+
+    // 색상 문자열을 Unity Color 객체로 변환 (HistoryItem에서 가져옴)
+    private Color GetUnityColor(string colorName)
+    {
+        switch (colorName.ToLower())
+        {
+            case "red":
+                return Color.red;
+            case "blue":
+                return Color.blue;
+            case "green":
+                return Color.green;
+            case "yellow":
+                return Color.yellow;
+            case "pink":
+                return new Color(1f, 0.41f, 0.71f);
+            default:
+                // 매칭되는 색이 없을 경우 기본 색상인 초록을 반환
+                Debug.LogWarning($"Unknown color name: {colorName}. Defaulting to green.");
+                return Color.green;
+        }
+    }
 
     // 카드 선택 완료 시 버튼 비활성화 
     public void DisableMyCards()

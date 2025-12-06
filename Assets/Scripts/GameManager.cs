@@ -46,6 +46,7 @@ public class GameManager : MonoBehaviour
 
     private List<string> availableColors = new List<string> { "red", "blue", "green", "yellow", "pink" };
     private List<string> usedColors = new List<string>();
+    // Session ID를 키로 PlayerManager를 저장합니다.
     private Dictionary<string, PlayerManager> players = new Dictionary<string, PlayerManager>();
 
     private void Awake()
@@ -159,7 +160,7 @@ public class GameManager : MonoBehaviour
             if (topDownCamera != null)
             {
                 topDownStartPos = topDownCamera.transform.position;
-                topDownStartRot = topDownCamera.transform.rotation;
+                topDownCamera.transform.rotation = topDownStartRot;
             }
         }
         // LobbyScene에서는 아무것도 찾지 않음.
@@ -301,6 +302,13 @@ public class GameManager : MonoBehaviour
         RoundStartMessage startMsg = null;
         ShowRoleMessage roleMsg = null;
         ShowOracleMessage oracleMsg = null;
+        PlayerManager localPm = null;
+
+        if (players.ContainsKey(MySessionId))
+        {
+            localPm = players[MySessionId];
+        }
+
 
         // 3. UIManager가 준비되면 저장된 메시지를 처리합니다.
         if (UIManager.Instance != null)
@@ -313,6 +321,15 @@ public class GameManager : MonoBehaviour
                     break;
                 case "SHOW_ROLE":
                     roleMsg = JsonUtility.FromJson<ShowRoleMessage>(json);
+                    // myRole은 OnServerMessage에서 이미 설정됨
+
+                    // 🌟 [핵심] 로컬 플레이어의 PlayerManager에 역할 할당
+                    if (localPm != null)
+                    {
+                        localPm.role = myRole; // 역할만 업데이트
+                        localPm.godPersonality = roleMsg.data.godPersonality; // 신의 성향 업데이트
+                    }
+
                     // 역할만 표시 (오라클은 빈 문자열로 넘김)
                     UIManager.Instance.ShowOracleAndRole("", roleMsg.data.role, 1);
                     if (roleMsg.data.role.ToLower() == "traitor")
@@ -323,6 +340,15 @@ public class GameManager : MonoBehaviour
 
                 case "NEXT_ROUND_START":
                     startMsg = JsonUtility.FromJson<RoundStartMessage>(json);
+                    mySlot = startMsg.mySlot; // GameManager에 슬롯 저장
+
+                    // 🌟 [핵심] myRole과 mySlot을 PlayerManager에 할당
+                    if (localPm != null)
+                    {
+                        // myRole은 SHOW_ROLE에서 설정된 값을 사용합니다.
+                        localPm.SetRoleAndCards(myRole, mySlot);
+                        Debug.Log($"[GM] 후속 라운드 로컬 플레이어 ({MySessionId}) 슬롯 할당 완료: {mySlot}");
+                    }
 
                     // 🌟🌟🌟 [핵심] 새로운 오라클/미션 표시 (역할은 빈 문자열로 넘김)
                     UIManager.Instance.ShowOracleAndRole(startMsg.mission, "", 1);
@@ -336,11 +362,21 @@ public class GameManager : MonoBehaviour
                         RoundManager.Instance.HandleRoundStart(startMsg);
                     }
                     break;
-                case "RECEIVE_CARDS": // 카드를 받는 것은 라운드 시작과 동일한 로직으로 처리
+                case "RECEIVE_CARDS": // 카드를 받는 것은 라운드 시작과 동일한 로직으로 처리 (첫 라운드 시작)
                     startMsg = JsonUtility.FromJson<RoundStartMessage>(json);
+
+                    // 🌟 [핵심 수정]: 첫 라운드의 슬롯 정보를 PlayerManager에 할당
+                    mySlot = startMsg.mySlot; // GameManager의 mySlot 업데이트
+                    if (localPm != null)
+                    {
+                        // myRole은 SHOW_ROLE에서 설정된 값을 사용합니다.
+                        localPm.SetRoleAndCards(myRole, mySlot);
+                        Debug.Log($"[GM] 첫 라운드 로컬 플레이어 ({MySessionId}) 슬롯 할당 완료: {mySlot}");
+                    }
+
                     if (RoundManager.Instance != null)
                     {
-                        // UIManager가 준비된 상태에서 호출되므로 안전합니다.
+                        // RoundManager는 mySlot을 GameManager.Instance.mySlot에 저장하고, 라운드를 시작합니다.
                         RoundManager.Instance.HandleRoundStart(startMsg);
                     }
                     break;
@@ -375,14 +411,14 @@ public class GameManager : MonoBehaviour
 
     public void OnCardSelected(string card)
     {
-        if (string.IsNullOrEmpty(mySlot) || !players.ContainsKey(mySlot))
+        // Session ID를 사용하여 로컬 플레이어의 존재 여부를 확인합니다.
+        if (string.IsNullOrEmpty(MySessionId) || !players.ContainsKey(MySessionId))
         {
-            Debug.LogError("[GM] mySlot이 없거나 players에 존재하지 않습니다.");
+            Debug.LogError("[GM] 로컬 플레이어의 Session ID를 찾을 수 없습니다. 카드 전송 실패.");
             return;
         }
 
-        PlayerManager myPlayer = players[mySlot];
-        if (myPlayer == null) return;
+        // 여기서 mySlot 변수는 RoundManager.HandleRoundStart에서 설정된 값을 사용합니다.
 
         WebSocketManager.Instance?.SendCardSelection(card);
     }
