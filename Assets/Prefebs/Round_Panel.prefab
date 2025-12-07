@@ -637,8 +637,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 468c919b62b99144a96c1d31327c44e2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::HistoryItem
-  roundText: {fileID: 0}
-  OracleText: {fileID: 0}
+  roundText: {fileID: 2362758876936521877}
+  OracleText: {fileID: 8289690889100534682}
   wordTexts:
   - {fileID: 3848530249938502187}
   - {fileID: 7828589617796927481}

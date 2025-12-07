@@ -34,6 +34,9 @@ public class RoomManager : MonoBehaviour
 
     private bool isLobbyUpdatedProcessed = false;
 
+    public string HostNickname { get; private set; }
+
+
     private void Awake()
     {
         if (Instance != null && Instance != this)
@@ -147,7 +150,7 @@ public class RoomManager : MonoBehaviour
 
     // ===========================
     // JOIN_SUCCESS (한 번만)
-    // ===========================
+    // =================================
     void HandleJoinSuccess(string json)
     {
         Debug.Log("[RoomManager] JOIN_SUCCESS received");
@@ -221,10 +224,6 @@ public class RoomManager : MonoBehaviour
     // ===========================
     // LOBBY_UPDATE
     // ===========================
-    // 🔥 LOBBY_UPDATE
-    // RoomManager.cs 안
-    public string HostNickname { get; private set; }
-
     void HandleLobbyUpdate(string json)
     {
         Debug.Log("[RoomManager] LOBBY_UPDATE received");
@@ -369,13 +368,9 @@ public class RoomManager : MonoBehaviour
             { "nickname", PlayerPrefs.GetString("PlayerNickname", "Guest") }
         };
 
-        var data = new Dictionary<string, object>
-        {
-            { "action", "JOIN_BY_CODE" },
-            { "payload", payload }
-        };
+        // Note: MiniJSON.Json.Serialize is assumed to exist in the actual project.
+        string json = $"{{ \"action\": \"JOIN_BY_CODE\", \"payload\": {{ \"roomCode\": \"{code}\", \"nickname\": \"{PlayerPrefs.GetString("PlayerNickname", "Guest")}\" }} }}";
 
-        string json = MiniJSON.Json.Serialize(data);
         WebSocketManager.Instance.Send(json);
     }
 

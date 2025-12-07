@@ -5,6 +5,9 @@ using TMPro;
 
 public class HistoryItem : MonoBehaviour
 {
+    // UIManager의 SlotVisualOrder를 기반으로 매핑을 정의합니다.
+    private readonly string[] SlotVisualOrder = { "SUBJECT", "TARGET", "HOW", "ACTION" };
+
     // 🌟 추가: 라운드 번호와 신탁
     public TextMeshProUGUI roundText;
     public TextMeshProUGUI OracleText;
@@ -18,10 +21,8 @@ public class HistoryItem : MonoBehaviour
     // 신의 평가
     public TextMeshProUGUI evaluationText;
 
-    // 🌟 SetData 매개변수 수정: roundNumber와 mission 추가
     public void SetData(RoundResult result, Dictionary<string, string> slotColors, int roundNumber, string mission, List<string> finalWords)
     {
-        // 🌟 추가: 라운드 번호와 신탁 설정
         roundText.text = $"라운드 {roundNumber}의 기록";
         OracleText.text = $"신탁: {mission}";
 
@@ -45,9 +46,11 @@ public class HistoryItem : MonoBehaviour
     {
         for (int i = 0; i < finalWords.Count && i < wordTexts.Count; i++)
         {
-            string slotId = $"slot{i + 1}";
-            // 기본 색상 초록
-            string colorName = slotColors.ContainsKey(slotId) ? slotColors[slotId] : "green";
+            if (i >= SlotVisualOrder.Length) continue;
+
+            string slotRoleName = SlotVisualOrder[i];
+
+            string colorName = slotColors.ContainsKey(slotRoleName) ? slotColors[slotRoleName] : "green";
 
             wordTexts[i].text = finalWords[i];
 
@@ -70,7 +73,6 @@ public class HistoryItem : MonoBehaviour
             case "pink":
                 return new Color(1f, 0.41f, 0.71f);
             default:
-                // 매칭되는 색이 없을 경우 디버그 메시지를 출력하고 기본 색상을 반환
                 Debug.LogWarning($"Unknown color name: {colorName}. Defaulting to green.");
                 return Color.green;
         }

@@ -1,5 +1,4 @@
-﻿// 현재 미사용
-
+﻿// PlayerManager.cs
 
 using UnityEngine;
 
@@ -9,6 +8,7 @@ public class PlayerManager : MonoBehaviour
     public string nickname;
     public string role;
     public string slot;
+    public string godPersonality; // 👈 추가된 필드
     public string colorName;
     public bool actionCompleted = false;
 

@@ -182,11 +182,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 188691892}
-  - component: {fileID: 188691891}
   - component: {fileID: 188691890}
-  - component: {fileID: 188691893}
   m_Layer: 0
-  m_Name: Manager
+  m_Name: RoundManager
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -205,35 +203,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::RoundManager
   currentRound: 0
---- !u!114 &188691891
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 188691888}
-  m_Enabled: 0
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fe45b13b8e4e7fa4f8cb876f39ddb678, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::GameManager
-  firstPersonCamera: {fileID: 0}
-  observerCamera: {fileID: 330585545}
-  topDownCamera: {fileID: 983972145}
-  topDownStartPos: {x: 0, y: 7.5, z: 0}
-  topDownStartRot: {x: 0.70710677, y: 0, z: 0, w: 0.70710677}
-  systemMessageText: {fileID: 0}
-  trialButton: {fileID: 0}
-  chatInput: {fileID: 0}
-  judgmentZoomPosition: {fileID: 999214122}
-  judgmentFinalPosition: {fileID: 1239168219}
-  zoomDuration: 0.8
-  settleDuration: 0.7
-  currentHP: 100
-  PlayerName: 
-  CurrentRoomId: 0
-  myRole: 
-  mySlot: 
 --- !u!4 &188691892
 Transform:
   m_ObjectHideFlags: 0
@@ -250,19 +219,6 @@ Transform:
   - {fileID: 1751388264}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &188691893
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 188691888}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 5f4b77cfe00d6a0468d2efc9cd84f5ed, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::WebSocketManager
-  serverUrl: ws://168.107.19.253/ws/
 --- !u!1001 &210244347
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -545,12 +501,12 @@ Light:
     serializedVersion: 2
     m_Bits: 4294967295
   m_RenderingLayerMask: 1
-  m_Lightmapping: 1
+  m_Lightmapping: 2
   m_LightShadowCasterMode: 0
   m_AreaSize: {x: 1, y: 1}
   m_BounceIntensity: 0
   m_ColorTemperature: 5000
-  m_UseColorTemperature: 1
+  m_UseColorTemperature: 0
   m_BoundingSphereOverride: {x: 0, y: 0, z: 0, w: 0}
   m_UseBoundingSphereOverride: 0
   m_UseViewFrustumForShadowCasterCull: 1
@@ -1362,7 +1318,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "\uD574\uB2F9 \uC2E0\uD0C1\uC774 \uB9C8\uC74C\uC5D0 \uB4E4\uC9C0 \uC54A\uC74C"
+  m_text: 
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 446529affeef17241bf843c7c40853f3, type: 2}
   m_sharedMaterial: {fileID: -3613291515145685429, guid: 446529affeef17241bf843c7c40853f3, type: 2}
@@ -1550,6 +1506,7 @@ MonoBehaviour:
   - {fileID: 0}
   targetOpenedYPosition: -389
   cardSelectionPanel: {fileID: 0}
+  toggleCardButton: {fileID: 0}
   cardButtons:
   - {fileID: 0}
   - {fileID: 0}
@@ -1578,6 +1535,11 @@ MonoBehaviour:
   - {fileID: 0}
   - {fileID: 0}
   - {fileID: 0}
+  slotRoleNames:
+  - "\uC8FC\uCCB4"
+  - "\uB300\uC0C1"
+  - "\uC5B4\uB5BB\uAC8C"
+  - "\uC5B4\uCA50\uB2E4"
   judgmentScroll: {fileID: 210244349}
   judgmentText: {fileID: 1696500113}
   visualCueAnimator: {fileID: 0}

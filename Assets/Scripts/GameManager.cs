@@ -25,8 +25,8 @@ public class GameManager : MonoBehaviour
     [Header("Judgment Animation Positions")]
     public Transform judgmentZoomPosition;
     public Transform judgmentFinalPosition;
-    public float zoomDuration = 0.8f;
-    public float settleDuration = 0.7f;
+    public float zoomDuration = 1.2f; // 시간 조정 유지
+    public float settleDuration = 1.0f; // 시간 조정 유지
 
     [Header("Village State")]
     public int currentHP = 100;
@@ -42,10 +42,14 @@ public class GameManager : MonoBehaviour
     public string myRole;
     public string mySlot;
 
+    public string currentOracle; // 👈 신탁 텍스트를 저장할 변수 추가
+    public bool cardSelectedCompleted = false; // 👈 상태 플래그 추가
+
     public GameObject localPlayerObject { get; private set; }
 
     private List<string> availableColors = new List<string> { "red", "blue", "green", "yellow", "pink" };
     private List<string> usedColors = new List<string>();
+    // Session ID를 키로 PlayerManager를 저장합니다.
     private Dictionary<string, PlayerManager> players = new Dictionary<string, PlayerManager>();
 
     private void Awake()
@@ -159,7 +163,7 @@ public class GameManager : MonoBehaviour
             if (topDownCamera != null)
             {
                 topDownStartPos = topDownCamera.transform.position;
-                topDownStartRot = topDownCamera.transform.rotation;
+                topDownCamera.transform.rotation = topDownStartRot;
             }
         }
         // LobbyScene에서는 아무것도 찾지 않음.
@@ -177,7 +181,7 @@ public class GameManager : MonoBehaviour
             yield return null; // 다음 프레임까지 대기
         }
 
-        Debug.Log("✅ [GM 코루틴] UIManager 준비 완료. UI 연결을 시도합니다.");
+        Debug.Log("✅ [GM 코魯틴] UIManager 준비 완료. UI 연결을 시도합니다.");
 
         if (localPlayerObject != null)
         {
@@ -230,27 +234,28 @@ public class GameManager : MonoBehaviour
                 break;
 
             case "SHOW_ORACLE":
-                // SHOW_ORACLE 메시지를 코루틴으로 위임
                 StartCoroutine(ShowUIAfterLinking(json, "SHOW_ORACLE"));
                 break;
 
             case "SHOW_ROLE":
-                // SHOW_ROLE 메시지를 코루틴으로 위임
                 ShowRoleMessage roleMsg = JsonUtility.FromJson<ShowRoleMessage>(json);
                 myRole = roleMsg.data.role;
                 StartCoroutine(ShowUIAfterLinking(json, "SHOW_ROLE"));
                 break;
 
             case "NEXT_ROUND_START":
-                // 새로운 라운드 시작 이벤트를 코루틴으로 위임
                 RoundStartMessage startMsg = JsonUtility.FromJson<RoundStartMessage>(json);
-                mySlot = startMsg.mySlot;
                 StartCoroutine(ShowUIAfterLinking(json, "NEXT_ROUND_START"));
                 break;
 
             case "RECEIVE_CARDS":
-                // RECEIVE_CARDS 메시지를 코루틴으로 위임
-                StartCoroutine(ShowUIAfterLinking(json, "RECEIVE_CARDS"));
+                ReceiveCardsMessage rcMsg = JsonUtility.FromJson<ReceiveCardsMessage>(json);
+                StartCoroutine(ShowUIAfterLinking(json, "RECEIVE_CARDS", rcMsg.data.slotType, rcMsg.data.cards));
+                break;
+
+            case "PLAYER_SLOT_ASSIGNMENT":
+                PlayerSlotAssignmentMessage slotMsg = JsonUtility.FromJson<PlayerSlotAssignmentMessage>(json);
+                HandlePlayerSlotAssignments(slotMsg.data.assignments);
                 break;
 
             case "CARD_SELECTION_CONFIRMED":
@@ -270,6 +275,7 @@ public class GameManager : MonoBehaviour
                 break;
 
             case "ROUND_RESULT":
+                Debug.Log($"[DEBUG ROUND_RESULT] FULL JSON: {json}");
                 RoundManager.Instance.HandleRoundResult(JsonUtility.FromJson<RoundResult>(json));
                 break;
 
@@ -279,75 +285,150 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    // ----------------------------------------------------
-    // 💡 CS0128 오류 해결 및 이벤트 흐름 제어 코루틴
-    // ----------------------------------------------------
-    private IEnumerator ShowUIAfterLinking(string json, string eventType)
+    public void HandlePlayerSlotAssignments(List<SlotAssignment> assignments)
     {
-        // 1. UIManager가 생성될 때까지 기다립니다. (NullReferenceException 방지)
+        foreach (var assignment in assignments)
+        {
+            if (players.ContainsKey(assignment.sessionId))
+            {
+                PlayerManager pm = players[assignment.sessionId];
+
+                pm.slot = assignment.slot;
+
+                Debug.Log($"[GM Assign] Player {assignment.sessionId} assigned slot: {assignment.slot}");
+            }
+        }
+
+        if (UIManager.Instance != null)
+        {
+            UIManager.Instance.UpdateSlotColorsFromPlayers();
+        }
+    }
+
+    private IEnumerator ShowUIAfterLinking(string json, string eventType, string slot = null, List<string> cards = null)
+    {
         while (UIManager.Instance == null)
         {
             yield return null;
         }
 
-        // 2. UI가 아직 로컬 플레이어에게 연결되지 않았다면 연결합니다. (최초 1회만)
         if (UIManager.Instance.IsUILinked == false && localPlayerObject != null)
         {
             UIManager.Instance.LinkLocalPlayerUIElements(localPlayerObject);
             Debug.Log("✔ UIManager에 로컬 플레이어 UI 요소 연결 완료.");
         }
 
-        // 🌟🌟🌟 [CS0128 오류 해결] 변수를 switch 문 외부에서 선언합니다. 🌟🌟🌟
         RoundStartMessage startMsg = null;
         ShowRoleMessage roleMsg = null;
         ShowOracleMessage oracleMsg = null;
 
-        // 3. UIManager가 준비되면 저장된 메시지를 처리합니다.
+        PlayerManager localPm = null;
+        if (string.IsNullOrEmpty(MySessionId) || MySessionId == "TEMP_LOCAL_PLAYER_ID")
+        {
+            Debug.LogError($"[DEBUG 1] MySessionId가 임시 값입니다: {MySessionId}");
+        }
+
+        if (players.ContainsKey(MySessionId))
+        {
+            localPm = players[MySessionId];
+            Debug.Log($"[DEBUG 2] 로컬 플레이어 PlayerManager 찾음. ID: {MySessionId}");
+        }
+        else
+        {
+            Debug.LogError($"[DEBUG 2] 로컬 플레이어 PlayerManager (ID: {MySessionId})를 players 딕셔너리에서 찾을 수 없습니다!");
+        }
+
         if (UIManager.Instance != null)
         {
             switch (eventType)
             {
                 case "SHOW_ORACLE":
                     oracleMsg = JsonUtility.FromJson<ShowOracleMessage>(json);
-                    UIManager.Instance.ShowOracleAndRole(oracleMsg.data.oracle, "", 1);
+                    currentOracle = oracleMsg.data.oracle;
+
+                    UIManager.Instance.ShowOracleAndRole(currentOracle, "", 1);
                     break;
+
                 case "SHOW_ROLE":
                     roleMsg = JsonUtility.FromJson<ShowRoleMessage>(json);
-                    // 역할만 표시 (오라클은 빈 문자열로 넘김)
-                    UIManager.Instance.ShowOracleAndRole("", roleMsg.data.role, 1);
+
+                    if (localPm != null)
+                    {
+                        localPm.role = myRole;
+                        localPm.godPersonality = roleMsg.data.godPersonality;
+                    }
+
+                    // 🌟🌟🌟 시간 조정: SHOW_ROLE 대기 시간 증가 (4s -> 6s) 🌟🌟🌟
+                    UIManager.Instance.ShowOracleAndRole(currentOracle, roleMsg.data.role, 1);
+
                     if (roleMsg.data.role.ToLower() == "traitor")
                         UIManager.Instance.ShowTraitorInfo(roleMsg.data.godPersonality);
 
-                    yield return new WaitForSeconds(4f); // 역할 정보 확인을 위한 대기 시간
+                    yield return new WaitForSeconds(6.0f);
                     break;
 
-                case "NEXT_ROUND_START":
+                /*case "NEXT_ROUND_START":
                     startMsg = JsonUtility.FromJson<RoundStartMessage>(json);
 
-                    // 🌟🌟🌟 [핵심] 새로운 오라클/미션 표시 (역할은 빈 문자열로 넘김)
-                    UIManager.Instance.ShowOracleAndRole(startMsg.mission, "", 1);
+                    // 🌟 NEXT_ROUND_START 메시지 표시
+                    UIManager.Instance.ShowSystemMessage(startMsg.message);
 
-                    yield return new WaitForSeconds(3f); // 새로운 오라클/미션을 보여주는 시간 대기
+                    // 🌟🌟🌟 시간 조정: 다음 라운드 준비 대기 시간 증가 (3s -> 5s) 🌟🌟🌟
+                    yield return new WaitForSeconds(5.0f);
 
-                    // 🌟 [핵심] 카드 선택/라운드 시작 로직 위임
                     if (RoundManager.Instance != null)
                     {
-                        // RoundManager는 카드, 타이머 설정 등의 라운드 시작 필수 로직을 수행합니다.
-                        RoundManager.Instance.HandleRoundStart(startMsg);
+                        // NEXT_ROUND_START 메시지에서 라운드 번호 추출
+                        RoundManager.Instance.PrepareNextRound(startMsg.currentRound);
                     }
-                    break;
-                case "RECEIVE_CARDS": // 카드를 받는 것은 라운드 시작과 동일한 로직으로 처리
-                    startMsg = JsonUtility.FromJson<RoundStartMessage>(json);
+
+                    // 다른 플레이어 슬롯 정보가 포함되어 있다면 업데이트 (서버 메시지 구조에 따라)
+                    if (startMsg.players != null)
+                    {
+                        foreach (var playerInfo in startMsg.players)
+                        {
+                            if (players.ContainsKey(playerInfo.sessionId))
+                            {
+                                players[playerInfo.sessionId].slot = playerInfo.slot;
+                                players[playerInfo.sessionId].colorName = playerInfo.color;
+                            }
+                        }
+                        UIManager.Instance.UpdateSlotColorsFromPlayers();
+                    }
+
+                    break;*/
+
+                case "RECEIVE_CARDS":
+
+                    mySlot = slot;
+
+                    if (localPm != null)
+                    {
+                        localPm.SetRoleAndCards(myRole, mySlot);
+                        Debug.Log($"[DEBUG 3] PlayerManager 슬롯 할당 완료: {mySlot}. Color: {localPm.colorName}");
+                    }
+                    else
+                    {
+                        Debug.LogError($"[DEBUG 3] localPm이 null이어서 슬롯 할당 실패. mySlot={mySlot}");
+                    }
+
                     if (RoundManager.Instance != null)
                     {
-                        // UIManager가 준비된 상태에서 호출되므로 안전합니다.
-                        RoundManager.Instance.HandleRoundStart(startMsg);
+                        RoundStartMessage tempStartMsg = new RoundStartMessage
+                        {
+                            cards = cards,
+                            mySlot = mySlot,
+                            mission = currentOracle,
+                            timeLimit = 120,
+                            currentRound = 1, // 👈 CS0117 해결: roundNumber -> currentRound
+                        };
+
+                        RoundManager.Instance.HandleRoundStart(tempStartMsg);
                     }
                     break;
             }
         }
     }
-    // ----------------------------------------------------
 
 
     private IEnumerator CountdownAndLoadGameScene()
@@ -361,7 +442,6 @@ public class GameManager : MonoBehaviour
             count--;
         }
 
-        // 씬 로드 요청 (로비 씬을 GamePlay 씬으로)
         SceneManager.LoadScene("GamePlay");
     }
 
@@ -373,18 +453,38 @@ public class GameManager : MonoBehaviour
             players[playerId] = player;
     }
 
+    public Dictionary<string, PlayerManager> GetPlayers()
+    {
+        return players;
+    }
+
     public void OnCardSelected(string card)
     {
-        if (string.IsNullOrEmpty(mySlot) || !players.ContainsKey(mySlot))
+        if (string.IsNullOrEmpty(MySessionId) || !players.ContainsKey(MySessionId))
         {
-            Debug.LogError("[GM] mySlot이 없거나 players에 존재하지 않습니다.");
+            Debug.LogError("[GM] 로컬 플레이어의 Session ID를 찾을 수 없습니다. 카드 전송 실패.");
             return;
         }
 
-        PlayerManager myPlayer = players[mySlot];
-        if (myPlayer == null) return;
+        if (cardSelectedCompleted)
+        {
+            Debug.LogWarning("[GM] 이미 카드를 선택했습니다. 중복 전송 방지.");
+            return;
+        }
+
+        cardSelectedCompleted = true;
+
+        if (UIManager.Instance != null)
+        {
+            string slotId = UIManager.Instance.GetSlotIdFromRole(mySlot);
+            UIManager.Instance.UpdateMySentenceSlot(slotId, card);
+        }
+
+        Debug.Log($"[DEBUG F_1] WebSocket SendCardSelection 호출 시도: {card}");
 
         WebSocketManager.Instance?.SendCardSelection(card);
+
+        UIManager.Instance.DisableMyCards();
     }
 
     public void SendChat(string message)
@@ -408,10 +508,11 @@ public class GameManager : MonoBehaviour
 
     public void StartJudgmentSequence(RoundResult msg)
     {
-        UIManager.Instance.DisplaySentence(msg.finalSentence);
+        Debug.Log($"[DEBUG F_2] 심판 시퀀스 시작. Displaying Sentence: {msg.sentence}");
         StartCoroutine(JudgmentSequence(msg));
     }
 
+    // 카메라 애니메이션 시간 보장 로직 유지
     private IEnumerator AnimateCameraTransform(Camera cameraToMove, Transform targetTransform, float duration)
     {
         if (cameraToMove == null || !cameraToMove.enabled || targetTransform == null) yield break;
@@ -423,7 +524,7 @@ public class GameManager : MonoBehaviour
         Quaternion targetRot = targetTransform.rotation;
         float elapsedTime = 0f;
 
-        while (elapsedTime < duration)
+        while (elapsedTime < duration - 0.001f)
         {
             elapsedTime += Time.deltaTime;
             float t = elapsedTime / duration;
@@ -436,6 +537,8 @@ public class GameManager : MonoBehaviour
 
         camTransform.position = targetPos;
         camTransform.rotation = targetRot;
+
+        Debug.Log($"[DEBUG F_8] Camera Animation completed. Duration: {duration}s. Actual Time: {elapsedTime:F2}s");
     }
 
     private IEnumerator JudgmentSequence(RoundResult msg)
@@ -451,23 +554,28 @@ public class GameManager : MonoBehaviour
         yield return StartCoroutine(AnimateCameraTransform(topDownCamera, judgmentZoomPosition, zoomDuration));
         yield return StartCoroutine(AnimateCameraTransform(topDownCamera, judgmentFinalPosition, settleDuration));
 
+        yield return new WaitForSeconds(1.5f);
+
         if (UIManager.Instance.judgmentScroll != null)
             UIManager.Instance.judgmentScroll.SetActive(true);
 
-        yield return new WaitForSeconds(3f);
+        yield return new WaitForSeconds(5.0f);
+        UIManager.Instance.DisplaySentence(msg.sentence);
+        yield return new WaitForSeconds(5.0f);
         UIManager.Instance.DisplayJudgmentReason(msg.reason);
-        yield return new WaitForSeconds(5f);
+
+        yield return new WaitForSeconds(7.0f);
 
         SwitchCamera(observerCamera);
         UIManager.Instance.PlayVisualCue(msg.visualCue);
-        yield return new WaitForSeconds(5f);
+
+        yield return new WaitForSeconds(7.0f);
 
         SwitchCamera(firstPersonCamera);
         if (UIManager.Instance.judgmentScroll != null)
             UIManager.Instance.judgmentScroll.SetActive(false);
 
-        // 🌟 다음 라운드 시작을 위해 서버 메시지를 기다립니다.
-        yield return new WaitForSeconds(10f);
+        yield return new WaitForSeconds(5.0f);
     }
 
     public void SwitchCamera(Camera targetCamera)
@@ -484,7 +592,7 @@ public class GameManager : MonoBehaviour
 
     public void UpdateVillageHP(int scoreChange)
     {
-        currentHP = Mathf.Clamp(currentHP + scoreChange, int.MinValue, 10000);
+        currentHP = Mathf.Clamp(currentHP + scoreChange, int.MinValue, 1000);
         Debug.Log($"마을 HP가 {scoreChange}만큼 변경되었습니다. 현재 HP: {currentHP}");
     }
 }
