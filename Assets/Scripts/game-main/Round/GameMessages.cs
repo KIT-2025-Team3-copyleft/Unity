@@ -42,13 +42,18 @@ public class Player
     public bool isHost;
     public string color;
     public string connectionStatus;
+    // 🌟🌟🌟 서버 응답에 맞게 추가된 필드 🌟🌟🌟
+    public string role;
+    public string slot;
+    public string selectedCard;
+    public string voteTarget;
 }
 
 
 [Serializable]
 public class RoundStartMessage
 {
-    public int roundNumber;
+    public int currentRound;
     public int timeLimit;
     public string mission;
     public string myRole;
@@ -56,7 +61,9 @@ public class RoundStartMessage
     public List<string> cards;
     public bool chatEnabled;
     public string godPersonality;
-    public Dictionary<string, string> slotColors; // 👈 슬롯 색상 정보 필드 추가
+    public List<Player> players;
+    public string oracle;
+    public string message;
 }
 
 [Serializable]
@@ -76,8 +83,8 @@ public class InterpretationEnd
 [Serializable]
 public class RoundResult
 {
-    public string finalSentence;
-    public int scoreChange;
+    public string sentence;
+    public int score;
     public VisualCue visualCue;
     public TrialProposalPhase trialProposalPhase;
 
@@ -85,7 +92,6 @@ public class RoundResult
 
     public List<string> finalWords;
 
-    public Dictionary<string, string> slotColors;
 }
 
 [Serializable]
@@ -171,4 +177,41 @@ public class ErrorMessage
     public string @event;
     public string code;
     public string message;
+}
+
+// RECEIVE_CARDS 전용 구조체
+[System.Serializable]
+public class ReceiveCardsData
+{
+    public string slotType;
+    public List<string> cards;
+}
+
+[System.Serializable]
+public class ReceiveCardsMessage
+{
+    public string @event;
+    public string message;
+    public ReceiveCardsData data;
+}
+
+// 새로운 구조체 추가 (다른 플레이어 슬롯 할당을 위함)
+[Serializable]
+public class SlotAssignment
+{
+    public string sessionId;
+    public string slot; // "SUBJECT", "TARGET", "HOW", "ACTION" 중 하나
+}
+
+[Serializable]
+public class PlayerSlotAssignmentData
+{
+    public List<SlotAssignment> assignments;
+}
+
+[Serializable]
+public class PlayerSlotAssignmentMessage
+{
+    public string @event; // "PLAYER_SLOT_ASSIGNMENT"
+    public PlayerSlotAssignmentData data;
 }

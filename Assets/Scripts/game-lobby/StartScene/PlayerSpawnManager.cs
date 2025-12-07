@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
-
+using static RoomManager;
 public class PlayerSpawnManager : MonoBehaviour
 {
     public static PlayerSpawnManager Instance { get; private set; }
@@ -38,7 +38,7 @@ public class PlayerSpawnManager : MonoBehaviour
         DontDestroyOnLoad(gameObject);
 
         if (playerRoot != null)
-    {
+        {
             DontDestroyOnLoad(playerRoot.gameObject);
         }
     }
@@ -47,6 +47,7 @@ public class PlayerSpawnManager : MonoBehaviour
     {
         SceneManager.sceneLoaded += OnSceneLoaded;
 
+        // RoomManager 관련 로직 복구
         if (RoomManager.Instance != null)
             RoomManager.Instance.OnLobbyUpdated += OnLobbyUpdated;
     }
@@ -69,16 +70,15 @@ public class PlayerSpawnManager : MonoBehaviour
 
         RefreshSpawnPoints();
 
+        // DelayedSpawn 코루틴 복구
         StartCoroutine(DelayedSpawn());
     }
 
-    // PlayerSpawnManager.cs
     private IEnumerator DelayedSpawn()
     {
         yield return null;
         yield return null;
 
-        // 🌟 이 로그가 출력되는지 확인하세요!
         Debug.Log($"[DelayedSpawn] RoomManager.Instance is: {RoomManager.Instance}");
 
         if (RoomManager.Instance == null)
@@ -87,7 +87,11 @@ public class PlayerSpawnManager : MonoBehaviour
             yield break;
         }
 
-        SpawnPlayers(RoomManager.Instance.CurrentRoom);
+        // 🌟🌟🌟 복구: RoomManager의 CurrentRoom을 사용하여 플레이어 스폰 시작
+        if (RoomManager.Instance.CurrentRoom != null)
+        {
+            SpawnPlayers(RoomManager.Instance.CurrentRoom);
+        }
     }
 
     private void RefreshSpawnPoints()
@@ -126,11 +130,12 @@ public class PlayerSpawnManager : MonoBehaviour
         if (SceneManager.GetActiveScene().name != "LobbyScene")
             return;
 
+        // 🌟🌟🌟 복구: 로비 업데이트 시 플레이어 스폰 시작
         SpawnPlayers(room);
     }
 
     // =====================================================================
-    //  실제 스폰 로직 (PlayerSpawner의 로직 흡수)
+    //  실제 스폰 로직
     // =====================================================================
     public void SpawnPlayers(RoomManager.Room room)
     {
@@ -143,7 +148,7 @@ public class PlayerSpawnManager : MonoBehaviour
 
         if (room == null || room.players == null || room.players.Length == 0)
         {
-            Debug.LogError("❌ SpawnPlayers: room 또는 players가 비어 있음");
+            Debug.LogWarning("❌ SpawnPlayers: room 또는 players가 비어 있음. 기존 플레이어 정리.");
 
             // 플레이어가 모두 나갔을 경우, 남아있던 오브젝트들을 정리합니다.
             ClearExistingPlayers();
@@ -173,20 +178,18 @@ public class PlayerSpawnManager : MonoBehaviour
             int seatIndex = p.playerNumber >= 0 ? p.playerNumber : i;
             if (seatIndex >= spawnPoints.Length)
             {
-                Debug.LogWarning("스폰 포인트가 부족합니다. 이 플레이어는 스폰되지 않습니다.");
+                Debug.LogWarning($"스폰 포인트가 부족합니다. 플레이어 {p.nickname}는 스폰되지 않습니다.");
                 continue; // 스폰 포인트가 부족하면 건너뜁니다.
             }
 
-            Transform spawnPoint = spawnPoints[seatIndex]; // % spawnPoints.Length는 필요하지 않음.
+            Transform spawnPoint = spawnPoints[seatIndex];
 
             Vector3 pos = spawnPoint.position;
             Quaternion rot = spawnPoint.rotation;
 
-            string mySessionId = GameManager.Instance.MySessionId; // 중복 선언 방지
+            string mySessionId = GameManager.Instance.MySessionId;
             Debug.Log($"[ID Check] Comparing Local ID: {mySessionId} with Player ID: {p.sessionId}");
-            bool isLocal = (p.sessionId == mySessionId); // 👈 이 코드는 그대로 유지
-
-            aliveSessionIds.Add(p.sessionId);
+            bool isLocal = (p.sessionId == mySessionId);
 
             aliveSessionIds.Add(p.sessionId);
 
@@ -220,21 +223,21 @@ public class PlayerSpawnManager : MonoBehaviour
 
                 playersBySessionId[p.sessionId] = playerObj;
 
-                // 🌟 PlayerManager 컴포넌트 설정 (PlayerSpawner.SpawnPlayer 로직)
+                // PlayerManager 컴포넌트 설정
                 pm = playerObj.GetComponent<PlayerManager>();
                 if (pm == null) pm = playerObj.AddComponent<PlayerManager>();
 
                 pm.playerId = p.sessionId;
                 pm.nickname = p.nickname;
 
-                // GameManager에 등록 (PlayerSpawner.SpawnPlayer 로직)
+                // 🌟 GameManager에 등록
                 GameManager.Instance.AddPlayer(p.sessionId, pm);
 
-                // 로비 정보 업데이트 (PlayerSpawner.UpdateLobbyPlayers 로직)
+                // 로비 정보 업데이트 
                 pm.SetColor(p.color);
                 pm.isHost = (p.sessionId == room.hostSessionId);
 
-                // 🌟 카메라/캔버스/리스너 활성화/비활성화 (PlayerSpawner.SpawnPlayer 로직)
+                // 카메라/캔버스/리스너 활성화/비활성화 
                 AudioListener listener = playerObj.GetComponentInChildren<AudioListener>(true);
                 Transform canvasTransform = playerObj.transform.Find("Canvas");
                 Camera cam = playerObj.GetComponentInChildren<Camera>(true);
@@ -253,6 +256,8 @@ public class PlayerSpawnManager : MonoBehaviour
 
                 if (canvasTransform != null)
                 {
+                    // 로비씬에서 원격 플레이어의 캔버스는 꺼야합니다.
+                    // 로컬 플레이어의 캔버스는 GameManager.LinkLocalPlayerUI에서 켜집니다.
                     canvasTransform.gameObject.SetActive(false);
                 }
 
@@ -291,7 +296,6 @@ public class PlayerSpawnManager : MonoBehaviour
                 Destroy(kv.Value);
         }
         playersBySessionId.Clear();
-        // GameManager에서도 정리하는 로직이 있다면 추가합니다.
     }
 
     private void ClearRemovedPlayers(HashSet<string> aliveSessionIds)
@@ -304,8 +308,6 @@ public class PlayerSpawnManager : MonoBehaviour
                 if (kv.Value != null)
                 {
                     Destroy(kv.Value);
-                    // GameManager에서 플레이어 정보를 제거하는 로직이 있다면 여기서 호출해야 합니다.
-                    // GameManager.Instance.RemovePlayer(kv.Key);
                 }
 
                 toRemove.Add(kv.Key);
