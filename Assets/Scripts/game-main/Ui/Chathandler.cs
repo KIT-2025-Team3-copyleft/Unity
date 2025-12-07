@@ -5,14 +5,13 @@ using UnityEngine.InputSystem;
 using UnityEngine.EventSystems;
 
 
-public class ChatHandler : MonoBehaviour
+public class Chathandler : MonoBehaviour
 {
     public TMP_InputField inputField;
     public RectTransform contentRect;
     public GameObject chatTextPrefab;
     public ScrollRect scrollRect;
-    public string myNickName = "길동";
-    public string myColor = "#FF0000";
+
     private bool chatActive = false;
 
     private void Awake()
@@ -64,8 +63,8 @@ public class ChatHandler : MonoBehaviour
             return;
         }
 
-        // 메시지 전송
-        PostChatMessage(final);
+        // 서버로 채팅 전송 (핵심)
+        ChatManager.Instance.SendChat(final);
 
         // 입력 초기화 후 포커스 유지
         inputField.text = "";
@@ -108,23 +107,31 @@ public class ChatHandler : MonoBehaviour
         inputField.DeactivateInputField();
     }
 
-    private void PostChatMessage(string msg)
+    // ------------------------------------
+    // ChatManager가 호출하는 UI 메서드
+    // ------------------------------------
+    public void AddChatMessage(string sender, string color, string content)
     {
         GameObject newMsg = Instantiate(chatTextPrefab, contentRect);
         TMP_Text textComponent = newMsg.GetComponent<TMP_Text>();
 
-        // 색상 적용
-        Color color;
-        if (!ColorUtility.TryParseHtmlString(myColor, out color))
-            color = Color.white;
-
-        textComponent.text = $"<color=#{ColorUtility.ToHtmlStringRGB(color)}>{myNickName}</color>: {msg}";
+        textComponent.text = $"<color={color}>{sender}</color>: {content}";
 
         Canvas.ForceUpdateCanvases();
         LayoutRebuilder.ForceRebuildLayoutImmediate(contentRect);
+        scrollRect.verticalNormalizedPosition = 0;
+    }
 
+    public void AddSystemMessage(string msg)
+    {
+        GameObject newMsg = Instantiate(chatTextPrefab, contentRect);
+        TMP_Text textComponent = newMsg.GetComponent<TMP_Text>();
+
+        textComponent.text = $"<color=#FF5555>{msg}</color>";
+
+        Canvas.ForceUpdateCanvases();
+        LayoutRebuilder.ForceRebuildLayoutImmediate(contentRect);
         scrollRect.verticalNormalizedPosition = 0;
     }
 
 }
-
