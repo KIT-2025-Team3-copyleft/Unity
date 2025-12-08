@@ -37,8 +37,8 @@ public class HistoryItem : MonoBehaviour
     private string GetReactionEmoji(string effect)
     {
         // HP 상승 or 하락에 따른 이모지
-        if (effect.Contains("success") || effect.Contains("bloom")) return "🌸";
-        if (effect.Contains("fail") || effect.Contains("thunder")) return "⚡";
+        if (effect.Contains("success") || effect.Contains("bloom")) return "만족";
+        if (effect.Contains("fail") || effect.Contains("thunder")) return "불만족";
         return "";
     }
 

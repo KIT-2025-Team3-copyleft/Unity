@@ -276,7 +276,20 @@ public class GameManager : MonoBehaviour
 
             case "ROUND_RESULT":
                 Debug.Log($"[DEBUG ROUND_RESULT] FULL JSON: {json}");
-                RoundManager.Instance.HandleRoundResult(JsonUtility.FromJson<RoundResult>(json));
+
+                // ✅ 수정된 부분: Wrapper 클래스로 먼저 파싱
+                RoundResultResponse response = JsonUtility.FromJson<RoundResultResponse>(json);
+
+                // data 안에 있는 실제 내용(sentence, reason 등)을 전달
+                if (response != null && response.data != null)
+                {
+                    // HandleRoundResult가 RoundResult 객체를 받는다고 가정
+                    RoundManager.Instance.HandleRoundResult(response.data);
+                }
+                else
+                {
+                    Debug.LogError("❌ ROUND_RESULT 파싱 실패: response 또는 data가 null입니다.");
+                }
                 break;
 
             default:
@@ -567,7 +580,9 @@ public class GameManager : MonoBehaviour
         yield return new WaitForSeconds(7.0f);
 
         SwitchCamera(observerCamera);
-        UIManager.Instance.PlayVisualCue(msg.visualCue);
+        //UIManager.Instance.PlayVisualCue(msg.visualCue);
+        string score = (msg.score).ToString();
+        UIManager.Instance.DisplayJudgmentReason(score);
 
         yield return new WaitForSeconds(7.0f);
 

@@ -10,7 +10,6 @@ public class MessageWrapper
     public string action;
 }
 
-// Client -> Server Payload Structures
 [System.Serializable]
 public class CardSelectionPayload
 {
@@ -42,7 +41,6 @@ public class Player
     public bool isHost;
     public string color;
     public string connectionStatus;
-    // 🌟🌟🌟 서버 응답에 맞게 추가된 필드 🌟🌟🌟
     public string role;
     public string slot;
     public string selectedCard;
@@ -136,6 +134,14 @@ public class ShowRoleMessage
     public string @event;
     public string message;
     public ShowRoleMessageData data;
+}
+
+[System.Serializable]
+public class RoundResultResponse
+{
+    public string @event;
+    public string message;
+    public RoundResult data; 
 }
 
 [Serializable]
