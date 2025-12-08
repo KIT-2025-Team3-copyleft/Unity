@@ -31,7 +31,7 @@ public class RoundManager : MonoBehaviour
     // 라운드 시작 (카드리스트 및 타이머 정보 수신)
     public void HandleRoundStart(RoundStartMessage msg)
     {
-        currentRound++;
+        currentRound = msg.currentRound;
 
         currentMission = msg.mission;
 
@@ -50,7 +50,7 @@ public class RoundManager : MonoBehaviour
             StopCoroutine(cardSelectionTimerCoroutine);
             cardSelectionTimerCoroutine = null;
         }
-        UIManager.Instance.HideTimerUI(); // 🌟추가: 타이머 UI 초기 숨김 함수 호출
+        UIManager.Instance.HideTimerUI();
 
         if (msg.cards != null)
         {
@@ -64,8 +64,10 @@ public class RoundManager : MonoBehaviour
 
         if (UIManager.Instance != null)
         {
+            // 🌟🌟🌟 CRITICAL FIX: UIManager에서 PlayerManager 데이터를 기반으로 색상 업데이트 🌟🌟🌟
             UIManager.Instance.UpdateSlotColorsFromPlayers();
         }
+
         if (GameManager.Instance != null && GameManager.Instance.isActiveAndEnabled)
         {
             StartCoroutine(StartCardSelection(msg.cards, msg.timeLimit));
@@ -94,9 +96,10 @@ public class RoundManager : MonoBehaviour
             StopCoroutine(cardSelectionTimerCoroutine);
             cardSelectionTimerCoroutine = null;
         }
-        UIManager.Instance.HideTimerUI(); 
+        UIManager.Instance.HideTimerUI();
 
         Debug.Log("[DEBUG 4] 카드 선택 코루틴 시작, 6초 대기.");
+        // SHOW_ROLE/SHOW_ORACLE 대기 시간
         yield return new WaitForSeconds(6.0f);
 
         // 카드 선택 UI 활성화
@@ -124,30 +127,29 @@ public class RoundManager : MonoBehaviour
         }
 
         // 🌟🌟🌟 (4) UI에서도 타이머 숨기기 🌟🌟🌟
-        UIManager.Instance.HideTimerUI(); // 🌟추가: 타이머 UI 숨김 함수 호출
+        UIManager.Instance.HideTimerUI();
 
         // 카드 선택 UI 비활성화
         UIManager.Instance.DisableMyCards();
-        GameManager.Instance.systemMessageText.text = "카드 선택이 확인되었습니다.";
+        UIManager.Instance.ShowSystemMessage("카드 선택이 확인되었습니다.");
     }
 
     // 다른 플레이어 행동 완료 업데이트
     public void HandlePlayerActionUpdate(PlayerActionUpdate msg)
     {
-        GameManager.Instance.systemMessageText.text = $"{msg.playerId}가 행동을 완료했습니다.";
+        UIManager.Instance.ShowSystemMessage($"{msg.playerId}가 행동을 완료했습니다.");
     }
 
     // 카드 선택 완료(전체) - 서버로부터 ALL_CARDS_SELECTED 수신 시 호출
     public void HandleInterpretationEnd(InterpretationEnd msg)
     {
-        // if (GameManager.Instance.chatInput != null) GameManager.Instance.chatInput.interactable = msg.chatEnabled; // 채팅 활성화/비활성화
-        GameManager.Instance.systemMessageText.text = msg.message;
+        UIManager.Instance.ShowSystemMessage(msg.message);
     }
 
     // 라운드 종료 - 서버로부터 ROUND_RESULT 수신 시 호출
     public void HandleRoundResult(RoundResult msg)
     {
-        GameManager.Instance.systemMessageText.text = $"신의 심판: {msg.sentence} (HP {msg.score})";
+        UIManager.Instance.ShowSystemMessage($"신의 심판: {msg.sentence} (Score {msg.score})");
 
         // 심판 연출 시작 (카메라 이동, UI 표시 등)
         GameManager.Instance.StartJudgmentSequence(msg);
@@ -155,9 +157,7 @@ public class RoundManager : MonoBehaviour
         // 마을 HP 업데이트
         GameManager.Instance.UpdateVillageHP(msg.score);
 
-        // 🌟🌟🌟 수정: 히스토리 패널에 기록할 때, 현재 PlayerManager 데이터에서 슬롯/색상 정보를 가져오기 위해
-        // UIManager에서 사용할 Dictionary<string, string> (슬롯 역할: 색상)을 직접 생성합니다.
-
+        // 🌟🌟🌟 FIX: PlayerManager 데이터를 기반으로 슬롯-색상 딕셔너리 생성 🌟🌟🌟
         Dictionary<string, string> currentSlotColors = new Dictionary<string, string>();
         foreach (var playerEntry in GameManager.Instance.GetPlayers())
         {
@@ -168,11 +168,12 @@ public class RoundManager : MonoBehaviour
             }
         }
 
+        // 히스토리 패널에 기록
         UIManager.Instance.AddHistoryItem(
            msg,
            currentRound,
-           currentMission, // 🌟 신탁 전달
-           currentSlotColors, // 🌟 생성된 슬롯 색상 딕셔너리 전달
+           currentMission,
+           currentSlotColors,
            msg.finalWords
         );
     }

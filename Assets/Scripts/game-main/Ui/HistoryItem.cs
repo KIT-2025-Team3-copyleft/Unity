@@ -21,15 +21,22 @@ public class HistoryItem : MonoBehaviour
     // 신의 평가
     public TextMeshProUGUI evaluationText;
 
+    // 🌟 SetData에서 slotColors는 이제 PlayerManager 데이터 기반으로 생성된 딕셔너리입니다.
     public void SetData(RoundResult result, Dictionary<string, string> slotColors, int roundNumber, string mission, List<string> finalWords)
     {
-        roundText.text = $"라운드 {roundNumber}의 기록";
-        OracleText.text = $"신탁: {mission}";
+        // 🌟 UI 요소들이 연결되어 있는지 확인
+        if (roundText != null) roundText.text = $"라운드 {roundNumber}의 기록";
+        if (OracleText != null) OracleText.text = $"신탁: {mission}";
 
-        evaluationText.text = $"신의 평가: {result.reason}";
+        if (evaluationText != null) evaluationText.text = $"신의 평가: {result.reason}";
 
+<<<<<<< HEAD
         //string reactionEmoji = GetReactionEmoji(result.visualCue.effect);
         //reactionText.text = $"신의 반응 : {reactionEmoji}";
+=======
+        string reactionEmoji = GetReactionEmoji(result.visualCue.effect);
+        if (reactionText != null) reactionText.text = $"신의 반응 : {reactionEmoji}";
+>>>>>>> 3470fcd (Stash 2025/12/09 12:54)
 
         DisplayFinalSentence(slotColors, finalWords);
     }
@@ -48,11 +55,18 @@ public class HistoryItem : MonoBehaviour
 
             string slotRoleName = SlotVisualOrder[i];
 
+            // 🌟 slotColors의 키는 SUBJECT, TARGET 등 역할 이름입니다.
             string colorName = slotColors.ContainsKey(slotRoleName) ? slotColors[slotRoleName] : "green";
 
-            wordTexts[i].text = finalWords[i];
-
-            wordTexts[i].color = GetUnityColor(colorName);
+            if (wordTexts[i] != null)
+            {
+                wordTexts[i].text = finalWords[i];
+                wordTexts[i].color = GetUnityColor(colorName);
+            }
+            else
+            {
+                Debug.LogError($"❌ HistoryItem: wordTexts[{i}] 참조가 null입니다.");
+            }
         }
     }
 

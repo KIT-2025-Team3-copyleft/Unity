@@ -17,7 +17,6 @@ public class UIManager : MonoBehaviour
         else Destroy(gameObject);
     }
 
-    // 🌟 UI에 표시되는 순서에 따라 서버에서 받은 슬롯 역할 이름 정의 (SUBJECT, TARGET, HOW, ACTION 순서 가정)
     private readonly string[] SlotVisualOrder = { "SUBJECT", "TARGET", "HOW", "ACTION" };
 
     private Dictionary<int, Color> defaultSlotColors = new Dictionary<int, Color>();
@@ -52,7 +51,7 @@ public class UIManager : MonoBehaviour
     [Header("Sentence Slots")]
     public List<Image> playerSlotImages;
     public List<TextMeshProUGUI> playerSlotTexts;
-    public List<string> slotRoleNames = new List<string> { "주체", "대상", "어떻게", "어쩐다" }; // 🌟🌟🌟 역할 텍스트 저장 🌟🌟🌟
+    public List<string> slotRoleNames = new List<string> { "주체", "대상", "어떻게", "어쩐다" }; 
 
     [Header("Judgment Scroll UI")]
     public GameObject judgmentScroll;
@@ -84,7 +83,6 @@ public class UIManager : MonoBehaviour
         if (canvasRoot == null) return;
         canvasRoot.gameObject.SetActive(true);
 
-        // --- A. 단일 컴포넌트 할당 ---
         Transform oracleRoot = canvasRoot.Find("Role&OraclePanel");
         Transform persistentRoot = canvasRoot.Find("PersistentOraclePanel");
         Transform systemPanel = canvasRoot.Find("SystemPanel");
@@ -115,7 +113,7 @@ public class UIManager : MonoBehaviour
         if (systemPanel != null)
         {
             Transform sysText = systemPanel.Find("systemText");
-            if (sysText != null) GameManager.Instance.systemMessageText = sysText.GetComponent<TextMeshProUGUI>();
+            if (sysText != null && GameManager.Instance != null) GameManager.Instance.systemMessageText = sysText.GetComponent<TextMeshProUGUI>();
         }
 
         // 4) Judgment Scroll
@@ -144,6 +142,7 @@ public class UIManager : MonoBehaviour
                 toggleButtonText = toggleBtn.GetComponentInChildren<TextMeshProUGUI>();
             }
             HistoryItems.AddRange(historyPanelRoot.GetComponentsInChildren<HistoryItem>(true));
+            Debug.Log($"✔ HistoryItems Found: {HistoryItems.Count}");
         }
 
         historyPanel = historyPanelRoot.GetComponent<RectTransform>();
@@ -197,7 +196,6 @@ public class UIManager : MonoBehaviour
                     }
                 }
             }
-            // 🌟🌟🌟 초기 슬롯 텍스트 복원 (버튼 아래 텍스트가 안 보일 경우를 대비)
             if (playerSlotTexts.Count == 4)
             {
                 for (int i = 0; i < 4; i++)
@@ -241,7 +239,6 @@ public class UIManager : MonoBehaviour
 
         }
 
-        // 🌟 카드 토글 버튼 연결 및 리스너 추가
         Transform toggleBtnRoot = canvasRoot.Find("toggleCardButton");
         if (toggleBtnRoot != null)
         {
@@ -271,12 +268,10 @@ public class UIManager : MonoBehaviour
         if (persistentOraclePanel != null) persistentOraclePanel.SetActive(false);
         if (judgmentScroll != null) judgmentScroll.SetActive(false);
 
-        // UI 연결 직후 슬롯 색상을 기본값(그린)으로 초기화
         UpdateSlotColorsInternal(new Dictionary<string, string>());
         Debug.Log($"[DEBUG 8] UIManager UI Link 완료. CardTexts Count: {cardTexts.Count}");
     }
 
-    // 🌟🌟🌟 [추가] 타이머 UI를 명시적으로 숨기는 함수 🌟🌟🌟
     public void HideTimerUI()
     {
         if (countdownText != null)
@@ -284,29 +279,8 @@ public class UIManager : MonoBehaviour
         if (timerCircle != null)
             timerCircle.gameObject.SetActive(false);
     }
-    // -----------------------------------------------------------
 
 
-    // 히스토리 패널 초기 설정
-    private void SetupHistoryPanel()
-    {
-        if (historyPanel != null)
-        {
-            closedYPosition = historyPanel.anchoredPosition.y;
-            isHistoryOpen = false;
-        }
-
-        if (historyToggleButton != null)
-        {
-            historyToggleButton.onClick.AddListener(ToggleHistoryPanel);
-            UpdateToggleButtonText();
-        }
-
-        if (cardSelectionPanel != null)
-        {
-            cardSelectionPanel.SetActive(false);
-        }
-    }
 
     // 히스토리 패널 열기/닫기 토글 함수
     public void ToggleHistoryPanel()
@@ -318,12 +292,15 @@ public class UIManager : MonoBehaviour
         UpdateToggleButtonText();
     }
 
-    // 패널 이동 코루틴
+    
     private IEnumerator SlidePanel(float targetY)
     {
+        if (historyPanel == null) yield break;
+
         float startTime = Time.time;
         float startY = historyPanel.anchoredPosition.y;
         float distance = targetY - startY;
+        float slideDuration = 0.3f; 
 
         while (Time.time < startTime + slideDuration)
         {
@@ -340,12 +317,10 @@ public class UIManager : MonoBehaviour
     {
         if (toggleButtonText != null)
         {
-            // 열린 상태일 때는 닫으라는 의미의 ▼를 표시
             toggleButtonText.text = isHistoryOpen ? "▼" : "▲";
         }
     }
 
-    // 히스토리 아이템 추가
     public void AddHistoryItem(RoundResult msg, int roundNumber, string mission, Dictionary<string, string> slotPlayerColors, List<string> finalWords)
     {
         if (HistoryItems == null || HistoryItems.Count < roundNumber || roundNumber < 1)
@@ -398,8 +373,6 @@ public class UIManager : MonoBehaviour
         }
 
         Canvas.ForceUpdateCanvases();
-
-        // 🌟🌟🌟 시간 조정: 신탁 표시 시간 증가 (3s -> 5s) 🌟🌟🌟
         StartCoroutine(HideOraclePanelAfterSeconds(5.0f));
     }
 
@@ -439,10 +412,8 @@ public class UIManager : MonoBehaviour
             panelImage.raycastTarget = false;
         }
 
-        // 🌟🌟🌟 CRITICAL FIX: 플레이어의 역할 ID를 "slotX" 형식으로 가져옵니다. 🌟🌟🌟
         string playerRole = GameManager.Instance.mySlot;
         string playerSlotId = GetSlotIdFromRole(playerRole);
-        // --------------------------------------------------------------------------
 
         for (int i = 0; i < cardButtons.Count; i++)
         {
@@ -489,7 +460,6 @@ public class UIManager : MonoBehaviour
 
             button.gameObject.SetActive(true);
 
-            // 🌟🌟🌟 CardHoverHandler 활성화 및 수정된 slotId 할당 🌟🌟🌟
             CardHoverHandler hoverHandler = button.GetComponent<CardHoverHandler>();
             if (hoverHandler == null)
             {
@@ -513,7 +483,6 @@ public class UIManager : MonoBehaviour
         StartCoroutine(PostSetupTextUpdate());
     }
 
-    // UIManager.cs - 새로운 코루틴 추가
     private IEnumerator PostSetupTextUpdate()
     {
         yield return null;
@@ -529,7 +498,6 @@ public class UIManager : MonoBehaviour
         Debug.Log("✔ 렌더링 후속 갱신 완료 (텍스트/호버 반영 기대).");
     }
 
-    // 🌟 역할 이름(SUBJECT)을 슬롯 ID(slot1)로 변환하는 핵심 함수
     public string GetSlotIdFromRole(string roleName)
     {
         for (int i = 0; i < SlotVisualOrder.Length; i++)
@@ -544,7 +512,6 @@ public class UIManager : MonoBehaviour
     }
 
 
-    // 🌟 새로 추가된 카드 패널 토글 함수
     public void ToggleCardPanel()
     {
         if (cardSelectionPanel != null)
@@ -555,9 +522,10 @@ public class UIManager : MonoBehaviour
         }
     }
 
-    // 🌟 GameManager의 PlayerManager 데이터를 기반으로 슬롯 색상을 업데이트하는 공개 함수
     public void UpdateSlotColorsFromPlayers()
     {
+        if (GameManager.Instance == null) return;
+
         var players = GameManager.Instance.GetPlayers();
         Dictionary<string, string> slotRoleColors = new Dictionary<string, string>();
 
@@ -573,15 +541,15 @@ public class UIManager : MonoBehaviour
         UpdateSlotColorsInternal(slotRoleColors);
     }
 
-    // 🌟 슬롯 테두리 색상을 업데이트하는 내부 함수
+
     private void UpdateSlotColorsInternal(Dictionary<string, string> slotPlayerColors)
     {
         for (int i = 0; i < playerSlotImages.Count; i++)
         {
             if (i >= SlotVisualOrder.Length) continue;
-            string slotRoleName = SlotVisualOrder[i];
+            string slotRoleName = SlotVisualOrder[i]; 
 
-            string colorName = "white";
+            string colorName = "white"; 
 
             if (slotPlayerColors != null && slotPlayerColors.ContainsKey(slotRoleName))
             {
@@ -589,14 +557,11 @@ public class UIManager : MonoBehaviour
             }
 
             Debug.Log($"[Slot Color Debug] Slot {slotRoleName} assigned color: {colorName}");
-            Debug.Log($"[Color Conversion] Attempting to convert color: {colorName}");
-
             playerSlotImages[i].color = GetUnityColor(colorName);
         }
         Debug.Log($"[DEBUG 13] 슬롯 색상 업데이트 감지 완료.");
     }
 
-    // 색상 문자열을 Unity Color 객체로 변환 (HistoryItem에서 가져옴)
     private Color GetUnityColor(string colorName)
     {
         switch (colorName.ToLower())
@@ -617,7 +582,6 @@ public class UIManager : MonoBehaviour
         }
     }
 
-    // 카드 선택 완료 시 버튼 비활성화 
     public void DisableMyCards()
     {
         foreach (var btn in cardButtons) btn.GetComponent<Button>().interactable = false;
@@ -645,7 +609,6 @@ public class UIManager : MonoBehaviour
         GameManager.Instance.OnCardSelected(card);
     }
 
-    // 🌟🌟🌟 수정된 HighlightSlot: 텍스트 복구 로직 적용 🌟🌟🌟
     public void HighlightSlot(string slotId, bool highlight, string hoveredWord)
     {
         if (slotId.StartsWith("slot") && int.TryParse(slotId.Substring(4), out int slotIndex))
@@ -654,16 +617,10 @@ public class UIManager : MonoBehaviour
 
             if (index >= 0 && index < playerSlotImages.Count)
             {
-                Image slotImage = playerSlotImages[index];
                 TextMeshProUGUI slotText = playerSlotTexts[index];
-
-
-                Debug.Log($"[DEBUG 15/F_5] SlotId: {slotId}, Index: {index}, Action: {(highlight ? "Show" : "Hide")}, Word: '{hoveredWord}', CurrentColor: {slotImage.color}");
-
 
                 if (highlight)
                 {
-                    // 텍스트는 명확하게 보이도록 검은색으로 설정
                     if (slotText != null)
                     {
                         slotText.color = Color.black;
@@ -674,19 +631,13 @@ public class UIManager : MonoBehaviour
                 }
                 else
                 {
-                    // ❌❌❌ CRITICAL FIX: 호버 해제 시 원래의 역할 텍스트로 복원합니다. ❌❌❌
                     if (slotText != null && index < slotRoleNames.Count)
                     {
-                        // 원래의 역할 텍스트 ("주체", "대상" 등)로 복원합니다.
                         slotText.text = slotRoleNames[index];
                         slotText.ForceMeshUpdate();
                     }
                 }
             }
-        }
-        else
-        {
-            Debug.LogWarning($"❌ HighlightSlot 호출 실패: ID 형식이 잘못되었습니다. 수신된 ID: '{slotId}'");
         }
     }
 
@@ -699,11 +650,9 @@ public class UIManager : MonoBehaviour
 
             if (index >= 0 && index < playerSlotTexts.Count)
             {
-                // 🌟🌟🌟 텍스트를 영구적으로 업데이트 🌟🌟🌟
                 playerSlotTexts[index].text = selectedWord;
                 playerSlotTexts[index].ForceMeshUpdate();
 
-                // 🌟🌟🌟 CRITICAL FIX: 호버 복원용 리스트도 업데이트하여 영구 고정 🌟🌟🌟
                 if (index < slotRoleNames.Count)
                 {
                     slotRoleNames[index] = selectedWord;
@@ -713,28 +662,15 @@ public class UIManager : MonoBehaviour
         }
     }
 
-
-
     public void DisplaySentence(string sentence)
     {
         if (judgmentText != null)
         {
             string resultMessage = $"--- 완성된 문장 ---\n\n";
             resultMessage += $"{sentence}";
-
-            // 🌟🌟🌟 FIX: 텍스트 할당 로직을 안전하게 감싸서 값 유지 보장 🌟🌟🌟
-            // (1) 일단 할당
             judgmentText.text = resultMessage;
             judgmentText.ForceMeshUpdate();
-
-            // (2) 다음 프레임 또는 다음 렌더링 루프에서 값이 지워지는 것을 방지하기 위해 강제 재할당
-            StartCoroutine(VerifyAndMaintainText(judgmentText, resultMessage, 2)); // 2프레임 확인
-
-            Debug.Log($"[DEBUG F_3] Judgment Sentence assigned: {sentence}. Length: {resultMessage.Length}");
-        }
-        else
-        {
-            Debug.LogError("❌ JudgmentText is null during DisplaySentence.");
+            StartCoroutine(VerifyAndMaintainText(judgmentText, resultMessage, 2));
         }
     }
 
@@ -743,31 +679,21 @@ public class UIManager : MonoBehaviour
         if (judgmentText != null)
         {
             string resultMessage = $"{reason}";
-
             judgmentText.text = resultMessage;
             judgmentText.ForceMeshUpdate();
-
-            StartCoroutine(VerifyAndMaintainText(judgmentText, resultMessage, 2)); // 2프레임 확인
-
-            Debug.Log($"[DEBUG F_4] Judgment Reason assigned: {reason}. Length: {resultMessage.Length}");
-        }
-        else
-        {
-            Debug.LogError("❌ JudgmentText is null during DisplayJudgmentReason.");
+            StartCoroutine(VerifyAndMaintainText(judgmentText, resultMessage, 2));
         }
     }
 
 
-    // 🌟🌟🌟 UIManager.cs - 새로운 텍스트 유지 코루틴 추가 🌟🌟🌟
     private IEnumerator VerifyAndMaintainText(TextMeshProUGUI textComponent, string expectedText, int frames)
     {
         for (int i = 0; i < frames; i++)
         {
-            yield return null; // 1프레임 대기
+            yield return null;
 
             if (textComponent.text != expectedText)
             {
-                // 값이 지워졌다면 다시 할당하고 렌더링 강제
                 textComponent.text = expectedText;
                 textComponent.ForceMeshUpdate();
                 Debug.LogWarning($"[CRITICAL FIX] Text was overwritten! Reverting to expected text. Frame: {i + 1}");
@@ -775,7 +701,6 @@ public class UIManager : MonoBehaviour
         }
     }
 
-    // 🌟🌟🌟 ShowSystemMessage 함수 추가 🌟🌟🌟
     public void ShowSystemMessage(string message)
     {
         if (GameManager.Instance != null && GameManager.Instance.systemMessageText != null)
@@ -784,7 +709,7 @@ public class UIManager : MonoBehaviour
         }
     }
 
-    // 누락된 함수들 (SetGameUIActive, PlayVisualCue, StartTimer)
+
     public void SetGameUIActive(bool isActive)
     {
         if (persistentOraclePanel != null)

@@ -62,6 +62,7 @@ public class RoundStartMessage
     public List<Player> players;
     public string oracle;
     public string message;
+    // public Dictionary<string, string> slotColors; // 👈 로컬에서 생성하므로 제거
 }
 
 [Serializable]
@@ -90,6 +91,7 @@ public class RoundResult
 
     public List<string> finalWords;
 
+    // public Dictionary<string, string> slotColors; // 👈 로컬에서 생성하므로 제거
 }
 
 [Serializable]
@@ -141,7 +143,7 @@ public class RoundResultResponse
 {
     public string @event;
     public string message;
-    public RoundResult data; 
+    public RoundResult data;
 }
 
 [Serializable]
