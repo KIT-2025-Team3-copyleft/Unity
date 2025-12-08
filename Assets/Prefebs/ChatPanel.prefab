@@ -317,7 +317,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 0}
-  m_AnchoredPosition: {x: 0, y: 151.99998}
+  m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0, y: 1}
 --- !u!114 &8627503172690307092
@@ -561,7 +561,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &5848643858102315002
 RectTransform:
   m_ObjectHideFlags: 0
@@ -637,8 +637,6 @@ MonoBehaviour:
   contentRect: {fileID: 8994931302827738554}
   chatTextPrefab: {fileID: 6160959193137257650, guid: aa954de66dca6af4e8f37909fedcffb6, type: 3}
   scrollRect: {fileID: 4313089747849027460}
-  myNickName: "\uAE38\uB3D9"
-  myColor: '#FF0000'
 --- !u!1 &5241461535745423924
 GameObject:
   m_ObjectHideFlags: 0

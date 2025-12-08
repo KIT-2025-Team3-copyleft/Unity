@@ -425,6 +425,7 @@ public class GameManager : MonoBehaviour
 
                         RoundManager.Instance.HandleRoundStart(tempStartMsg);
                     }
+
                     break;
             }
         }

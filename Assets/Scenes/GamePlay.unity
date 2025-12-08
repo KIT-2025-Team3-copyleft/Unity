@@ -744,6 +744,51 @@ Canvas:
   m_SortingLayerID: 0
   m_SortingOrder: 0
   m_TargetDisplay: 0
+--- !u!1 &600651563
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 600651565}
+  - component: {fileID: 600651564}
+  m_Layer: 0
+  m_Name: ChatManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &600651564
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 600651563}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 15c37e3ed37784f46adaa22a7a3cd389, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ChatManager
+  chathandler: {fileID: 6037374942099465914, guid: a0e482ebcff71f34598d09e819a9bbd2, type: 3}
+--- !u!4 &600651565
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 600651563}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 380.98047, y: 750.7743, z: 709.88635}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &741241563
 GameObject:
   m_ObjectHideFlags: 0
@@ -1545,6 +1590,8 @@ MonoBehaviour:
   visualCueAnimator: {fileID: 0}
   countdownText: {fileID: 0}
   timerCircle: {fileID: 0}
+  chatRoot: {fileID: 0}
+  chatHandler: {fileID: 0}
   IsUILinked: 0
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
@@ -1562,3 +1609,4 @@ SceneRoots:
   - {fileID: 888440488}
   - {fileID: 999214122}
   - {fileID: 1239168219}
+  - {fileID: 600651565}

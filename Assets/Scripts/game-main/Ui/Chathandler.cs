@@ -1,4 +1,4 @@
-using UnityEngine;
+ï»¿using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 using UnityEngine.InputSystem;
@@ -16,38 +16,50 @@ public class Chathandler : MonoBehaviour
 
     private void Awake()
     {
-        // ¿£ÅÍ ÀÔ·Â Ã³¸®
+        // scrollRect ìë™ ì—°ê²° (ì”¬ ì¸ìŠ¤í„´ìŠ¤ ê¸°ì¤€)
+        if (scrollRect == null)
+            scrollRect = GetComponentInChildren<ScrollRect>(true);
+
+        if (contentRect == null && scrollRect != null)
+            contentRect = scrollRect.content;
+
+        // ë””ë²„ê·¸ìš©: contentRectê°€ í”„ë¦¬íŒ¹ì¸ì§€ ì”¬ ì¸ìŠ¤í„´ìŠ¤ì¸ì§€ í™•ì¸
+        if (contentRect != null)
+        {
+            Debug.Log($"[ChatHandler] contentRect scene = '{contentRect.gameObject.scene.name}'");
+            // â† ì—¬ê¸°ì„œ scene.name ì´ ""(ë¹ˆ ë¬¸ìì—´)ì´ë©´ í”„ë¦¬íŒ¹ ì—ì…‹, 
+            // GamePlay ê°™ì´ ì”¬ ì´ë¦„ì´ ë‚˜ì˜¤ë©´ ì •ìƒ.
+        }
+
+        // ì—”í„° ì…ë ¥ ì²˜ë¦¬
         inputField.onSubmit.AddListener(OnSubmitChat);
-        // Å¬¸¯ Ã³¸®
+        // í´ë¦­ ì²˜ë¦¬
         inputField.onSelect.AddListener(OnClickInputField);
     }
 
     private void OnClickInputField(string text)
     {
-        // Ã¤ÆÃ È°¼ºÈ­
+        // ì±„íŒ… í™œì„±í™”
         ActivateChat();
     }
 
     void Update()
     {
-        if (Keyboard.current == null) return;
-
-        // ¿£ÅÍÅ°·Î Ã¤ÆÃÃ¢ È°¼ºÈ­
-        if (Keyboard.current.enterKey.wasPressedThisFrame)
+        // ì—”í„°í‚¤ë¡œ ì±„íŒ…ì°½ í™œì„±í™”
+        if (Input.GetKeyDown(KeyCode.Return))
         {
             if (!chatActive)
             {
                 ActivateChat();
                 return;
             }
-
         }
 
-        // ¿ÜºÎ UI Å¬¸¯½Ã ºñÈ°¼ºÈ­
-        if (chatActive && Mouse.current.leftButton.wasPressedThisFrame)
+        // ì™¸ë¶€ UI í´ë¦­ì‹œ ë¹„í™œì„±í™”
+        if (chatActive && Input.GetMouseButtonDown(0))
             TryDeactivateByClick();
 
-        // ÀÔ·ÂÃ¢ È°¼ºÈ­µÇ¾îÀÖÀ¸¸é Æ÷Ä¿½º À¯Áö
+        // ì…ë ¥ì°½ í™œì„±í™”ë˜ì–´ìˆìœ¼ë©´ í¬ì»¤ìŠ¤ ìœ ì§€
         if (chatActive && !inputField.isFocused)
             inputField.ActivateInputField();
     }
@@ -56,17 +68,17 @@ public class Chathandler : MonoBehaviour
     {
         string final = inputField.text.Trim();
 
-        // ÀÔ·Â ³»¿ëÀÌ ¾øÀ¸¸é ºñÈ°¼ºÈ­
+        // ì…ë ¥ ë‚´ìš©ì´ ì—†ìœ¼ë©´ ë¹„í™œì„±í™”
         if (string.IsNullOrEmpty(final))
         {
             DeactivateChat();
             return;
         }
 
-        // ¼­¹ö·Î Ã¤ÆÃ Àü¼Û (ÇÙ½É)
+        // ì„œë²„ë¡œ ì±„íŒ… ì „ì†¡ (í•µì‹¬)
         ChatManager.Instance.SendChat(final);
 
-        // ÀÔ·Â ÃÊ±âÈ­ ÈÄ Æ÷Ä¿½º À¯Áö
+        // ì…ë ¥ ì´ˆê¸°í™” í›„ í¬ì»¤ìŠ¤ ìœ ì§€
         inputField.text = "";
         inputField.ActivateInputField();
     }
@@ -75,7 +87,7 @@ public class Chathandler : MonoBehaviour
     {
         PointerEventData ped = new PointerEventData(EventSystem.current)
         {
-            position = Mouse.current.position.ReadValue()
+            position = Input.mousePosition
         };
         var results = new System.Collections.Generic.List<RaycastResult>();
         EventSystem.current.RaycastAll(ped, results);
@@ -95,7 +107,7 @@ public class Chathandler : MonoBehaviour
         chatActive = true;
         inputField.ActivateInputField();
 
-        // ÅØ½ºÆ® ³¡À¸·Î Ä¿¼­ ÀÌµ¿
+        // í…ìŠ¤íŠ¸ ëìœ¼ë¡œ ì»¤ì„œ ì´ë™
         inputField.caretPosition = inputField.text.Length;
         inputField.selectionAnchorPosition = inputField.text.Length;
         inputField.selectionFocusPosition = inputField.text.Length;
@@ -108,14 +120,27 @@ public class Chathandler : MonoBehaviour
     }
 
     // ------------------------------------
-    // ChatManager°¡ È£ÃâÇÏ´Â UI ¸Ş¼­µå
+    // ChatManagerê°€ í˜¸ì¶œí•˜ëŠ” UI ë©”ì„œë“œ
     // ------------------------------------
     public void AddChatMessage(string sender, string color, string content)
     {
-        GameObject newMsg = Instantiate(chatTextPrefab, contentRect);
-        TMP_Text textComponent = newMsg.GetComponent<TMP_Text>();
+        if (chatTextPrefab == null || contentRect == null)
+        {
+            Debug.LogWarning("[ChatHandler] chatTextPrefab ë˜ëŠ” contentRectê°€ ë¹„ì–´ ìˆìŠµë‹ˆë‹¤.");
+            return;
+        }
 
-        textComponent.text = $"<color={color}>{sender}</color>: {content}";
+        // ë¶€ëª¨ ì—†ì´ ë¨¼ì € ìƒì„±
+        GameObject newMsg = Instantiate(chatTextPrefab);
+
+        // ê·¸ ë‹¤ìŒì— ë¶€ëª¨ ì„¤ì • (worldPositionStays = false)
+        newMsg.transform.SetParent(contentRect, false);
+
+        TMP_Text textComponent = newMsg.GetComponent<TMP_Text>();
+        if (textComponent != null)
+        {
+            textComponent.text = $"<color={color}>{sender}</color>: {content}";
+        }
 
         Canvas.ForceUpdateCanvases();
         LayoutRebuilder.ForceRebuildLayoutImmediate(contentRect);
