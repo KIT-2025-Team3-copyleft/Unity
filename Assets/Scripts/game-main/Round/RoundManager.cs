@@ -9,6 +9,9 @@ public class RoundManager : MonoBehaviour
     public int currentRound = 0;
     private string currentMission = "";
 
+    // 🌟 추가: 카드 선택 타이머 코루틴을 저장할 변수
+    private Coroutine cardSelectionTimerCoroutine;
+
     private void Awake()
     {
         if (Instance == null)
@@ -41,7 +44,14 @@ public class RoundManager : MonoBehaviour
             GameManager.Instance.cardSelectedCompleted = false;
         }
 
-        // 🌟🌟🌟 [디버그 추가] 카드 목록 확인 🌟🌟🌟
+        // 🌟🌟🌟 (1) 이전 타이머가 있다면 취소 (다음 라운드로 넘어갈 때) 🌟🌟🌟
+        if (cardSelectionTimerCoroutine != null)
+        {
+            StopCoroutine(cardSelectionTimerCoroutine);
+            cardSelectionTimerCoroutine = null;
+        }
+        UIManager.Instance.HideTimerUI(); // 🌟추가: 타이머 UI 초기 숨김 함수 호출
+
         if (msg.cards != null)
         {
             Debug.Log($"[RoundManager] Received Cards Count: {msg.cards.Count}");
@@ -54,19 +64,11 @@ public class RoundManager : MonoBehaviour
 
         if (UIManager.Instance != null)
         {
-            // 🌟🌟🌟 수정: slotColors를 받지 않고, PlayerManager 기반으로 UI 색상 업데이트 요청 🌟🌟🌟
             UIManager.Instance.UpdateSlotColorsFromPlayers();
         }
-        // SHOW_ORACLE, SHOW_ROLE 이벤트는 GameManager에서 이미 별도로 처리되었습니다.
-
-        // 채팅창 상호작용 가능 여부 설정 (현재 주석 처리)
-        // if (GameManager.Instance.chatInput != null) GameManager.Instance.chatInput.interactable = msg.chatEnabled; 
-
-        // 🌟🌟🌟 코루틴 시작 안정성 보장 🌟🌟🌟
         if (GameManager.Instance != null && GameManager.Instance.isActiveAndEnabled)
         {
-            // RoundManager 오브젝트의 활성 상태와 무관하게 GameManager를 통해 코루틴 실행
-            GameManager.Instance.StartCoroutine(StartCardSelection(msg.cards, msg.timeLimit));
+            StartCoroutine(StartCardSelection(msg.cards, msg.timeLimit));
         }
         else if (this.isActiveAndEnabled)
         {
@@ -78,29 +80,35 @@ public class RoundManager : MonoBehaviour
         }
     }
 
-    // 🌟🌟🌟 PrepareNextRound 함수 추가 (NEXT_ROUND_START 처리) 🌟🌟🌟
     public void PrepareNextRound(int nextRoundNumber)
     {
         currentRound = nextRoundNumber;
         Debug.Log($"[RoundManager] New round prepared: Round {currentRound}");
     }
-    // -------------------------------------------------------------
 
     // 카드 선택 시작
     private IEnumerator StartCardSelection(List<string> cards, int selectionTime)
     {
-        // SHOW_ORACLE/SHOW_ROLE 메시지의 팝업 시간(약 4초)을 기다립니다.
+        if (cardSelectionTimerCoroutine != null)
+        {
+            StopCoroutine(cardSelectionTimerCoroutine);
+            cardSelectionTimerCoroutine = null;
+        }
+        UIManager.Instance.HideTimerUI(); 
+
         Debug.Log("[DEBUG 4] 카드 선택 코루틴 시작, 6초 대기.");
-        // 🌟🌟🌟 시간 조정: SHOW_ROLE 대기 시간 증가 (4s -> 6s) 🌟🌟🌟
         yield return new WaitForSeconds(6.0f);
 
         // 카드 선택 UI 활성화
         UIManager.Instance.SetupCardButtons(cards);
         Debug.Log($"[DEBUG 5] SetupCardButtons 호출 완료. Cards Count: {cards?.Count ?? 0}");
 
-        // 타이머 시작 (시간 종료 시 임의 카드 자동 선택)
-        StartCoroutine(
-            UIManager.Instance.StartTimer(selectionTime, () => UIManager.Instance.AutoSelectRandomCard())
+        cardSelectionTimerCoroutine = StartCoroutine(
+            UIManager.Instance.StartTimer(selectionTime, () =>
+            {
+                UIManager.Instance.AutoSelectRandomCard();
+                cardSelectionTimerCoroutine = null; // 자동 선택 완료 후 참조 해제
+            })
         );
         Debug.Log($"[DEBUG 6] UIManager.StartTimer 호출 완료. Time: {selectionTime}");
     }
@@ -108,6 +116,16 @@ public class RoundManager : MonoBehaviour
     // 카드 선택 완료(개인) - 서버로부터 CARD_SELECTION_CONFIRMED 수신 시 호출
     public void HandleCardSelectionConfirmed()
     {
+        // 🌟🌟🌟 (3) 플레이어 수동 선택 시 타이머 취소 🌟🌟🌟
+        if (cardSelectionTimerCoroutine != null)
+        {
+            StopCoroutine(cardSelectionTimerCoroutine);
+            cardSelectionTimerCoroutine = null;
+        }
+
+        // 🌟🌟🌟 (4) UI에서도 타이머 숨기기 🌟🌟🌟
+        UIManager.Instance.HideTimerUI(); // 🌟추가: 타이머 UI 숨김 함수 호출
+
         // 카드 선택 UI 비활성화
         UIManager.Instance.DisableMyCards();
         GameManager.Instance.systemMessageText.text = "카드 선택이 확인되었습니다.";

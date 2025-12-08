@@ -256,13 +256,22 @@ public class UIManager : MonoBehaviour
         if (oraclePanel != null) oraclePanel.SetActive(false);
         if (cardSelectionPanel != null) cardSelectionPanel.SetActive(false);
         if (persistentOraclePanel != null) persistentOraclePanel.SetActive(false);
-        if (systemPanel != null) systemPanel.gameObject.SetActive(false);
         if (judgmentScroll != null) judgmentScroll.SetActive(false);
 
         // UI 연결 직후 슬롯 색상을 기본값(그린)으로 초기화
         UpdateSlotColorsInternal(new Dictionary<string, string>());
         Debug.Log($"[DEBUG 8] UIManager UI Link 완료. CardTexts Count: {cardTexts.Count}");
     }
+
+    // 🌟🌟🌟 [추가] 타이머 UI를 명시적으로 숨기는 함수 🌟🌟🌟
+    public void HideTimerUI()
+    {
+        if (countdownText != null)
+            countdownText.gameObject.SetActive(false);
+        if (timerCircle != null)
+            timerCircle.gameObject.SetActive(false);
+    }
+    // -----------------------------------------------------------
 
 
     // 히스토리 패널 초기 설정
@@ -669,7 +678,6 @@ public class UIManager : MonoBehaviour
     }
 
 
-    // 슬롯에 단어를 표시하는 함수 
     public void UpdateMySentenceSlot(string slotId, string selectedWord)
     {
         if (slotId.StartsWith("slot") && int.TryParse(slotId.Substring(4), out int slotIndex))
@@ -693,7 +701,6 @@ public class UIManager : MonoBehaviour
     }
 
 
-    // UIManager.cs - DisplaySentence 함수 (수정)
 
     public void DisplaySentence(string sentence)
     {
@@ -705,7 +712,6 @@ public class UIManager : MonoBehaviour
             // 🌟🌟🌟 FIX: 텍스트 할당 로직을 안전하게 감싸서 값 유지 보장 🌟🌟🌟
             // (1) 일단 할당
             judgmentText.text = resultMessage;
-            judgmentText.color = Color.black;
             judgmentText.ForceMeshUpdate();
 
             // (2) 다음 프레임 또는 다음 렌더링 루프에서 값이 지워지는 것을 방지하기 위해 강제 재할당
@@ -719,16 +725,13 @@ public class UIManager : MonoBehaviour
         }
     }
 
-    // UIManager.cs - DisplayJudgmentReason 함수 (수정)
     public void DisplayJudgmentReason(string reason)
     {
         if (judgmentText != null)
         {
             string resultMessage = $"{reason}";
 
-            // 🌟🌟🌟 FIX: 텍스트 할당 로직을 안전하게 감싸서 값 유지 보장 🌟🌟🌟
             judgmentText.text = resultMessage;
-            judgmentText.color = Color.black;
             judgmentText.ForceMeshUpdate();
 
             StartCoroutine(VerifyAndMaintainText(judgmentText, resultMessage, 2)); // 2프레임 확인
