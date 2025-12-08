@@ -28,17 +28,15 @@ public class HistoryItem : MonoBehaviour
 
         evaluationText.text = $"신의 평가: {result.reason}";
 
-        string reactionEmoji = GetReactionEmoji(result.visualCue.effect);
-        reactionText.text = $"신의 반응 : {reactionEmoji}";
+        //string reactionEmoji = GetReactionEmoji(result.visualCue.effect);
+        //reactionText.text = $"신의 반응 : {reactionEmoji}";
 
         DisplayFinalSentence(slotColors, finalWords);
     }
 
     private string GetReactionEmoji(string effect)
     {
-        // HP 상승 or 하락에 따른 이모지
-        if (effect.Contains("success") || effect.Contains("bloom")) return "만족";
-        if (effect.Contains("fail") || effect.Contains("thunder")) return "불만족";
+
         return "";
     }
 

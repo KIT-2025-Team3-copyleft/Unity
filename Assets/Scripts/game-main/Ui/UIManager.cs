@@ -65,6 +65,10 @@ public class UIManager : MonoBehaviour
     public TextMeshProUGUI countdownText;
     public Image timerCircle;
 
+    [Header("Chat UI")]
+    public GameObject chatRoot;       // Canvas/Chat
+    public Chathandler chatHandler;   // ChatPanel에 붙어있는 스크립트
+
 
     public bool IsUILinked = false;
     public void LinkLocalPlayerUIElements(GameObject localPlayerRoot)
@@ -226,6 +230,15 @@ public class UIManager : MonoBehaviour
                     }
                 }
             }
+
+            // 🔹 ChatHandler 연결
+            var chatHandler = canvasRoot.GetComponentInChildren<Chathandler>(true);
+            if (chatHandler != null && ChatManager.Instance != null)
+            {
+                ChatManager.Instance.chathandler = chatHandler;
+                Debug.Log("✔ ChatHandler 연결 완료.");
+            }
+
         }
 
         // 🌟 카드 토글 버튼 연결 및 리스너 추가
