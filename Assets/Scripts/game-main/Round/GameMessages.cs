@@ -62,7 +62,6 @@ public class RoundStartMessage
     public List<Player> players;
     public string oracle;
     public string message;
-    // public Dictionary<string, string> slotColors; // 👈 로컬에서 생성하므로 제거
 }
 
 [Serializable]
@@ -79,6 +78,16 @@ public class InterpretationEnd
     public bool chatEnabled;
 }
 
+
+[System.Serializable]
+public class SentencePart
+{
+    public string playerColor; 
+    public string word;
+    public string slotType;
+}
+
+
 [Serializable]
 public class RoundResult
 {
@@ -89,9 +98,10 @@ public class RoundResult
 
     public string reason;
 
-    public List<string> finalWords;
+    public List<SentencePart> sentenceParts;
+    public string fullSentence; 
 
-    // public Dictionary<string, string> slotColors; // 👈 로컬에서 생성하므로 제거
+    public List<Player> players; 
 }
 
 [Serializable]
@@ -123,7 +133,6 @@ public class ShowOracleMessage
     public string message;
     public ShowOracleMessageData data;
 }
-
 [Serializable]
 public class ShowRoleMessageData
 {
@@ -187,12 +196,19 @@ public class ErrorMessage
     public string message;
 }
 
-// RECEIVE_CARDS 전용 구조체
+[System.Serializable]
+public class SlotOwner
+{
+    public string slotType;
+    public string playerColor;
+}
+
 [System.Serializable]
 public class ReceiveCardsData
 {
     public string slotType;
     public List<string> cards;
+    public List<SlotOwner> slotOwners;
 }
 
 [System.Serializable]
@@ -203,12 +219,11 @@ public class ReceiveCardsMessage
     public ReceiveCardsData data;
 }
 
-// 새로운 구조체 추가 (다른 플레이어 슬롯 할당을 위함)
 [Serializable]
 public class SlotAssignment
 {
     public string sessionId;
-    public string slot; // "SUBJECT", "TARGET", "HOW", "ACTION" 중 하나
+    public string slot; 
 }
 
 [Serializable]
@@ -220,6 +235,6 @@ public class PlayerSlotAssignmentData
 [Serializable]
 public class PlayerSlotAssignmentMessage
 {
-    public string @event; // "PLAYER_SLOT_ASSIGNMENT"
+    public string @event; 
     public PlayerSlotAssignmentData data;
 }

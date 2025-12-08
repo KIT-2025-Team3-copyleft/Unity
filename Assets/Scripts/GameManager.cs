@@ -1,10 +1,10 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
-using UnityEngine;
-using UnityEngine.UI;
 using TMPro;
-using System;
+using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 
 public class GameManager : MonoBehaviour
 {
@@ -247,7 +247,18 @@ public class GameManager : MonoBehaviour
 
             case "RECEIVE_CARDS":
                 ReceiveCardsMessage rcMsg = JsonUtility.FromJson<ReceiveCardsMessage>(json);
-                // RECEIVE_CARDS 메시지에서는 slotType과 cards만 옵니다.
+
+                // 🌟 FIX: SlotOwner 정보를 UIManager로 직접 전달하여 캔버스 색상 업데이트
+                if (UIManager.Instance != null && rcMsg.data.slotOwners != null)
+                {
+                    Dictionary<string, string> slotColorMap = new Dictionary<string, string>();
+                    foreach (var owner in rcMsg.data.slotOwners)
+                    {
+                        slotColorMap[owner.slotType] = owner.playerColor;
+                    }
+                    UIManager.Instance.UpdateSlotColorsFromRawData(slotColorMap);
+                }
+
                 StartCoroutine(ShowUIAfterLinking(json, "RECEIVE_CARDS", rcMsg.data.slotType, rcMsg.data.cards));
                 break;
 
@@ -292,6 +303,7 @@ public class GameManager : MonoBehaviour
         }
     }
 
+
     public void HandlePlayerSlotAssignments(List<SlotAssignment> assignments)
     {
         foreach (var assignment in assignments)
@@ -311,6 +323,7 @@ public class GameManager : MonoBehaviour
         {
             // 모든 플레이어의 슬롯이 업데이트된 후 색상을 업데이트합니다.
             UIManager.Instance.UpdateSlotColorsFromPlayers();
+            Debug.Log("✔ [GM Assign] PLAYER_SLOT_ASSIGNMENT 처리 후 UIManager.UpdateSlotColorsFromPlayers() 호출 완료.");
         }
     }
 
@@ -374,7 +387,7 @@ public class GameManager : MonoBehaviour
                         localPm.SetRoleAndCards(myRole, mySlot);
                     }
 
-                    UIManager.Instance.ShowOracleAndRole(startMsg.mission, "", 1);
+                    UIManager.Instance.ShowOracleAndRole(startMsg.mission, "", startMsg.currentRound);
 
                     yield return new WaitForSeconds(5.0f);
 
@@ -496,7 +509,7 @@ public class GameManager : MonoBehaviour
 
     public void StartJudgmentSequence(RoundResult msg)
     {
-        Debug.Log($"[DEBUG F_2] 심판 시퀀스 시작. Displaying Sentence: {msg.sentence}");
+        Debug.Log($"[DEBUG F_2] 심판 시퀀스 시작. Displaying Sentence: {msg.fullSentence}");
         StartCoroutine(JudgmentSequence(msg));
     }
 
@@ -536,7 +549,13 @@ public class GameManager : MonoBehaviour
             topDownCamera.transform.rotation = topDownStartRot;
         }
 
+        // 🌟 심판 시퀀스 시작 시 UI OFF (SwitchCamera 내부에서 처리)
         SwitchCamera(topDownCamera);
+
+        if (UIManager.Instance.cardSelectionPanel != null)
+            UIManager.Instance.cardSelectionPanel.SetActive(false);
+        if (UIManager.Instance.toggleCardButton != null)
+            UIManager.Instance.toggleCardButton.gameObject.SetActive(false);
 
         yield return StartCoroutine(AnimateCameraTransform(topDownCamera, judgmentZoomPosition, zoomDuration));
         yield return StartCoroutine(AnimateCameraTransform(topDownCamera, judgmentFinalPosition, settleDuration));
@@ -547,7 +566,8 @@ public class GameManager : MonoBehaviour
             UIManager.Instance.judgmentScroll.SetActive(true);
 
         yield return new WaitForSeconds(5.0f);
-        UIManager.Instance.DisplaySentence(msg.sentence);
+        // 🌟 FIX: msg.sentence 대신 msg.fullSentence 사용
+        UIManager.Instance.DisplaySentence(msg.fullSentence);
         yield return new WaitForSeconds(5.0f);
         UIManager.Instance.DisplayJudgmentReason(msg.reason);
 
@@ -560,6 +580,7 @@ public class GameManager : MonoBehaviour
 
         yield return new WaitForSeconds(7.0f);
 
+        // 🌟 심판 시퀀스 끝, UI ON (SwitchCamera 내부에서 처리)
         SwitchCamera(firstPersonCamera);
         if (UIManager.Instance.judgmentScroll != null)
             UIManager.Instance.judgmentScroll.SetActive(false);
@@ -575,6 +596,7 @@ public class GameManager : MonoBehaviour
         if (observerCamera != null) observerCamera.enabled = (targetCamera == observerCamera);
         if (topDownCamera != null) topDownCamera.enabled = (targetCamera == topDownCamera);
 
+        // 🌟 UI 활성화/비활성화 제어
         if (UIManager.Instance != null)
             UIManager.Instance.SetGameUIActive(isFirstPerson);
     }
