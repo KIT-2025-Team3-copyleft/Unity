@@ -1,18 +1,15 @@
-﻿// PlayerManager.cs
-
-using UnityEngine;
+﻿using UnityEngine;
 
 public class PlayerManager : MonoBehaviour
 {
-    public string playerId;
+    public string playerId; 
     public string nickname;
     public string role;
     public string slot;
-    public string godPersonality; // 👈 추가된 필드
+    public string godPersonality; 
     public string colorName;
     public bool actionCompleted = false;
 
-    // 🌟 추가: 로비 상태 표시용
     public bool isHost = false;
 
     private Renderer playerRenderer;
