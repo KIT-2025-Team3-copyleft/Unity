@@ -21,6 +21,14 @@ public class PlayerManager : MonoBehaviour
             playerRenderer = GetComponentInChildren<Renderer>();
     }
 
+    public string sessionId { get; private set; }
+    public void SetSessionId(string id)
+    {
+        sessionId = id;
+    }
+    
+    public string GetNickname() => nickname;
+
     public void SetColor(string colorName)
     {
         this.colorName = colorName;
