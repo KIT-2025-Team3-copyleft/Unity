@@ -1,3 +1,0 @@
-build: 2.0.7 Stable 1323
-date: 2025-09-25 13:54:56
-git: 2.0/release (429e15369)

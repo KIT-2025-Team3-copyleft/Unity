@@ -21,45 +21,53 @@ public class HistoryItem : MonoBehaviour
     // 신의 평가
     public TextMeshProUGUI evaluationText;
 
-    public void SetData(RoundResult result, Dictionary<string, string> slotColors, int roundNumber, string mission, List<string> finalWords)
+    public void SetData(RoundResult result, Dictionary<string, string> slotColors, int roundNumber, string mission)
     {
-        roundText.text = $"라운드 {roundNumber}의 기록";
-        OracleText.text = $"신탁: {mission}";
+        if (roundText != null) roundText.text = $"라운드 {roundNumber}의 기록";
+        if (OracleText != null) OracleText.text = $"신탁: {mission}";
 
-        evaluationText.text = $"신의 평가: {result.reason}";
+        if (evaluationText != null) evaluationText.text = $"신의 평가: {result.reason}";
 
-        string reactionEmoji = GetReactionEmoji(result.visualCue.effect);
-        reactionText.text = $"신의 반응 : {reactionEmoji}";
+        //string reactionEmoji = GetReactionEmoji(result.visualCue.effect);
+        //reactionText.text = $"신의 반응 : {reactionEmoji}";
 
-        DisplayFinalSentence(slotColors, finalWords);
+
+        DisplayFinalSentence(slotColors, result.sentenceParts);
     }
 
     private string GetReactionEmoji(string effect)
     {
-        // HP 상승 or 하락에 따른 이모지
-        if (effect.Contains("success") || effect.Contains("bloom")) return "만족";
-        if (effect.Contains("fail") || effect.Contains("thunder")) return "불만족";
+
         return "";
     }
 
-    private void DisplayFinalSentence(Dictionary<string, string> slotColors, List<string> finalWords)
+    private void DisplayFinalSentence(Dictionary<string, string> slotColors, List<SentencePart> sentenceParts)
     {
-        for (int i = 0; i < finalWords.Count && i < wordTexts.Count; i++)
+        for (int i = 0; i < sentenceParts.Count && i < wordTexts.Count; i++)
         {
-            if (i >= SlotVisualOrder.Length) continue;
+            SentencePart part = sentenceParts[i];
 
-            string slotRoleName = SlotVisualOrder[i];
+            string colorName = part.playerColor;
 
-            string colorName = slotColors.ContainsKey(slotRoleName) ? slotColors[slotRoleName] : "green";
 
-            wordTexts[i].text = finalWords[i];
+            Debug.Log($"[HistoryItem Color Debug] Slot: {part.slotType}, Word: {part.word}, Color (from part): {colorName}");
 
-            wordTexts[i].color = GetUnityColor(colorName);
+            if (wordTexts[i] != null)
+            {
+                wordTexts[i].text = part.word;
+                wordTexts[i].color = GetUnityColor(colorName);
+            }
+            else
+            {
+                Debug.LogError($"❌ HistoryItem: wordTexts[{i}] 참조가 null입니다.");
+            }
         }
     }
 
     private Color GetUnityColor(string colorName)
     {
+        if (colorName == null) colorName = "unknown";
+
         switch (colorName.ToLower())
         {
             case "red":
@@ -73,8 +81,8 @@ public class HistoryItem : MonoBehaviour
             case "pink":
                 return new Color(1f, 0.41f, 0.71f);
             default:
-                Debug.LogWarning($"Unknown color name: {colorName}. Defaulting to green.");
-                return Color.green;
+                Debug.LogWarning($"Unknown color name: {colorName}. Defaulting to white.");
+                return Color.white;
         }
     }
 }
