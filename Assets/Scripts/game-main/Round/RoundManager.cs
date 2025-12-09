@@ -31,9 +31,15 @@ public class RoundManager : MonoBehaviour
     // 라운드 시작 (카드리스트 및 타이머 정보 수신)
     public void HandleRoundStart(RoundStartMessage msg)
     {
-        currentRound++;
+        currentRound = msg.currentRound;
 
         currentMission = msg.mission;
+
+        // 🌟🌟🌟 FIX: 이전 라운드에 선택된 단어 슬롯 초기화 🌟🌟🌟
+        if (UIManager.Instance != null)
+        {
+            UIManager.Instance.ResetSentenceSlots();
+        }
 
         // 🌟 mySlot 업데이트 (첫 라운드 및 후속 라운드 모두 여기서 할당됨)
         GameManager.Instance.mySlot = msg.mySlot;
@@ -50,7 +56,7 @@ public class RoundManager : MonoBehaviour
             StopCoroutine(cardSelectionTimerCoroutine);
             cardSelectionTimerCoroutine = null;
         }
-        UIManager.Instance.HideTimerUI(); // 🌟추가: 타이머 UI 초기 숨김 함수 호출
+        UIManager.Instance.HideTimerUI();
 
         if (msg.cards != null)
         {
@@ -62,10 +68,15 @@ public class RoundManager : MonoBehaviour
             Debug.LogWarning("[RoundManager] Received Cards list is NULL!");
         }
 
+        // 🚨 UpdateSlotColorsFromPlayers() 호출 제거 (GameManager.RECEIVE_CARDS에서 Raw Data로 처리했으므로)
+        /*
         if (UIManager.Instance != null)
         {
             UIManager.Instance.UpdateSlotColorsFromPlayers();
+            Debug.Log("[RoundManager] HandleRoundStart: UIManager.UpdateSlotColorsFromPlayers() 호출 완료.");
         }
+        */
+
         if (GameManager.Instance != null && GameManager.Instance.isActiveAndEnabled)
         {
             StartCoroutine(StartCardSelection(msg.cards, msg.timeLimit));
@@ -94,12 +105,24 @@ public class RoundManager : MonoBehaviour
             StopCoroutine(cardSelectionTimerCoroutine);
             cardSelectionTimerCoroutine = null;
         }
-        UIManager.Instance.HideTimerUI(); 
+        UIManager.Instance.HideTimerUI();
 
         Debug.Log("[DEBUG 4] 카드 선택 코루틴 시작, 6초 대기.");
+        // SHOW_ROLE/SHOW_ORACLE 대기 시간 (UI OFF 대기)
         yield return new WaitForSeconds(6.0f);
 
-        // 카드 선택 UI 활성화
+        // 🌟🌟🌟 FIX: 카드 선택 관련 UI 활성화 🌟🌟🌟
+        if (UIManager.Instance != null)
+        {
+            if (UIManager.Instance.toggleCardButton != null)
+                UIManager.Instance.toggleCardButton.gameObject.SetActive(true); // 카드 토글 버튼 ON
+            if (UIManager.Instance.historyPanel != null)
+                UIManager.Instance.historyPanel.gameObject.SetActive(true); // 히스토리 패널 ON
+            if (UIManager.Instance.chatRoot != null)
+                UIManager.Instance.chatRoot.gameObject.SetActive(true); // 채팅 ON
+        }
+
+        // 카드 선택 UI 활성화 (SetupCardButtons 내부에서 cardSelectionPanel이 true가 됨)
         UIManager.Instance.SetupCardButtons(cards);
         Debug.Log($"[DEBUG 5] SetupCardButtons 호출 완료. Cards Count: {cards?.Count ?? 0}");
 
@@ -124,56 +147,67 @@ public class RoundManager : MonoBehaviour
         }
 
         // 🌟🌟🌟 (4) UI에서도 타이머 숨기기 🌟🌟🌟
-        UIManager.Instance.HideTimerUI(); // 🌟추가: 타이머 UI 숨김 함수 호출
+        UIManager.Instance.HideTimerUI();
 
         // 카드 선택 UI 비활성화
         UIManager.Instance.DisableMyCards();
-        GameManager.Instance.systemMessageText.text = "카드 선택이 확인되었습니다.";
+        UIManager.Instance.ShowSystemMessage("카드 선택이 확인되었습니다.");
     }
 
     // 다른 플레이어 행동 완료 업데이트
     public void HandlePlayerActionUpdate(PlayerActionUpdate msg)
     {
-        GameManager.Instance.systemMessageText.text = $"{msg.playerId}가 행동을 완료했습니다.";
+        UIManager.Instance.ShowSystemMessage($"{msg.playerId}가 행동을 완료했습니다.");
     }
 
     // 카드 선택 완료(전체) - 서버로부터 ALL_CARDS_SELECTED 수신 시 호출
     public void HandleInterpretationEnd(InterpretationEnd msg)
     {
-        // if (GameManager.Instance.chatInput != null) GameManager.Instance.chatInput.interactable = msg.chatEnabled; // 채팅 활성화/비활성화
-        GameManager.Instance.systemMessageText.text = msg.message;
+        UIManager.Instance.ShowSystemMessage(msg.message);
     }
 
     // 라운드 종료 - 서버로부터 ROUND_RESULT 수신 시 호출
     public void HandleRoundResult(RoundResult msg)
     {
-        GameManager.Instance.systemMessageText.text = $"신의 심판: {msg.sentence} (HP {msg.score})";
+        UIManager.Instance.ShowSystemMessage($"신의 심판: {(string.IsNullOrEmpty(msg.fullSentence) ? msg.sentence : msg.fullSentence)} (Score {msg.score})");
 
-        // 심판 연출 시작 (카메라 이동, UI 표시 등)
         GameManager.Instance.StartJudgmentSequence(msg);
 
-        // 마을 HP 업데이트
         GameManager.Instance.UpdateVillageHP(msg.score);
 
-        // 🌟🌟🌟 수정: 히스토리 패널에 기록할 때, 현재 PlayerManager 데이터에서 슬롯/색상 정보를 가져오기 위해
-        // UIManager에서 사용할 Dictionary<string, string> (슬롯 역할: 색상)을 직접 생성합니다.
-
         Dictionary<string, string> currentSlotColors = new Dictionary<string, string>();
-        foreach (var playerEntry in GameManager.Instance.GetPlayers())
+
+        if (msg.players != null)
         {
-            PlayerManager pm = playerEntry.Value;
-            if (!string.IsNullOrEmpty(pm.slot) && !string.IsNullOrEmpty(pm.colorName))
+            foreach (var player in msg.players)
             {
-                currentSlotColors[pm.slot] = pm.colorName;
+                if (!string.IsNullOrEmpty(player.slot) && !string.IsNullOrEmpty(player.color))
+                {
+                    currentSlotColors[player.slot] = player.color;
+                    Debug.Log($"[History Color FIX] Slot {player.slot} mapped to Color {player.color} for player {player.nickname}");
+                }
             }
         }
+        else
+        {
+            foreach (var playerEntry in GameManager.Instance.GetPlayers())
+            {
+                PlayerManager pm = playerEntry.Value;
+                if (!string.IsNullOrEmpty(pm.slot) && !string.IsNullOrEmpty(pm.colorName))
+                {
+                    currentSlotColors[pm.slot] = pm.colorName;
+                }
+            }
+            Debug.LogWarning("[History Color FIX] msg.players가 null이어서 로컬 PlayerManager 데이터를 사용했습니다.");
+        }
 
+
+        // 히스토리 패널에 기록
         UIManager.Instance.AddHistoryItem(
            msg,
            currentRound,
-           currentMission, // 🌟 신탁 전달
-           currentSlotColors, // 🌟 생성된 슬롯 색상 딕셔너리 전달
-           msg.finalWords
+           currentMission,
+           currentSlotColors
         );
     }
 }

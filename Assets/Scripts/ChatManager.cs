@@ -1,28 +1,37 @@
-using UnityEngine;
+ï»¿using UnityEngine;
 
 public class ChatManager : MonoBehaviour
 {
     public static ChatManager Instance { get; private set; }
-    public Chathandler chathandler;
+    public Chathandler chathandler;   // UIManagerì—ì„œ í• ë‹¹í•˜ê±°ë‚˜ ì¸ìŠ¤í™í„°ì—ì„œ ë„£ê¸°
 
     private void Awake()
     {
         Instance = this;
     }
 
-    private void Start()
+    private void OnEnable()
     {
-        WebSocketManager.Instance.OnServerMessage += HandleServerMessage;
+        if (WebSocketManager.Instance != null)
+            WebSocketManager.Instance.OnServerMessage += HandleServerMessage;
+
+        // ChatManager ì¼œì§ˆ ë•Œ Chat UIë„ ê°™ì´ ì¼œê³  ì‹¶ìœ¼ë©´
+        if (chathandler != null)
+            chathandler.gameObject.SetActive(true);
     }
 
-    private void OnDestroy()
+    private void OnDisable()
     {
         if (WebSocketManager.Instance != null)
             WebSocketManager.Instance.OnServerMessage -= HandleServerMessage;
+
+        // ChatManager êº¼ì§ˆ ë•Œ Chat UIë„ ê°™ì´ ë„ê³  ì‹¶ìœ¼ë©´
+        if (chathandler != null)
+            chathandler.gameObject.SetActive(false);
     }
 
     // =====================================================
-    // ¼­¹ö ¸Ş½ÃÁö Ã³¸®
+    // ì„œë²„ ë©”ì‹œì§€ ì²˜ë¦¬
     // =====================================================
     private void HandleServerMessage(string rawJson)
     {
@@ -45,7 +54,7 @@ public class ChatManager : MonoBehaviour
     }
 
     // =====================================================
-    // "event" °ªÀ» ÃßÃâÇÏ±â À§ÇÑ ÀÓ½Ã ±¸Á¶Ã¼
+    // "event" ê°’ì„ ì¶”ì¶œí•˜ê¸° ìœ„í•œ ì„ì‹œ êµ¬ì¡°ì²´
     // =====================================================
     [System.Serializable]
     private class EventTypeExtractor
@@ -61,7 +70,7 @@ public class ChatManager : MonoBehaviour
     }
 
     // =====================================================
-    // CHAT_MESSAGE Ã³¸®
+    // CHAT_MESSAGE ì²˜ë¦¬
     // =====================================================
     private void HandleChatMessage(string rawJson)
     {
@@ -72,7 +81,7 @@ public class ChatManager : MonoBehaviour
     }
 
     // =====================================================
-    // ERROR_MESSAGE Ã³¸®
+    // ERROR_MESSAGE ì²˜ë¦¬
     // =====================================================
     private void HandleErrorMessage(string rawJson)
     {
@@ -83,7 +92,7 @@ public class ChatManager : MonoBehaviour
     }
 
     // =====================================================
-    // ¸Ş½ÃÁö ¼­¹ö Àü¼Û
+    // ë©”ì‹œì§€ ì„œë²„ ì „ì†¡
     // =====================================================
     public void SendChat(string message)
     {
@@ -92,7 +101,7 @@ public class ChatManager : MonoBehaviour
 
 
     // =====================================================
-    // ====== JSON ±¸Á¶¿ë ³»ºÎ Å¬·¡½ºµé =====================
+    // ====== JSON êµ¬ì¡°ìš© ë‚´ë¶€ í´ë˜ìŠ¤ë“¤ =====================
     // =====================================================
 
     [System.Serializable]
