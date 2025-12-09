@@ -1,10 +1,11 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
-using UnityEngine;
-using UnityEngine.UI;
+using System.Linq;
 using TMPro;
-using System;
+using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 
 public class GameManager : MonoBehaviour
 {
@@ -62,6 +63,13 @@ public class GameManager : MonoBehaviour
 
         Instance = this;
         DontDestroyOnLoad(gameObject);
+
+        Debug.Log("[GM] Awake 호출됨");
+    }
+
+    public List<PlayerManager> GetOrderedPlayers()
+    {
+        return players.Values.ToList();
     }
 
 
@@ -90,6 +98,7 @@ public class GameManager : MonoBehaviour
     {
         SetupWebSocket();
         SetupMySessionId();
+        Debug.Log("[GM] Start 호출됨");
     }
 
     private void SetupWebSocket()
@@ -125,6 +134,8 @@ public class GameManager : MonoBehaviour
             {
                 SwitchCamera(firstPersonCamera);
             }
+
+            StartCoroutine(WaitForVoteUIManagerAndLink());
         }
 
         // TMP_InputField listener 재연결
@@ -147,8 +158,10 @@ public class GameManager : MonoBehaviour
         localPlayerObject = localPlayer;
 
         Debug.Log($"[GM] 로컬 플레이어 오브젝트 및 카메라 참조 저장 완료.");
+        
     }
 
+    
 
     private void AutoLinkSceneObjects()
     {
@@ -182,7 +195,13 @@ public class GameManager : MonoBehaviour
         }
 
         Debug.Log("✅ [GM 코魯틴] UIManager 준비 완료. UI 연결을 시도합니다.");
+        while (VoteUIManager.Instance == null || VoteUIManager.Instance.gameObject == null)
+        {
+            Debug.Log("... VoteUIManager 대기 중 (yield return null) ...");
+            yield return null; // 다음 프레임까지 대기
+        }
 
+        Debug.Log("[GM 코루틴] VoteUIManager 준비 완료");
         if (localPlayerObject != null)
         {
             // UIManager가 준비되면 UI 연결을 시도합니다.
@@ -225,6 +244,22 @@ public class GameManager : MonoBehaviour
 
         switch (eventType)
         {
+            case "VOTE_PROPOSAL_START":
+            case "VOTE_PROPOSAL_FAILED":
+            case "TRIAL_START":
+            case "TRIAL_RESULT":
+                if (VoteManager.Instance != null)
+                {
+                    var voteWrapper = JsonUtility.FromJson<VoteMessageWrapper>(json);
+                    Debug.Log($"[GM] Vote 이벤트 전달: {voteWrapper.@event}");
+                    VoteManager.Instance.OnVoteEvent(voteWrapper);
+                }
+                else
+                {
+                    Debug.LogError("[GM] VoteManager.Instance가 null이어서 이벤트 전달 실패!");
+                }
+                break;
+
             case "GAME_START_TIMER":
                 StartCoroutine(CountdownAndLoadGameScene());
                 break;
@@ -292,6 +327,7 @@ public class GameManager : MonoBehaviour
                 }
                 break;
 
+
             default:
                 Debug.Log($"[GM] 알 수 없는 서버 이벤트 수신: {eventType}");
                 break;
@@ -315,6 +351,30 @@ public class GameManager : MonoBehaviour
         if (UIManager.Instance != null)
         {
             UIManager.Instance.UpdateSlotColorsFromPlayers();
+        }
+    }
+
+    public IEnumerator WaitForVoteUIManagerAndLink()
+    {
+        Debug.Log("[GM 코루틴] VoteUIManager 준비 대기 및 UI 연결 시작.");
+
+        // VoteUIManager가 씬에 존재할 때까지 대기
+        while (VoteUIManager.Instance == null || VoteUIManager.Instance.gameObject == null)
+        {
+            Debug.Log("... VoteUIManager 대기 중 (yield return null) ...");
+            yield return null;
+        }
+
+        Debug.Log("[GM 코루틴] VoteUIManager 준비 완료.");
+
+        if (localPlayerObject != null)
+        {
+            VoteUIManager.Instance.LinkVoteUI(localPlayerObject);
+            Debug.Log("VoteUIManager에 로컬 플레이어 UI 요소 연결 완료.");
+        }
+        else
+        {
+            Debug.LogWarning("localPlayerObject가 null이어서 VoteUIManager 연결 실패.");
         }
     }
 
@@ -464,6 +524,10 @@ public class GameManager : MonoBehaviour
             players.Add(playerId, player);
         else
             players[playerId] = player;
+
+        if (player != null)
+            player.SetSessionId(playerId);
+
     }
 
     public Dictionary<string, PlayerManager> GetPlayers()
@@ -610,4 +674,6 @@ public class GameManager : MonoBehaviour
         currentHP = Mathf.Clamp(currentHP + scoreChange, int.MinValue, 1000);
         Debug.Log($"마을 HP가 {scoreChange}만큼 변경되었습니다. 현재 HP: {currentHP}");
     }
+
+
 }

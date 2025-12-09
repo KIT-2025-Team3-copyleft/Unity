@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
@@ -9,10 +10,10 @@ public class VoteUIManager : MonoBehaviour
 
     private void Awake()
     {
-        Instance = this;
+        if (Instance == null) Instance = this;
+        else Destroy(gameObject);
     }
 
-    // ------------------- Step1 UI -------------------
     [Header("Step1 UI")]
     public GameObject voteRequestPanel;
     public TextMeshProUGUI requestTimerText;
@@ -20,44 +21,87 @@ public class VoteUIManager : MonoBehaviour
     public Button agreeButton;
     public Button disagreeButton;
 
-    // ------------------- Step2 UI -------------------
     [Header("Step2 UI")]
     public GameObject hereticPanel;
     public TextMeshProUGUI hereticTimerText;
-    public List<Button> playerVoteButtons;
-    public List<Transform> vMarkParents;
 
+    public List<Button> playerVoteButtons = new List<Button>();
     public List<List<GameObject>> vMarksForButtons = new List<List<GameObject>>();
 
-    // ------------------- Step3 UI -------------------
     [Header("Step3 UI")]
     public TextMeshProUGUI resultMessage;
 
-    private void Start()
-    {
-        InitVMarks();
-    }
+    private Coroutine hideCoroutine;
+    private Coroutine step1TimerCoroutine; // Step1 타이머 코루틴
 
-    private void InitVMarks()
+    public void LinkVoteUI(GameObject localPlayerRoot)
     {
-        vMarksForButtons.Clear();
-
-        foreach (Transform parent in vMarkParents)
+        if (localPlayerRoot == null)
         {
-            List<GameObject> marks = new List<GameObject>();
-            foreach (Transform child in parent)
-            {
-                marks.Add(child.gameObject);
-                child.gameObject.SetActive(false);
-            }
-            vMarksForButtons.Add(marks);
+            Debug.LogError("VoteUIManager: localPlayerRoot is null.");
+            return;
         }
+
+        Transform canvasRoot = localPlayerRoot.transform.Find("Canvas");
+        if (canvasRoot == null)
+        {
+            Debug.LogError("VoteUIManager: Canvas not found in localPlayerRoot.");
+            return;
+        }
+
+        // Step1
+        Transform step1 = canvasRoot.Find("VoteRequestPanel");
+        if (step1 != null)
+        {
+            voteRequestPanel = step1.gameObject;
+            requestTimerText = step1.Find("Timer")?.GetComponent<TextMeshProUGUI>();
+            requestCountText = step1.Find("Count")?.GetComponent<TextMeshProUGUI>();
+            agreeButton = step1.Find("agree")?.GetComponent<Button>();
+            disagreeButton = step1.Find("disagree")?.GetComponent<Button>();
+        }
+
+        // Step2
+        Transform step2 = canvasRoot.Find("HereticVotePanel");
+        if (step2 != null)
+        {
+            hereticPanel = step2.gameObject;
+            hereticTimerText = step2.Find("Timer")?.GetComponent<TextMeshProUGUI>();
+
+            playerVoteButtons.Clear();
+            vMarksForButtons.Clear();
+
+            for (int i = 1; i <= 4; i++)
+            {
+                Transform p = step2.Find($"playercheck{i}");
+                if (p != null)
+                {
+                    Button btn = p.GetComponent<Button>();
+                    playerVoteButtons.Add(btn);
+
+                    Transform vmarks = p.Find("VMarks");
+                    List<GameObject> markList = new List<GameObject>();
+                    if (vmarks != null)
+                    {
+                        foreach (Transform child in vmarks)
+                        {
+                            child.gameObject.SetActive(false);
+                            markList.Add(child.gameObject);
+                        }
+                    }
+                    vMarksForButtons.Add(markList);
+                }
+            }
+        }
+
+        // Step3
+        resultMessage = canvasRoot.Find("ResultMessage")?.GetComponent<TextMeshProUGUI>();
+
+        voteRequestPanel?.SetActive(false);
+        hereticPanel?.SetActive(false);
+        resultMessage?.gameObject.SetActive(false);
     }
 
-    // =====================================================
-    // STEP 1 UI
-    // =====================================================
-
+    // ============================ STEP 1 ===============================
     public void ShowStep1()
     {
         voteRequestPanel.SetActive(true);
@@ -66,10 +110,7 @@ public class VoteUIManager : MonoBehaviour
 
         requestCountText.text = "0/4";
         requestTimerText.text = "-";
-    }
 
-    public void SetStep1Buttons()
-    {
         agreeButton.onClick.RemoveAllListeners();
         disagreeButton.onClick.RemoveAllListeners();
 
@@ -77,21 +118,28 @@ public class VoteUIManager : MonoBehaviour
         disagreeButton.onClick.AddListener(() => VoteManager.Instance.SendStep1Vote(false));
     }
 
-    public void UpdateStep1Timer(int t)
+    public void UpdateStep1Timer(int t) => requestTimerText.text = t.ToString();
+    public void UpdateStep1Count(int agree, int total) => requestCountText.text = $"{agree}/{total}";
+
+    // Step1 시간 흐르게 하는 코루틴
+    public void StartStep1Timer(int seconds)
     {
-        requestTimerText.text = t.ToString();
+        if (step1TimerCoroutine != null) StopCoroutine(step1TimerCoroutine);
+        step1TimerCoroutine = StartCoroutine(Step1TimerRoutine(seconds));
     }
 
-    public void UpdateStep1Count(int count, int total)
+    private IEnumerator Step1TimerRoutine(int remaining)
     {
-        requestCountText.text = $"{count}/{total}";
+        while (remaining >= 0)
+        {
+            UpdateStep1Timer(remaining);
+            yield return new WaitForSeconds(1f);
+            remaining--;
+        }
     }
 
-    // =====================================================
-    // STEP 2 UI
-    // =====================================================
-
-    public void ShowStep2(List<string> nicknames)
+    // ============================ STEP 2 ===============================
+    public void ShowStep2(List<string> names)
     {
         voteRequestPanel.SetActive(false);
         hereticPanel.SetActive(true);
@@ -99,39 +147,51 @@ public class VoteUIManager : MonoBehaviour
 
         for (int i = 0; i < playerVoteButtons.Count; i++)
         {
-            int idx = i;
-            var btn = playerVoteButtons[i];
+            bool active = i < names.Count;
+            playerVoteButtons[i].gameObject.SetActive(active);
 
-            btn.GetComponentInChildren<TextMeshProUGUI>().text = nicknames[i];
+            if (active)
+            {
+                playerVoteButtons[i].GetComponentInChildren<TextMeshProUGUI>().text = names[i];
 
-            btn.onClick.RemoveAllListeners();
-            btn.onClick.AddListener(() => VoteManager.Instance.SendStep2Vote(idx));
+                int idx = i;
+                playerVoteButtons[i].onClick.RemoveAllListeners();
+                playerVoteButtons[i].onClick.AddListener(() =>
+                    VoteManager.Instance.SendStep2Vote(idx)
+                );
+            }
+
+            foreach (var mark in vMarksForButtons[i])
+                mark.SetActive(false);
         }
     }
 
-    public void UpdateStep2Timer(int t)
-    {
-        hereticTimerText.text = t.ToString();
-    }
+    public void UpdateStep2Timer(int t) => hereticTimerText.text = t.ToString();
 
-    public void UpdateVMark(int targetIndex, int count)
+    public void UpdateVMark(int targetIndex, int voteCount)
     {
+        if (targetIndex < 0 || targetIndex >= vMarksForButtons.Count) return;
+
         for (int i = 0; i < vMarksForButtons[targetIndex].Count; i++)
-        {
-            vMarksForButtons[targetIndex][i].SetActive(i < count);
-        }
+            vMarksForButtons[targetIndex][i].SetActive(i < voteCount);
     }
 
-    // =====================================================
-    // STEP 3 UI
-    // =====================================================
-
-    public void ShowResult(string msg)
+    // ============================ RESULT ===============================
+    public void ShowResult(string msg, float duration = 3f)
     {
         voteRequestPanel.SetActive(false);
         hereticPanel.SetActive(false);
 
         resultMessage.text = msg;
         resultMessage.gameObject.SetActive(true);
+
+        if (hideCoroutine != null) StopCoroutine(hideCoroutine);
+        hideCoroutine = StartCoroutine(HideResult(duration));
+    }
+
+    private IEnumerator HideResult(float d)
+    {
+        yield return new WaitForSeconds(d);
+        resultMessage.gameObject.SetActive(false);
     }
 }

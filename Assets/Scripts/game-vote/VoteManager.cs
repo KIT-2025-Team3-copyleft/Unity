@@ -1,267 +1,107 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
+
+[Serializable]
+public class VoteMessageData
+{
+    public List<string> playerNicknames;
+    public int agreeCount;
+    public int totalCount;
+    public Dictionary<string, int> voteCounts;
+}
+
+[Serializable]
+public class VoteMessageWrapper
+{
+    public string @event;
+    public string message;
+    public VoteMessageData data;
+}
 
 public class VoteManager : MonoBehaviour
 {
     public static VoteManager Instance;
+    [HideInInspector]
+    public VoteUIManager voteUIManager;
 
     private void Awake()
     {
-        Instance = this;
+        if (Instance == null) Instance = this;
+        else { Destroy(gameObject); return; }
     }
 
-    private void Start()
+    public void LinkUIManager(VoteUIManager ui)
     {
-        WebSocketManager.Instance.OnServerMessage += HandleServerMessage;
+        if (voteUIManager == null && ui != null) voteUIManager = ui;
     }
 
-    private void OnDestroy()
+    // ------------------- 서버 이벤트 수신 -------------------
+    public void OnVoteEvent(VoteMessageWrapper wrapper)
     {
-        if (WebSocketManager.Instance != null)
-            WebSocketManager.Instance.OnServerMessage -= HandleServerMessage;
-    }
-
-    // =====================================================
-    // 서버 메시지 처리
-    // =====================================================
-
-    private void HandleServerMessage(string rawJson)
-    {
-        string eventType = ExtractEventType(rawJson);
-
-        switch (eventType)
+        switch (wrapper.@event)
         {
             case "VOTE_PROPOSAL_START":
-                HandleStep1Start(rawJson);
+                StartVoteProposal(wrapper);
                 break;
-
-            case "VOTE_PROPOSAL_UPDATE":
-                HandleStep1Update(rawJson);
+            case "VOTE_PROPOSAL_FAILED":
+                FinishVote(wrapper);
                 break;
-
-            case "VOTE_PROPOSAL_FINISH":
-                HandleStep1Finish(rawJson);
-                break;
-
             case "TRIAL_START":
-                HandleStep2Start(rawJson);
+                StartStep2Vote(wrapper);
                 break;
-
-            case "TRIAL_UPDATE":
-                HandleStep2Update(rawJson);
-                break;
-
             case "TRIAL_RESULT":
-                HandleStep3Result(rawJson);
-                break;
-
-            default:
-                Debug.Log("[VoteManager] Unknown event: " + eventType);
+                FinishVote(wrapper);
                 break;
         }
     }
 
-    // =====================================================
-    // JSON event 추출
-    // =====================================================
-    [Serializable]
-    private class EventTypeExtractor { public string eventField; }
-
-    private string ExtractEventType(string json)
+    // Step1: 찬반 투표 시작
+    private void StartVoteProposal(VoteMessageWrapper wrapper)
     {
-        string mod = json.Replace("\"event\"", "\"eventField\"");
-        EventTypeExtractor e = JsonUtility.FromJson<EventTypeExtractor>(mod);
-        return e.eventField;
+        int timer = TryParseOrDefault(wrapper.message, 30);
+        voteUIManager?.ShowStep1();
+        voteUIManager?.StartStep1Timer(timer); 
     }
 
-    // =====================================================
-    // STEP 1 (찬반 투표)
-    // =====================================================
 
-    [Serializable]
-    private class Step1StartWrapper
+    // Step1 & Step3: 결과
+    private void FinishVote(VoteMessageWrapper wrapper)
     {
-        public string eventField;
-        public string message;
-        public Step1StartData data;
+        voteUIManager?.ShowResult(wrapper.message, 5f);
     }
 
-    [Serializable]
-    private class Step1StartData
+    // Step2: 심문 시작
+    private void StartStep2Vote(VoteMessageWrapper wrapper)
     {
-        public int totalPlayers;
+        int timer = TryParseOrDefault(wrapper.message, 20);
+
+        var orderedPlayers = GameManager.Instance.GetOrderedPlayers();
+        List<string> nicknames = orderedPlayers.Select(p => p.nickname).ToList();
+
+        voteUIManager?.ShowStep2(nicknames);
+        voteUIManager?.UpdateStep2Timer(timer);
     }
 
-    private Coroutine step1TimerCo;
-
-    private void HandleStep1Start(string json)
-    {
-        var msg = JsonUtility.FromJson<Step1StartWrapper>(json);
-
-        int time = int.Parse(msg.message);
-
-        VoteUIManager.Instance.ShowStep1();
-        VoteUIManager.Instance.SetStep1Buttons();
-
-        if (step1TimerCo != null) StopCoroutine(step1TimerCo);
-        step1TimerCo = StartCoroutine(Step1Timer(time));
-    }
-
-    private IEnumerator Step1Timer(int t)
-    {
-        while (t >= 0)
-        {
-            VoteUIManager.Instance.UpdateStep1Timer(t);
-            yield return new WaitForSeconds(1);
-            t--;
-        }
-    }
-
-    // 중간 업데이트
-    [Serializable]
-    private class Step1UpdateWrapper
-    {
-        public string eventField;
-        public Step1UpdateData data;
-    }
-
-    [Serializable]
-    private class Step1UpdateData
-    {
-        public int agreeCount;
-        public int totalPlayers;
-    }
-
-    private void HandleStep1Update(string json)
-    {
-        var msg = JsonUtility.FromJson<Step1UpdateWrapper>(json);
-        VoteUIManager.Instance.UpdateStep1Count(msg.data.agreeCount, msg.data.totalPlayers);
-    }
-
-    // 종료
-    [Serializable]
-    private class Step1FinishWrapper
-    {
-        public string eventField;
-        public string message;
-    }
-
-    private void HandleStep1Finish(string json)
-    {
-        var msg = JsonUtility.FromJson<Step1FinishWrapper>(json);
-        VoteUIManager.Instance.ShowResult(msg.message);
-    }
-
-    // 버튼 누르면 서버로 Step1 투표 전송
+    // ------------------- 클라이언트 → 서버 -------------------
     public void SendStep1Vote(bool agree)
     {
-        WebSocketManager.Instance.SendProposeVote(agree);
+        WebSocketManager.Instance?.SendProposeVote(agree);
     }
 
-    // =====================================================
-    // STEP 2 (지목 투표)
-    // =====================================================
-
-    [Serializable]
-    private class Step2StartWrapper
-    {
-        public string eventField;
-        public string message;
-        public Step2StartData data;
-    }
-
-    [Serializable]
-    private class Step2StartData
-    {
-        public List<PlayerInfo> players;
-    }
-
-    [Serializable]
-    private class PlayerInfo
-    {
-        public string sessionId;
-        public string nickname;
-    }
-
-    private Coroutine step2TimerCo;
-    private List<PlayerInfo> currentPlayers;
-
-    private void HandleStep2Start(string json)
-    {
-        var msg = JsonUtility.FromJson<Step2StartWrapper>(json);
-
-        currentPlayers = msg.data.players;
-
-        List<string> nicks = new List<string>();
-        foreach (var p in currentPlayers)
-            nicks.Add(p.nickname);
-
-        VoteUIManager.Instance.ShowStep2(nicks);
-
-        int time = int.Parse(msg.message);
-
-        if (step2TimerCo != null) StopCoroutine(step2TimerCo);
-        step2TimerCo = StartCoroutine(Step2Timer(time));
-    }
-
-    private IEnumerator Step2Timer(int t)
-    {
-        while (t >= 0)
-        {
-            VoteUIManager.Instance.UpdateStep2Timer(t);
-            yield return new WaitForSeconds(1);
-            t--;
-        }
-    }
-
-    // 중간 투표 업데이트
-    [Serializable]
-    private class Step2UpdateWrapper
-    {
-        public string eventField;
-        public Step2UpdateData data;
-    }
-
-    [Serializable]
-    private class Step2UpdateData
-    {
-        public List<int> voteCounts;
-    }
-
-    private void HandleStep2Update(string json)
-    {
-        var msg = JsonUtility.FromJson<Step2UpdateWrapper>(json);
-
-        for (int i = 0; i < msg.data.voteCounts.Count; i++)
-        {
-            VoteUIManager.Instance.UpdateVMark(i, msg.data.voteCounts[i]);
-        }
-    }
-
-    // 실제 투표 전송
     public void SendStep2Vote(int index)
     {
-        string targetSessionId = currentPlayers[index].sessionId;
-        WebSocketManager.Instance.SendCastVote(targetSessionId);
+        var orderedPlayers = GameManager.Instance.GetOrderedPlayers();
+        if (index < 0 || index >= orderedPlayers.Count) return;
+
+        string sessionId = orderedPlayers[index].sessionId;
+        WebSocketManager.Instance?.SendCastVote(sessionId);
     }
 
-    // =====================================================
-    // STEP 3 결과
-    // =====================================================
-
-    [Serializable]
-    private class Step3ResultWrapper
+    private int TryParseOrDefault(string s, int def)
     {
-        public string eventField;
-        public string message;
-    }
-
-    private void HandleStep3Result(string json)
-    {
-        var msg = JsonUtility.FromJson<Step3ResultWrapper>(json);
-        VoteUIManager.Instance.ShowResult(msg.message);
+        if (int.TryParse(s, out int v)) return v;
+        return def;
     }
 }
-
