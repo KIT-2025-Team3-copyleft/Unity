@@ -340,20 +340,18 @@ public class UIManager : MonoBehaviour
         historyPanel.anchoredPosition = new Vector2(historyPanel.anchoredPosition.x, targetY);
     }
 
-    private void UpdateToggleButtonText()
-    {
-        if (toggleButtonText != null)
-        {
-            toggleButtonText.text = isHistoryOpen ? "▼" : "▲";
-        }
-    }
-
-    // 🌟 FIX: HistoryItem 활성화 로직 추가 (라운드 기록 활성화)
+    
     public void AddHistoryItem(RoundResult msg, int roundNumber, string mission, Dictionary<string, string> slotPlayerColors)
     {
-        if (HistoryItems == null || HistoryItems.Count == 0 || roundNumber < 1)
+        if (HistoryItems == null || HistoryItems.Count == 0)
         {
-            Debug.LogError($"HistoryItem list is invalid or round number ({roundNumber}) is out of bounds.");
+            Debug.LogError($"❌ HistoryItem list is invalid or empty.");
+            return;
+        }
+
+        if (roundNumber < 1)
+        {
+            Debug.LogError($"❌ Invalid round number: {roundNumber}. Must be 1 or greater.");
             return;
         }
 
@@ -363,15 +361,14 @@ public class UIManager : MonoBehaviour
         {
             HistoryItem historyItem = HistoryItems[targetIndex];
 
-            // 🌟 라운드 기록을 위해 해당 HistoryItem을 활성화합니다.
             historyItem.gameObject.SetActive(true);
 
             historyItem.SetData(msg, slotPlayerColors, roundNumber, mission);
-            Debug.Log($"✔ History Item for Round {roundNumber} recorded and activated.");
+            Debug.Log($"✔ History Item for Round {roundNumber} (Index {targetIndex}) recorded and activated.");
         }
         else
         {
-            Debug.LogWarning($"❌ History Item UI for round {roundNumber} (index {targetIndex}) is out of bounds.");
+            Debug.LogWarning($"❌ History Item UI for round {roundNumber} (index {targetIndex}) is out of bounds. HistoryItems Count: {HistoryItems.Count}");
         }
     }
 
@@ -585,7 +582,7 @@ public class UIManager : MonoBehaviour
             if (i >= SlotVisualOrder.Length) continue;
             string slotRoleName = SlotVisualOrder[i];
 
-            string colorName = "white"; 
+            string colorName = "white";
 
             if (slotRoleColors != null && slotRoleColors.ContainsKey(slotRoleName))
             {
@@ -733,8 +730,8 @@ public class UIManager : MonoBehaviour
     {
         if (judgmentText != null)
         {
-            string resultMessage = $"--- 완성된 문장 ---\n\n";
-            resultMessage += "${ sentence}";
+            string resultMessage = $"-완성된 문장-\n\n";
+            resultMessage += $"{sentence}";
             judgmentText.text = resultMessage;
             judgmentText.ForceMeshUpdate();
             StartCoroutine(VerifyAndMaintainText(judgmentText, resultMessage, 2));
@@ -745,7 +742,7 @@ public class UIManager : MonoBehaviour
     {
         if (judgmentText != null)
         {
-            string resultMessage = "${ reason}";
+            string resultMessage = $"{reason}";
             judgmentText.text = resultMessage;
             judgmentText.ForceMeshUpdate();
             StartCoroutine(VerifyAndMaintainText(judgmentText, resultMessage, 2));

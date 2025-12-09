@@ -158,10 +158,10 @@ public class GameManager : MonoBehaviour
         localPlayerObject = localPlayer;
 
         Debug.Log($"[GM] 로컬 플레이어 오브젝트 및 카메라 참조 저장 완료.");
-        
+
     }
 
-    
+
 
     private void AutoLinkSceneObjects()
     {
@@ -389,7 +389,7 @@ public class GameManager : MonoBehaviour
         }
     }
 
-   private IEnumerator ShowUIAfterLinking(string json, string eventType, string mySlotOverride = null, List<string> cardsOverride = null)
+    private IEnumerator ShowUIAfterLinking(string json, string eventType, string mySlotOverride = null, List<string> cardsOverride = null)
     {
         while (UIManager.Instance == null)
         {
@@ -439,7 +439,7 @@ public class GameManager : MonoBehaviour
                     yield return new WaitForSeconds(6.0f);
                     break;
 
-                case "NEXT_ROUND_START":
+                /*case "NEXT_ROUND_START":
                     startMsg = JsonUtility.FromJson<RoundStartMessage>(json);
                     mySlot = startMsg.mySlot; // GameManager의 mySlot 업데이트
 
@@ -456,7 +456,7 @@ public class GameManager : MonoBehaviour
                     {
                         RoundManager.Instance.HandleRoundStart(startMsg);
                     }
-                    break;
+                    break;*/
 
                 case "RECEIVE_CARDS":
                     mySlot = mySlotOverride; // RECEIVE_CARDS는 mySlot을 직접 오버라이드
@@ -480,7 +480,7 @@ public class GameManager : MonoBehaviour
                             mySlot = mySlot,
                             mission = currentOracle,
                             timeLimit = 120,
-                            currentRound = 1,
+                            currentRound = 0, // 👈 0으로 설정하여 RoundManager가 1로 증가시키도록 위임
                             // slotColors는 로컬에서 PlayerManager의 colorName을 기반으로 생성됩니다.
                         };
 
@@ -671,6 +671,4 @@ public class GameManager : MonoBehaviour
         currentHP = Mathf.Clamp(currentHP + scoreChange, int.MinValue, 1000);
         Debug.Log($"마을 HP가 {scoreChange}만큼 변경되었습니다. 현재 HP: {currentHP}");
     }
-
-
 }

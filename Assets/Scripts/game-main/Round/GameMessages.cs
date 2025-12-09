@@ -82,7 +82,7 @@ public class InterpretationEnd
 [System.Serializable]
 public class SentencePart
 {
-    public string playerColor; 
+    public string playerColor;
     public string word;
     public string slotType;
 }
@@ -99,9 +99,9 @@ public class RoundResult
     public string reason;
 
     public List<SentencePart> sentenceParts;
-    public string fullSentence; 
+    public string fullSentence;
 
-    public List<Player> players; 
+    public List<Player> players;
 }
 
 [Serializable]
@@ -223,7 +223,7 @@ public class ReceiveCardsMessage
 public class SlotAssignment
 {
     public string sessionId;
-    public string slot; 
+    public string slot;
 }
 
 [Serializable]
@@ -235,6 +235,6 @@ public class PlayerSlotAssignmentData
 [Serializable]
 public class PlayerSlotAssignmentMessage
 {
-    public string @event; 
+    public string @event;
     public PlayerSlotAssignmentData data;
 }

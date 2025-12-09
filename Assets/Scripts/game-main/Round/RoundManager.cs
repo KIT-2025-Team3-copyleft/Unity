@@ -6,7 +6,7 @@ public class RoundManager : MonoBehaviour
 {
     public static RoundManager Instance;
 
-    public int currentRound = 0;
+    public int currentRound = 0; // 👈 0으로 초기화
     private string currentMission = "";
 
     // 🌟 추가: 카드 선택 타이머 코루틴을 저장할 변수
@@ -31,7 +31,12 @@ public class RoundManager : MonoBehaviour
     // 라운드 시작 (카드리스트 및 타이머 정보 수신)
     public void HandleRoundStart(RoundStartMessage msg)
     {
-        currentRound = msg.currentRound;
+        // 🌟🌟🌟 FIX: 라운드 시작 시 클라이언트에서 직접 라운드 번호 증가 🌟🌟🌟
+        currentRound++;
+        Debug.Log($"[RoundManager] New Round Started: Round {currentRound} (Client-controlled increase)");
+
+        // 🚨 서버에서 받은 라운드 번호(msg.currentRound)는 무시하고,
+        // 클라이언트 내부 변수를 사용합니다.
 
         currentMission = msg.mission;
 
@@ -93,8 +98,9 @@ public class RoundManager : MonoBehaviour
 
     public void PrepareNextRound(int nextRoundNumber)
     {
-        currentRound = nextRoundNumber;
-        Debug.Log($"[RoundManager] New round prepared: Round {currentRound}");
+        // 🚨 이 함수는 더 이상 사용되지 않거나, RoundManager의 currentRound를 증가시키지 않아야 합니다.
+        // currentRound = nextRoundNumber; // 서버 번호를 강제로 할당하는 로직 제거
+        Debug.Log($"[RoundManager] PrepareNextRound called but Round Number is controlled by HandleRoundStart.");
     }
 
     // 카드 선택 시작
@@ -169,6 +175,8 @@ public class RoundManager : MonoBehaviour
     // 라운드 종료 - 서버로부터 ROUND_RESULT 수신 시 호출
     public void HandleRoundResult(RoundResult msg)
     {
+        int roundNumberToRecord = currentRound;
+
         UIManager.Instance.ShowSystemMessage($"신의 심판: {(string.IsNullOrEmpty(msg.fullSentence) ? msg.sentence : msg.fullSentence)} (Score {msg.score})");
 
         GameManager.Instance.StartJudgmentSequence(msg);
@@ -205,7 +213,7 @@ public class RoundManager : MonoBehaviour
         // 히스토리 패널에 기록
         UIManager.Instance.AddHistoryItem(
            msg,
-           currentRound,
+           roundNumberToRecord, 
            currentMission,
            currentSlotColors
         );
