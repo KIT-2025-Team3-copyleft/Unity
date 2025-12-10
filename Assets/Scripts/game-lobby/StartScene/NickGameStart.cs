@@ -62,7 +62,7 @@ public class NickNameStart : MonoBehaviour
         nicknameInput.interactable = false;
         if (startButton != null) startButton.interactable = false;
 
-        ShowServerMessage("닉네임 확인 중...", Color.white, false); // 진행중은 안 숨김
+        ShowServerMessage("닉네임 확인 중...", new Color(0.45f, 0.30f, 0.15f), false); // 진행중은 안 숨김
         NickNameManager.Instance.SendNickname(nick);
     }
 
