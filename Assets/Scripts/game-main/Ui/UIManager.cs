@@ -69,6 +69,14 @@ public class UIManager : MonoBehaviour
     public GameObject chatRoot;       // Canvas/Chat
     public Chathandler chatHandler;   // ChatPanel에 붙어있는 스크립트
 
+    [Header("GameOver")]
+    public GameObject ResultPanel;
+    public TextMeshProUGUI ResultText;
+    public Button BackToRoomButton;
+    public Button GoRoomSearchButton;
+    public TextMeshProUGUI GameOverCountdownText; 
+
+    private Coroutine gameOverCountdownCoroutine;
 
     public bool IsUILinked = false;
     public void LinkLocalPlayerUIElements(GameObject localPlayerRoot)
@@ -156,7 +164,7 @@ public class UIManager : MonoBehaviour
         {
             historyToggleButton.onClick.RemoveAllListeners();
             historyToggleButton.onClick.AddListener(ToggleHistoryPanel);
-            UpdateToggleButtonText();
+            //UpdateToggleButtonText();
         }
 
 
@@ -279,6 +287,18 @@ public class UIManager : MonoBehaviour
             Debug.LogError("❌ Canvas 아래에 'toggleCardButton'이라는 이름의 오브젝트를 찾을 수 없습니다. 이름 및 계층 구조를 확인하세요.");
         }
 
+
+        // 7) GameOver Panel 연결 🌟 [추가]
+        Transform gameOverPanelRoot = canvasRoot.Find("GameOverPanel");
+        if (gameOverPanelRoot != null)
+        {
+            ResultPanel = gameOverPanelRoot.gameObject;
+            ResultText = gameOverPanelRoot.Find("ResultText")?.GetComponent<TextMeshProUGUI>();
+            GameOverCountdownText = gameOverPanelRoot.Find("CountdownText")?.GetComponent<TextMeshProUGUI>();
+            BackToRoomButton = gameOverPanelRoot.Find("BackToRoomButton")?.GetComponent<Button>();
+            GoRoomSearchButton = gameOverPanelRoot.Find("GoRoomSearchButton")?.GetComponent<Button>();
+        }
+        
         IsUILinked = true;
 
         // 🌟 FIX: 게임 시작 직후 모든 UI 비활성화
@@ -292,11 +312,13 @@ public class UIManager : MonoBehaviour
         if (toggleCardButton != null) toggleCardButton.gameObject.SetActive(false);
         if (historyPanel != null) historyPanel.gameObject.SetActive(false);
         if (chatRoot != null) chatRoot.gameObject.SetActive(false);
-
+        if (ResultPanel != null) ResultPanel.SetActive(false);
 
         // 초기화 시 빈 딕셔너리로 색상 업데이트 (모두 white로 시작)
         UpdateSlotColorsFromRawData(new Dictionary<string, string>());
         Debug.Log($"[DEBUG 8] UIManager UI Link 완료. CardTexts Count: {cardTexts.Count}");
+
+
     }
 
     public void HideTimerUI()
@@ -316,7 +338,7 @@ public class UIManager : MonoBehaviour
         float targetY = isHistoryOpen ? targetOpenedYPosition : closedYPosition;
 
         StartCoroutine(SlidePanel(targetY));
-        UpdateToggleButtonText();
+        //UpdateToggleButtonText();
     }
 
 
@@ -845,5 +867,87 @@ public class UIManager : MonoBehaviour
         if (timerCircle != null) timerCircle.gameObject.SetActive(false);
 
         onTimerEnd?.Invoke();
+    }
+
+    public void ShowGameOverResult(string resultMsg, Action onBackToRoom, Action onGoRoomSearch)
+    {
+        if (ResultPanel == null)
+        {
+            Debug.LogError("❌ GameOver Panel UI가 연결되지 않았습니다.");
+            return;
+        }
+
+        // 게임 UI 비활성화 (기존 게임 요소 숨김)
+        SetGameUIActive(false);
+
+        // Timer UI도 숨김 (기존 라운드 타이머)
+        HideTimerUI();
+
+        // 결과 패널 활성화 및 텍스트 설정
+        ResultText.text = resultMsg;
+        ResultPanel.SetActive(true);
+
+        // 버튼 리스너 초기화 및 추가
+        BackToRoomButton.onClick.RemoveAllListeners();
+        GoRoomSearchButton.onClick.RemoveAllListeners();
+
+        // 1. 방으로 돌아가기 버튼 리스너
+        BackToRoomButton.onClick.AddListener(() =>
+        {
+            StopGameOverCountdown();
+            onBackToRoom?.Invoke(); // GameManager의 SendBackToRoomAction 호출
+            LockResultButtons();
+        });
+
+        // 2. 룸서치로 이동 버튼 리스너
+        GoRoomSearchButton.onClick.AddListener(() =>
+        {
+            StopGameOverCountdown();
+            onGoRoomSearch?.Invoke(); // GameManager의 GoToRoomSearchScene 호출
+            LockResultButtons();
+        });
+
+        // 카운트다운 시작
+        StartGameOverCountdown(10, onGoRoomSearch);
+    }
+
+    // 카운트다운 타이머를 시작하는 코루틴
+    public void StartGameOverCountdown(int seconds, Action onTimerEnd)
+    {
+        if (gameOverCountdownCoroutine != null) StopCoroutine(gameOverCountdownCoroutine);
+        gameOverCountdownCoroutine = StartCoroutine(GameOverCountdownRoutine(seconds, onTimerEnd));
+    }
+
+    private IEnumerator GameOverCountdownRoutine(int remaining, Action onTimerEnd)
+    {
+        while (remaining >= 0)
+        {
+            if (GameOverCountdownText != null)
+                GameOverCountdownText.text = $"{remaining}";
+
+            yield return new WaitForSeconds(1f);
+            remaining--;
+        }
+
+        // 타이머 종료 시 자동 씬 전환
+        onTimerEnd?.Invoke();
+        LockResultButtons();
+    }
+
+    // 카운트다운을 중지하는 함수
+    public void StopGameOverCountdown()
+    {
+        if (gameOverCountdownCoroutine != null)
+        {
+            StopCoroutine(gameOverCountdownCoroutine);
+            gameOverCountdownCoroutine = null;
+        }
+    }
+
+    // 버튼 상호작용을 비활성화하는 함수
+    public void LockResultButtons()
+    {
+        if (BackToRoomButton != null) BackToRoomButton.interactable = false;
+        if (GoRoomSearchButton != null) GoRoomSearchButton.interactable = false;
     }
 }

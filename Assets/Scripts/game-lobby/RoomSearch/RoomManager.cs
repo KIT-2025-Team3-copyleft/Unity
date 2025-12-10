@@ -211,9 +211,6 @@ public class RoomManager : MonoBehaviour
 
             Debug.Log($"[RoomManager] ProcessJoinSuccess: roomCode={CurrentRoomCode}, myNick={myNick}, IsHost={IsHost}");
 
-            // 씬 전환
-            SceneManager.LoadScene("LobbyScene");
-
             // LOBBY_UPDATE 처음 한 번 처리되게 플래그 초기화
             isLobbyUpdatedProcessed = false;
 
@@ -275,6 +272,15 @@ public class RoomManager : MonoBehaviour
         Debug.Log($"[RoomManager] LOBBY_UPDATE processed: RoomId={CurrentRoom.roomId}, " +
                   $"Players={players.Length}, HostNick={HostNickname}, MyNick={myNick}, IsHost={IsHost}");
 
+        if (CurrentRoom.status == "WAITING" || CurrentRoom.status == "STARTING")
+        {
+            // 현재 씬이 LobbyScene이 아니면 전환 (GamePlay Scene에서 복귀)
+            if (SceneManager.GetActiveScene().name != "LobbyScene")
+            {
+                Debug.Log("[RoomManager] Status is WAITING/STARTING. Loading LobbyScene based on server status.");
+                SceneManager.LoadScene("LobbyScene");
+            }
+        }
         OnLobbyUpdated?.Invoke(CurrentRoom);
     }
 
@@ -381,11 +387,19 @@ public class RoomManager : MonoBehaviour
         WebSocketManager.Instance.Send(json);
     }
 
+    public void RequestBackToRoom()
+    {
+        Debug.Log("[RoomManager] RequestBackToRoom called, sending BACK_TO_ROOM action.");
+        SendAction("BACK_TO_ROOM");
+    }
+
     public void RequestStartGame()
     {
         Debug.Log("[RoomManager] RequestStartGame");
         SendAction("START_GAME");
     }
+
+   
 
     void UpdateLobbyUI(Room room)
     {

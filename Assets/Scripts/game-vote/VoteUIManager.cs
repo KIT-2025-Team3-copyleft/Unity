@@ -1,8 +1,8 @@
 using System.Collections;
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
-using TMPro;
 
 public class VoteUIManager : MonoBehaviour
 {
@@ -24,7 +24,6 @@ public class VoteUIManager : MonoBehaviour
     [Header("Step2 UI")]
     public GameObject hereticPanel;
     public TextMeshProUGUI hereticTimerText;
-
     public List<Button> playerVoteButtons = new List<Button>();
     public List<List<GameObject>> vMarksForButtons = new List<List<GameObject>>();
 
@@ -32,8 +31,10 @@ public class VoteUIManager : MonoBehaviour
     public TextMeshProUGUI resultMessage;
 
     private Coroutine hideCoroutine;
-    private Coroutine step1TimerCoroutine; // Step1 타이머 코루틴
+    private Coroutine step1TimerCoroutine;
+    private Coroutine step2TimerCoroutine;
 
+    // ============================ LINK UI ===============================
     public void LinkVoteUI(GameObject localPlayerRoot)
     {
         if (localPlayerRoot == null)
@@ -96,12 +97,20 @@ public class VoteUIManager : MonoBehaviour
         // Step3
         resultMessage = canvasRoot.Find("ResultMessage")?.GetComponent<TextMeshProUGUI>();
 
+        // 초기 숨김
+        HideAll();
+        Debug.Log("[VoteUIManager] UI 연결 완료");
+    }
+
+    // ============================ HIDE ALL ===============================
+    public void HideAll()
+    {
         voteRequestPanel?.SetActive(false);
         hereticPanel?.SetActive(false);
         resultMessage?.gameObject.SetActive(false);
     }
 
-    // ============================ STEP 1 ===============================
+    // ============================ STEP1 ===============================
     public void ShowStep1()
     {
         voteRequestPanel.SetActive(true);
@@ -111,17 +120,38 @@ public class VoteUIManager : MonoBehaviour
         requestCountText.text = "0/4";
         requestTimerText.text = "-";
 
+        agreeButton.interactable = true;
+        disagreeButton.interactable = true;
+
         agreeButton.onClick.RemoveAllListeners();
         disagreeButton.onClick.RemoveAllListeners();
 
-        agreeButton.onClick.AddListener(() => VoteManager.Instance.SendStep1Vote(true));
-        disagreeButton.onClick.AddListener(() => VoteManager.Instance.SendStep1Vote(false));
+        agreeButton.onClick.AddListener(() =>
+        {
+            VoteManager.Instance.SendStep1Vote(true);
+            LockStep1Buttons();
+        });
+
+        disagreeButton.onClick.AddListener(() =>
+        {
+            VoteManager.Instance.SendStep1Vote(false);
+            LockStep1Buttons();
+        });
+    }
+    public void ResetAllVMarks()
+    {
+        for (int i = 0; i < vMarksForButtons.Count; i++)
+        {
+            for (int j = 0; j < vMarksForButtons[i].Count; j++)
+            {
+                vMarksForButtons[i][j].SetActive(false);
+            }
+        }
     }
 
     public void UpdateStep1Timer(int t) => requestTimerText.text = t.ToString();
     public void UpdateStep1Count(int agree, int total) => requestCountText.text = $"{agree}/{total}";
 
-    // Step1 시간 흐르게 하는 코루틴
     public void StartStep1Timer(int seconds)
     {
         if (step1TimerCoroutine != null) StopCoroutine(step1TimerCoroutine);
@@ -136,37 +166,90 @@ public class VoteUIManager : MonoBehaviour
             yield return new WaitForSeconds(1f);
             remaining--;
         }
+
+        // 시간 종료 시 버튼 잠금
+        LockStep1Buttons();
     }
 
-    // ============================ STEP 2 ===============================
-    public void ShowStep2(List<string> names)
+    public void LockStep1Buttons()
+    {
+        agreeButton.interactable = false;
+        disagreeButton.interactable = false;
+    }
+
+    // ============================ STEP2 ===============================
+    public void ShowStep2(List<PlayerManager> players)
     {
         voteRequestPanel.SetActive(false);
         hereticPanel.SetActive(true);
         resultMessage.gameObject.SetActive(false);
 
+        ResetAllVMarks();
+
         for (int i = 0; i < playerVoteButtons.Count; i++)
         {
-            bool active = i < names.Count;
+            bool active = i < players.Count;
             playerVoteButtons[i].gameObject.SetActive(active);
 
             if (active)
             {
-                playerVoteButtons[i].GetComponentInChildren<TextMeshProUGUI>().text = names[i];
+                var player = players[i];
+
+                // 닉네임 적용
+                playerVoteButtons[i].GetComponentInChildren<TextMeshProUGUI>().text = player.nickname;
+
+                // 색상 적용
+                playerVoteButtons[i].GetComponentInChildren<TextMeshProUGUI>().color = ParseColor(player.colorName);
 
                 int idx = i;
                 playerVoteButtons[i].onClick.RemoveAllListeners();
                 playerVoteButtons[i].onClick.AddListener(() =>
-                    VoteManager.Instance.SendStep2Vote(idx)
-                );
+                {
+                    VoteManager.Instance.SendStep2Vote(idx);
+                    LockStep2Buttons(idx);
+                });
             }
 
             foreach (var mark in vMarksForButtons[i])
                 mark.SetActive(false);
+
+            playerVoteButtons[i].interactable = true; // 버튼 초기화
         }
     }
 
+    public void StartStep2Timer(int seconds)
+    {
+        if (step2TimerCoroutine != null) StopCoroutine(step2TimerCoroutine);
+        step2TimerCoroutine = StartCoroutine(Step2TimerRoutine(seconds));
+    }
+
+    private IEnumerator Step2TimerRoutine(int remaining)
+    {
+        while (remaining >= 0)
+        {
+            UpdateStep2Timer(remaining);
+            yield return new WaitForSeconds(1f);
+            remaining--;
+        }
+
+        // 시간 종료 시 버튼 잠금
+        LockStep2Buttons(-1);
+    }
+
     public void UpdateStep2Timer(int t) => hereticTimerText.text = t.ToString();
+
+    public void LockStep2Buttons(int votedIndex)
+    {
+        for (int i = 0; i < playerVoteButtons.Count; i++)
+            playerVoteButtons[i].interactable = false;
+
+        if (votedIndex >= 0 && votedIndex < playerVoteButtons.Count)
+        {
+            ColorBlock cb = playerVoteButtons[votedIndex].colors;
+            cb.normalColor = new Color(0.6f, 1f, 0.6f);
+            playerVoteButtons[votedIndex].colors = cb;
+        }
+    }
 
     public void UpdateVMark(int targetIndex, int voteCount)
     {
@@ -175,12 +258,25 @@ public class VoteUIManager : MonoBehaviour
         for (int i = 0; i < vMarksForButtons[targetIndex].Count; i++)
             vMarksForButtons[targetIndex][i].SetActive(i < voteCount);
     }
+    private Color ParseColor(string colorStr)
+    {
+        return colorStr.ToLower() switch
+        {
+            "red" => Color.red,
+            "blue" => Color.blue,
+            "green" => Color.green,
+            "yellow" => Color.yellow,
+            _ => Color.white
+        };
+    }
 
     // ============================ RESULT ===============================
     public void ShowResult(string msg, float duration = 3f)
     {
         voteRequestPanel.SetActive(false);
         hereticPanel.SetActive(false);
+
+        ResetAllVMarks();
 
         resultMessage.text = msg;
         resultMessage.gameObject.SetActive(true);

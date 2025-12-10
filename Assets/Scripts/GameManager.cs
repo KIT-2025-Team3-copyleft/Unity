@@ -53,6 +53,19 @@ public class GameManager : MonoBehaviour
     // Session ID를 키로 PlayerManager를 저장합니다.
     private Dictionary<string, PlayerManager> players = new Dictionary<string, PlayerManager>();
 
+    [System.Serializable]
+    public class GameOverData
+    {
+        public string winnerRole;
+    }
+
+    [System.Serializable]
+    public class GameOverMessage : MessageWrapper
+    {
+        public string message; // "시민 승리!" 또는 "배신자 승리!" 등
+        public GameOverData data;
+    }
+
     private void Awake()
     {
         if (Instance != null && Instance != this)
@@ -194,13 +207,6 @@ public class GameManager : MonoBehaviour
         }
 
         Debug.Log("✅ [GM 코魯틴] UIManager 준비 완료. UI 연결을 시도합니다.");
-        while (VoteUIManager.Instance == null || VoteUIManager.Instance.gameObject == null)
-        {
-            Debug.Log("... VoteUIManager 대기 중 (yield return null) ...");
-            yield return null; // 다음 프레임까지 대기
-        }
-
-        Debug.Log("[GM 코루틴] VoteUIManager 준비 완료");
         if (localPlayerObject != null)
         {
             UIManager.Instance.LinkLocalPlayerUIElements(localPlayerObject);
@@ -244,14 +250,16 @@ public class GameManager : MonoBehaviour
         switch (eventType)
         {
             case "VOTE_PROPOSAL_START":
+            case "VOTE_PROPOSAL_UPDATE":
             case "VOTE_PROPOSAL_FAILED":
             case "TRIAL_START":
+            case "TRIAL_VOTE_UPDATE":
             case "TRIAL_RESULT":
                 if (VoteManager.Instance != null)
                 {
-                    var voteWrapper = JsonUtility.FromJson<VoteMessageWrapper>(json);
-                    Debug.Log($"[GM] Vote 이벤트 전달: {voteWrapper.@event}");
-                    VoteManager.Instance.OnVoteEvent(voteWrapper);
+                    
+                    Debug.Log($"[GM] Vote 이벤트 전달: {eventType}");
+                    VoteManager.Instance.OnVoteEvent(json);
                 }
                 else
                 {
@@ -334,6 +342,21 @@ public class GameManager : MonoBehaviour
                 }
                 break;
 
+            case "GAME_OVER":
+                Debug.Log($"[GM] GAME_OVER 이벤트 수신. JSON: {json}");
+                // 🌟 수정: 새로운 구조체로 파싱
+                GameOverMessage gameOverMsg = JsonUtility.FromJson<GameOverMessage>(json);
+                if (gameOverMsg != null)
+                {
+                    // data 객체 전체를 넘기는 대신, 필요한 message와 winnerRole을 직접 전달
+                    HandleGameOver(gameOverMsg.message, gameOverMsg.data.winnerRole);
+                }
+                else
+                {
+                    Debug.LogError("❌ GAME_OVER 메시지 파싱 실패.");
+                }
+                break;
+
 
             default:
                 Debug.Log($"[GM] 알 수 없는 서버 이벤트 수신: {eventType}");
@@ -367,27 +390,20 @@ public class GameManager : MonoBehaviour
 
     public IEnumerator WaitForVoteUIManagerAndLink()
     {
-        Debug.Log("[GM 코루틴] VoteUIManager 준비 대기 및 UI 연결 시작.");
 
-        // VoteUIManager가 씬에 존재할 때까지 대기
         while (VoteUIManager.Instance == null || VoteUIManager.Instance.gameObject == null)
-        {
-            Debug.Log("... VoteUIManager 대기 중 (yield return null) ...");
             yield return null;
-        }
 
-        Debug.Log("[GM 코루틴] VoteUIManager 준비 완료.");
+        while (VoteManager.Instance == null)
+            yield return null;
+
+        VoteManager.Instance.LinkUIManager(VoteUIManager.Instance);
 
         if (localPlayerObject != null)
-        {
             VoteUIManager.Instance.LinkVoteUI(localPlayerObject);
-            Debug.Log("VoteUIManager에 로컬 플레이어 UI 요소 연결 완료.");
-        }
-        else
-        {
-            Debug.LogWarning("localPlayerObject가 null이어서 VoteUIManager 연결 실패.");
-        }
+
     }
+
 
     private IEnumerator ShowUIAfterLinking(string json, string eventType, string mySlotOverride = null, List<string> cardsOverride = null)
     {
@@ -670,5 +686,53 @@ public class GameManager : MonoBehaviour
     {
         currentHP = Mathf.Clamp(currentHP + scoreChange, int.MinValue, 1000);
         Debug.Log($"마을 HP가 {scoreChange}만큼 변경되었습니다. 현재 HP: {currentHP}");
+    }
+
+    // ============================ GAME OVER LOGIC ===============================
+
+    public void HandleGameOver(string serverMessage, string winnerRole) 
+    {
+        StopAllCoroutines();
+
+        Debug.Log($"[GM] 게임 종료! 서버 메시지: {serverMessage}, 승리 역할: {winnerRole}");
+
+        string finalMessage = serverMessage;
+
+        if (UIManager.Instance != null)
+        {
+            UIManager.Instance.ShowGameOverResult(
+                finalMessage, // 예: "시민 승리!"
+                SendBackToRoomAction,
+                GoToRoomSearchScene
+            );
+        }
+        else
+        {
+            Debug.LogError("❌ UIManager가 null입니다. 게임 종료 UI를 표시할 수 없습니다.");
+            GoToRoomSearchScene();
+        }
+    }
+
+
+    public void SendBackToRoomAction()
+    {
+        Debug.Log("[GM] '현재 방 로비' 복귀 요청 (RoomManager에 BACK_TO_ROOM 액션 위임)");
+
+        if (RoomManager.Instance != null)
+        {
+            RoomManager.Instance.RequestBackToRoom();
+        }
+
+    }
+
+    public void GoToRoomSearchScene()
+    {
+        Debug.Log("[GM] 룸 서치 씬(RoomSearchScene)으로 이동 시작. 모든 데이터 클리어.");
+
+        // 플레이어 데이터 클리어 (필수)
+        players.Clear();
+        usedColors.Clear();
+
+        SceneManager.LoadScene("RoomSerachScene");
     }
 }
