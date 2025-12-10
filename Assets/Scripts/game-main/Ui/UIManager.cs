@@ -14,6 +14,8 @@ public class UIManager : MonoBehaviour
     {
         if (Instance == null) Instance = this;
         else Destroy(gameObject);
+        if (lightningEffect != null) lightningEffect.SetActive(false);
+        if (flowerEffect != null) flowerEffect.SetActive(false);
     }
 
     private readonly string[] SlotVisualOrder = { "SUBJECT", "TARGET", "HOW", "ACTION" };
@@ -59,7 +61,9 @@ public class UIManager : MonoBehaviour
     public TextMeshProUGUI judgmentText;
 
     [Header("Visual Cue")]
-    public Animator visualCueAnimator;
+    public GameObject judgmentCueObject; 
+    public GameObject lightningEffect;
+    public GameObject flowerEffect;
 
     [Header("Timer")]
     public TextMeshProUGUI countdownText;
@@ -87,7 +91,8 @@ public class UIManager : MonoBehaviour
         playerSlotTexts.Clear();
         cardButtons.Clear();
         cardTexts.Clear();
-        slotRoleNames = new List<string>(InitialSlotRoleNames); // 초기화 시 초기값으로 재설정
+        slotRoleNames = new List<string>(InitialSlotRoleNames);
+
 
         Transform canvasRoot = localPlayerRoot.transform.Find("Canvas");
         if (canvasRoot == null) return;
@@ -98,7 +103,6 @@ public class UIManager : MonoBehaviour
         Transform systemPanel = canvasRoot.Find("SystemPanel");
         Transform slotPanelRoot = canvasRoot.Find("SlotPanel");
 
-        // 1) Oracle & Role
         if (oracleRoot != null)
         {
             oraclePanel = oracleRoot.gameObject;
@@ -109,7 +113,6 @@ public class UIManager : MonoBehaviour
             if (oracleText == null) Debug.LogError("❌ UIManager: oracleText (신탁 텍스트) 참조 실패! 경로 확인 필요.");
         }
 
-        // 2) Persistent Oracle
         if (persistentRoot != null)
         {
             persistentOraclePanel = persistentRoot.gameObject;
@@ -119,14 +122,12 @@ public class UIManager : MonoBehaviour
             else Debug.Log("✔ UIManager: persistentOracleText 참조 성공.");
         }
 
-        // 3) System Message
         if (systemPanel != null)
         {
             Transform sysText = systemPanel.Find("systemText");
             if (sysText != null && GameManager.Instance != null) GameManager.Instance.systemMessageText = sysText.GetComponent<TextMeshProUGUI>();
         }
 
-        // 4) Judgment Scroll
         Transform judgmentScrollTransform = canvasRoot.Find("JudgmentScroll");
         if (judgmentScrollTransform != null)
         {
@@ -136,11 +137,7 @@ public class UIManager : MonoBehaviour
             if (judgmentText == null) Debug.LogError("❌ UIManager: judgmentText 참조 실패!");
         }
 
-        // 5) Visual Cue Animator
-        visualCueAnimator = localPlayerRoot.GetComponentInChildren<Animator>(true);
-
-
-        // 6) History Items
+     
         Transform historyPanelRoot = canvasRoot.Find("HistoryPanel");
         if (historyPanelRoot != null)
         {
@@ -164,7 +161,6 @@ public class UIManager : MonoBehaviour
         {
             historyToggleButton.onClick.RemoveAllListeners();
             historyToggleButton.onClick.AddListener(ToggleHistoryPanel);
-            //UpdateToggleButtonText();
         }
 
 
@@ -338,7 +334,7 @@ public class UIManager : MonoBehaviour
         float targetY = isHistoryOpen ? targetOpenedYPosition : closedYPosition;
 
         StartCoroutine(SlidePanel(targetY));
-        //UpdateToggleButtonText();
+
     }
 
 
@@ -398,6 +394,7 @@ public class UIManager : MonoBehaviour
     // 신탁 및 역할 공개(역할은 1라운드에만)
     public void ShowOracleAndRole(string oracle, string role, int round)
     {
+
         if (roleText != null)
         {
             if (round == 1 && !string.IsNullOrEmpty(role))
@@ -822,15 +819,35 @@ public class UIManager : MonoBehaviour
             toggleCardButton.gameObject.SetActive(isGameUIActive);
         }
     }
+
     public void PlayVisualCue(VisualCue cue)
     {
-        if (visualCueAnimator != null)
+        if (lightningEffect != null) lightningEffect.SetActive(false);
+        if (flowerEffect != null) flowerEffect.SetActive(false);
+
+        if (cue.effect == "LIGHTNING" && lightningEffect != null)
         {
-            visualCueAnimator.SetTrigger(cue.effect);
+            StartCoroutine(ActivateAndDeactivateEffect(lightningEffect, 3.0f));
+            Debug.Log("⚡ 번개 이펙트 재생 시작.");
+        }
+        else if (cue.effect == "FLOWER" && flowerEffect != null)
+        {
+            StartCoroutine(ActivateAndDeactivateEffect(flowerEffect, 3.0f));
+            Debug.Log("🌸 꽃잎 이펙트 재생 시작.");
         }
         else
         {
-            Debug.LogWarning($"VisualCue Animator is not connected in UIManager.");
+            Debug.LogWarning($"VisualCue Effect '{cue.effect}'에 해당하는 오브젝트가 없거나 연결되지 않았습니다.");
+        }
+    }
+
+    private IEnumerator ActivateAndDeactivateEffect(GameObject effectObject, float duration)
+    {
+        if (effectObject != null)
+        {
+            effectObject.SetActive(true);
+            yield return new WaitForSeconds(duration);
+            effectObject.SetActive(false);
         }
     }
 

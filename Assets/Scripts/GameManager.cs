@@ -26,8 +26,8 @@ public class GameManager : MonoBehaviour
     [Header("Judgment Animation Positions")]
     public Transform judgmentZoomPosition;
     public Transform judgmentFinalPosition;
-    public float zoomDuration = 1.2f; // 시간 조정 유지
-    public float settleDuration = 1.0f; // 시간 조정 유지
+    public float zoomDuration = 3f; // 시간 조정 유지
+    public float settleDuration = 2f; // 시간 조정 유지
 
     [Header("Village State")]
     public int currentHP = 100;
@@ -495,7 +495,7 @@ public class GameManager : MonoBehaviour
                             cards = cardsOverride,
                             mySlot = mySlot,
                             mission = currentOracle,
-                            timeLimit = 120,
+                            timeLimit = 30,
                             currentRound = 0, // 👈 0으로 설정하여 RoundManager가 1로 증가시키도록 위임
                             // slotColors는 로컬에서 PlayerManager의 colorName을 기반으로 생성됩니다.
                         };
@@ -647,17 +647,31 @@ public class GameManager : MonoBehaviour
             UIManager.Instance.judgmentScroll.SetActive(true);
 
         yield return new WaitForSeconds(5.0f);
-        // 🌟 FIX: msg.sentence 대신 msg.fullSentence 사용
         UIManager.Instance.DisplaySentence(msg.fullSentence);
         yield return new WaitForSeconds(5.0f);
         UIManager.Instance.DisplayJudgmentReason(msg.reason);
 
-        yield return new WaitForSeconds(7.0f);
+        yield return new WaitForSeconds(3.0f);
 
         SwitchCamera(observerCamera);
-        //UIManager.Instance.PlayVisualCue(msg.visualCue);
-        string score = (msg.score).ToString();
-        UIManager.Instance.DisplayJudgmentReason(score);
+
+        VisualCue customCue = new VisualCue();
+
+        if (msg.score < 0)
+        {
+            // 점수가 0 미만이면 번개 이펙트
+            customCue.effect = "LIGHTNING";
+        }
+        else
+        {
+            // 점수가 0 이상이면 꽃잎 이펙트
+            customCue.effect = "FLOWER";
+        }
+
+        UIManager.Instance.PlayVisualCue(customCue);
+
+        /*string score = (msg.score).ToString();
+        UIManager.Instance.DisplayJudgmentReason(score);*/
 
         yield return new WaitForSeconds(7.0f);
 
@@ -668,6 +682,8 @@ public class GameManager : MonoBehaviour
 
         yield return new WaitForSeconds(5.0f);
     }
+
+
 
     public void SwitchCamera(Camera targetCamera)
     {

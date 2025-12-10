@@ -28,17 +28,26 @@ public class HistoryItem : MonoBehaviour
 
         if (evaluationText != null) evaluationText.text = $"신의 평가: {result.reason}";
 
-        //string reactionEmoji = GetReactionEmoji(result.visualCue.effect);
-        //reactionText.text = $"신의 반응 : {reactionEmoji}";
-
+        string reaction = GetReactionText(result.score);
+        if (reactionText != null)
+        {
+            reactionText.text = $"신의 반응: {reaction}";
+        }
 
         DisplayFinalSentence(slotColors, result.sentenceParts);
     }
 
-    private string GetReactionEmoji(string effect)
+    // 이후 이모지로 변?경 
+    private string GetReactionText(int score)
     {
-
-        return "";
+        if (score < 0)
+        {
+            return "번개"; 
+        }
+        else
+        {
+            return "꽃잎"; 
+        }
     }
 
     private void DisplayFinalSentence(Dictionary<string, string> slotColors, List<SentencePart> sentenceParts)

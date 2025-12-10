@@ -96,12 +96,6 @@ public class RoundManager : MonoBehaviour
         }
     }
 
-    public void PrepareNextRound(int nextRoundNumber)
-    {
-        // 🚨 이 함수는 더 이상 사용되지 않거나, RoundManager의 currentRound를 증가시키지 않아야 합니다.
-        // currentRound = nextRoundNumber; // 서버 번호를 강제로 할당하는 로직 제거
-        Debug.Log($"[RoundManager] PrepareNextRound called but Round Number is controlled by HandleRoundStart.");
-    }
 
     // 카드 선택 시작
     private IEnumerator StartCardSelection(List<string> cards, int selectionTime)
