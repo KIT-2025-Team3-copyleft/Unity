@@ -303,7 +303,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 4738bea7931af9e44b3ba4f64c0e0d4d, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 1.4
+      value: 1.156
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 4738bea7931af9e44b3ba4f64c0e0d4d, type: 3}
       propertyPath: m_LocalPosition.z
@@ -1585,6 +1585,8 @@ MonoBehaviour:
   roleText: {fileID: 0}
   persistentOraclePanel: {fileID: 0}
   persistentOracleText: {fileID: 0}
+  persistentRolePanel: {fileID: 0}
+  persistentRoleText: {fileID: 0}
   traitorText: {fileID: 0}
   historyPanel: {fileID: 0}
   historyToggleButton: {fileID: 0}

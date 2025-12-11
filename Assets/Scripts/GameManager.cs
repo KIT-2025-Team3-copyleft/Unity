@@ -495,7 +495,7 @@ public class GameManager : MonoBehaviour
                             cards = cardsOverride,
                             mySlot = mySlot,
                             mission = currentOracle,
-                            timeLimit = 30,
+                            timeLimit = 120,
                             currentRound = 0, // 👈 0으로 설정하여 RoundManager가 1로 증가시키도록 위임
                             // slotColors는 로컬에서 PlayerManager의 colorName을 기반으로 생성됩니다.
                         };

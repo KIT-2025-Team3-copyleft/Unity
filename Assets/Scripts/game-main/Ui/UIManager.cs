@@ -30,6 +30,8 @@ public class UIManager : MonoBehaviour
     public TextMeshProUGUI roleText;
     public GameObject persistentOraclePanel;
     public TextMeshProUGUI persistentOracleText;
+    public GameObject persistentRolePanel;
+    public TextMeshProUGUI persistentRoleText;
 
     [Header("Traitor Info")]
     public TextMeshProUGUI traitorText;
@@ -99,7 +101,8 @@ public class UIManager : MonoBehaviour
         canvasRoot.gameObject.SetActive(true);
 
         Transform oracleRoot = canvasRoot.Find("Role&OraclePanel");
-        Transform persistentRoot = canvasRoot.Find("PersistentOraclePanel");
+        Transform persistentOracleRoot = canvasRoot.Find("PersistentOraclePanel");
+        Transform persistentRoleRoot = canvasRoot.Find("PersistentRolePanel");
         Transform systemPanel = canvasRoot.Find("SystemPanel");
         Transform slotPanelRoot = canvasRoot.Find("SlotPanel");
 
@@ -113,10 +116,18 @@ public class UIManager : MonoBehaviour
             if (oracleText == null) Debug.LogError("❌ UIManager: oracleText (신탁 텍스트) 참조 실패! 경로 확인 필요.");
         }
 
-        if (persistentRoot != null)
+        if (persistentOracleRoot != null)
         {
-            persistentOraclePanel = persistentRoot.gameObject;
-            persistentOracleText = persistentRoot.GetComponentInChildren<TextMeshProUGUI>(true);
+            persistentOraclePanel = persistentOracleRoot.gameObject;
+            persistentOracleText = persistentOracleRoot.GetComponentInChildren<TextMeshProUGUI>(true);
+
+            if (persistentOracleText == null) Debug.LogError("❌ UIManager: persistentOracleText 참조 실패!");
+            else Debug.Log("✔ UIManager: persistentOracleText 참조 성공.");
+        }
+        if (persistentRoleRoot != null)
+        {
+            persistentRolePanel = persistentRoleRoot.gameObject;
+            persistentRoleText = persistentRoleRoot.GetComponentInChildren<TextMeshProUGUI>(true);
 
             if (persistentOracleText == null) Debug.LogError("❌ UIManager: persistentOracleText 참조 실패!");
             else Debug.Log("✔ UIManager: persistentOracleText 참조 성공.");
@@ -301,6 +312,7 @@ public class UIManager : MonoBehaviour
         if (oraclePanel != null) oraclePanel.SetActive(false);
         if (cardSelectionPanel != null) cardSelectionPanel.SetActive(false);
         if (persistentOraclePanel != null) persistentOraclePanel.SetActive(false);
+        if (persistentRolePanel != null) persistentRolePanel.SetActive(false);
         if (judgmentScroll != null) judgmentScroll.SetActive(false);
         if (systemPanel != null) systemPanel.gameObject.SetActive(false);
 
@@ -421,6 +433,17 @@ public class UIManager : MonoBehaviour
         if (persistentOracleText != null)
         {
             persistentOracleText.text = $"{oracle}";
+        }
+
+        if (persistentRolePanel != null)
+        {
+            persistentRolePanel.SetActive(true); // 🌟 영구 신탁 패널 활성화
+            Debug.Log("✔ [Persistent UI] Persistent Oracle Panel 활성화 완료.");
+        }
+
+        if (persistentRoleText != null)
+        {
+            persistentRoleText.text = $"{role}";
         }
 
         Canvas.ForceUpdateCanvases();
