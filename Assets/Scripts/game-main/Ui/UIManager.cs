@@ -954,7 +954,7 @@ public class UIManager : MonoBehaviour
         });
 
         // 카운트다운 시작
-        StartGameOverCountdown(10, onGoRoomSearch);
+        StartGameOverCountdown(30, onGoRoomSearch);
     }
 
     // 카운트다운 타이머를 시작하는 코루틴

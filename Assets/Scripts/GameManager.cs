@@ -734,10 +734,9 @@ public class GameManager : MonoBehaviour
     public void SendBackToRoomAction()
     {
         Debug.Log("[GM] '현재 방 로비' 복귀 요청 (RoomManager에 BACK_TO_ROOM 액션 위임)");
-
-        if (RoomManager.Instance != null)
+        if (WebSocketManager.Instance != null && WebSocketManager.Instance.IsConnected)
         {
-            RoomManager.Instance.RequestBackToRoom();
+            WebSocketManager.Instance.SendBackToRoom();
         }
 
     }
@@ -745,6 +744,10 @@ public class GameManager : MonoBehaviour
     public void GoToRoomSearchScene()
     {
         Debug.Log("[GM] 룸 서치 씬(RoomSearchScene)으로 이동 시작. 모든 데이터 클리어.");
+        if (WebSocketManager.Instance != null && WebSocketManager.Instance.IsConnected)
+        {
+            WebSocketManager.Instance.SendLeaveRoom();
+        }
 
         // 플레이어 데이터 클리어 (필수)
         players.Clear();
