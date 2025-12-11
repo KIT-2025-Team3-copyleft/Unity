@@ -753,7 +753,7 @@ public class UIManager : MonoBehaviour
             resultMessage += $"{sentence}";
             judgmentText.text = resultMessage;
             judgmentText.ForceMeshUpdate();
-            StartCoroutine(VerifyAndMaintainText(judgmentText, resultMessage, 2));
+            StartCoroutine(VerifyAndMaintainText(judgmentText, resultMessage, 7));
         }
     }
 
@@ -764,7 +764,7 @@ public class UIManager : MonoBehaviour
             string resultMessage = $"{reason}";
             judgmentText.text = resultMessage;
             judgmentText.ForceMeshUpdate();
-            StartCoroutine(VerifyAndMaintainText(judgmentText, resultMessage, 2));
+            StartCoroutine(VerifyAndMaintainText(judgmentText, resultMessage, 7));
         }
     }
 
