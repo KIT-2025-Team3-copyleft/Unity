@@ -43,6 +43,7 @@ public class GameManager : MonoBehaviour
     public string myRole;
     public string mySlot;
 
+    public string currentRole;
     public string currentOracle; // 👈 신탁 텍스트를 저장할 변수 추가
     public bool cardSelectedCompleted = false; // 👈 상태 플래그 추가
 

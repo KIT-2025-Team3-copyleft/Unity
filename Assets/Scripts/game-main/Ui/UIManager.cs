@@ -84,6 +84,8 @@ public class UIManager : MonoBehaviour
 
     private Coroutine gameOverCountdownCoroutine;
 
+    public string currentRole;
+
     public bool IsUILinked = false;
     public void LinkLocalPlayerUIElements(GameObject localPlayerRoot)
     {
@@ -407,11 +409,11 @@ public class UIManager : MonoBehaviour
     public void ShowOracleAndRole(string oracle, string role, int round)
     {
 
-        if (roleText != null)
+        if (role != "" && roleText != null)
         {
-            if (round == 1 && !string.IsNullOrEmpty(role))
                 roleText.text = role;
-        }
+                currentRole = role;
+}
 
         if (oraclePanel != null) oraclePanel.SetActive(true);
 
@@ -437,13 +439,13 @@ public class UIManager : MonoBehaviour
 
         if (persistentRolePanel != null)
         {
-            persistentRolePanel.SetActive(true); // 🌟 영구 신탁 패널 활성화
-            Debug.Log("✔ [Persistent UI] Persistent Oracle Panel 활성화 완료.");
+            persistentRolePanel.SetActive(true); 
+            Debug.Log("✔ [Persistent UI] Persistent Role Panel 활성화 완료.");
         }
 
         if (persistentRoleText != null)
         {
-            persistentRoleText.text = $"{role}";
+            persistentRoleText.text = currentRole;
         }
 
         Canvas.ForceUpdateCanvases();
@@ -823,6 +825,10 @@ public class UIManager : MonoBehaviour
         if (persistentOraclePanel != null)
         {
             persistentOraclePanel.SetActive(isGameUIActive);
+        }
+        if (persistentRolePanel != null)
+        {
+            persistentRolePanel.SetActive(isGameUIActive);
         }
         if (historyPanel != null)
         {
