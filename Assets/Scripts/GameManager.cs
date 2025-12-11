@@ -641,15 +641,15 @@ public class GameManager : MonoBehaviour
         yield return StartCoroutine(AnimateCameraTransform(topDownCamera, judgmentZoomPosition, zoomDuration));
         yield return StartCoroutine(AnimateCameraTransform(topDownCamera, judgmentFinalPosition, settleDuration));
 
-        yield return new WaitForSeconds(1.5f);
+        yield return new WaitForSeconds(3.5f);
 
+ 
+        UIManager.Instance.DisplaySentence(msg.fullSentence);
         if (UIManager.Instance.judgmentScroll != null)
             UIManager.Instance.judgmentScroll.SetActive(true);
-
-        yield return new WaitForSeconds(5.0f);
-        UIManager.Instance.DisplaySentence(msg.fullSentence);
-        yield return new WaitForSeconds(5.0f);
+        yield return new WaitForSeconds(7.0f);
         UIManager.Instance.DisplayJudgmentReason(msg.reason);
+        yield return new WaitForSeconds(7.0f);
 
         yield return new WaitForSeconds(3.0f);
 
