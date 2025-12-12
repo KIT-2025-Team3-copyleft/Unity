@@ -515,7 +515,7 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 1947968624}
   m_HandleRect: {fileID: 1947968623}
   m_Direction: 2
-  m_Value: 0
+  m_Value: 1
   m_Size: 0
   m_NumberOfSteps: 0
   m_OnValueChanged:
@@ -1143,7 +1143,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 0}
-  m_AnchoredPosition: {x: 0, y: 500}
+  m_AnchoredPosition: {x: 0, y: 500.00003}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0, y: 1}
 --- !u!114 &654512926
@@ -1439,6 +1439,7 @@ GameObject:
   m_Component:
   - component: {fileID: 897503767}
   - component: {fileID: 897503768}
+  - component: {fileID: 897503769}
   m_Layer: 5
   m_Name: MakeRoomButton
   m_TagString: Untagged
@@ -1479,6 +1480,20 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MakeRoomButton
   MakeRoomPopup: {fileID: 1480372003}
+--- !u!114 &897503769
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 897503766}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7ea97506092c10f4ab01ab98bfa8a893, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::UiButtonSfx
+  hoverClip: {fileID: 8300000, guid: f681a540ff0594648b84db7acb9a111a, type: 3}
+  clickClip: {fileID: 8300000, guid: 181c06a4dca92a842bdf2d0f808238fa, type: 3}
 --- !u!1 &910787870
 GameObject:
   m_ObjectHideFlags: 0
@@ -2038,12 +2053,56 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 149570632070224015, guid: 40d850ac1ab22604f9b39315b17a810e, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1480372004}
+    - targetCorrespondingSourceObject: {fileID: 236723714867080610, guid: 40d850ac1ab22604f9b39315b17a810e, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1056905051}
+    - targetCorrespondingSourceObject: {fileID: 7638504785065508934, guid: 40d850ac1ab22604f9b39315b17a810e, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1056905050}
   m_SourcePrefab: {fileID: 100100000, guid: 40d850ac1ab22604f9b39315b17a810e, type: 3}
 --- !u!224 &1056905047 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 2308095897950194781, guid: 40d850ac1ab22604f9b39315b17a810e, type: 3}
   m_PrefabInstance: {fileID: 1056905046}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &1056905048 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 7638504785065508934, guid: 40d850ac1ab22604f9b39315b17a810e, type: 3}
+  m_PrefabInstance: {fileID: 1056905046}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &1056905049 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 236723714867080610, guid: 40d850ac1ab22604f9b39315b17a810e, type: 3}
+  m_PrefabInstance: {fileID: 1056905046}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &1056905050
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1056905048}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7ea97506092c10f4ab01ab98bfa8a893, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::UiButtonSfx
+  hoverClip: {fileID: 8300000, guid: f681a540ff0594648b84db7acb9a111a, type: 3}
+  clickClip: {fileID: 8300000, guid: 181c06a4dca92a842bdf2d0f808238fa, type: 3}
+--- !u!114 &1056905051
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1056905049}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7ea97506092c10f4ab01ab98bfa8a893, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::UiButtonSfx
+  hoverClip: {fileID: 8300000, guid: f681a540ff0594648b84db7acb9a111a, type: 3}
+  clickClip: {fileID: 8300000, guid: 181c06a4dca92a842bdf2d0f808238fa, type: 3}
 --- !u!1 &1093817425
 GameObject:
   m_ObjectHideFlags: 0
@@ -2258,6 +2317,7 @@ GameObject:
   - component: {fileID: 1277979235}
   - component: {fileID: 1277979234}
   - component: {fileID: 1277979233}
+  - component: {fileID: 1277979236}
   m_Layer: 5
   m_Name: MakeRoom
   m_TagString: Untagged
@@ -2379,6 +2439,20 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1277979231}
   m_CullTransparentMesh: 1
+--- !u!114 &1277979236
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1277979231}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7ea97506092c10f4ab01ab98bfa8a893, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::UiButtonSfx
+  hoverClip: {fileID: 8300000, guid: f681a540ff0594648b84db7acb9a111a, type: 3}
+  clickClip: {fileID: 8300000, guid: 181c06a4dca92a842bdf2d0f808238fa, type: 3}
 --- !u!1 &1456301857
 GameObject:
   m_ObjectHideFlags: 0
@@ -2912,6 +2986,7 @@ GameObject:
   - component: {fileID: 1797497764}
   - component: {fileID: 1797497763}
   - component: {fileID: 1797497766}
+  - component: {fileID: 1797497767}
   m_Layer: 5
   m_Name: roomSerach
   m_TagString: Untagged
@@ -3046,6 +3121,20 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::RoomPopupManager
   RoomPopup: {fileID: 4842963}
+--- !u!114 &1797497767
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1797497761}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7ea97506092c10f4ab01ab98bfa8a893, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::UiButtonSfx
+  hoverClip: {fileID: 8300000, guid: f681a540ff0594648b84db7acb9a111a, type: 3}
+  clickClip: {fileID: 8300000, guid: 181c06a4dca92a842bdf2d0f808238fa, type: 3}
 --- !u!1 &1861231130
 GameObject:
   m_ObjectHideFlags: 0
@@ -3546,6 +3635,7 @@ GameObject:
   - component: {fileID: 1985606606}
   - component: {fileID: 1985606605}
   - component: {fileID: 1985606604}
+  - component: {fileID: 1985606607}
   m_Layer: 5
   m_Name: QuickStart
   m_TagString: Untagged
@@ -3667,6 +3757,20 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1985606602}
   m_CullTransparentMesh: 1
+--- !u!114 &1985606607
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1985606602}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7ea97506092c10f4ab01ab98bfa8a893, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::UiButtonSfx
+  hoverClip: {fileID: 8300000, guid: f681a540ff0594648b84db7acb9a111a, type: 3}
+  clickClip: {fileID: 8300000, guid: 181c06a4dca92a842bdf2d0f808238fa, type: 3}
 --- !u!1 &1995554474
 GameObject:
   m_ObjectHideFlags: 0
@@ -3679,6 +3783,7 @@ GameObject:
   - component: {fileID: 1995554478}
   - component: {fileID: 1995554477}
   - component: {fileID: 1995554476}
+  - component: {fileID: 1995554479}
   m_Layer: 5
   m_Name: Exit_button
   m_TagString: Untagged
@@ -3800,6 +3905,20 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1995554474}
   m_CullTransparentMesh: 1
+--- !u!114 &1995554479
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1995554474}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7ea97506092c10f4ab01ab98bfa8a893, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::UiButtonSfx
+  hoverClip: {fileID: 8300000, guid: f681a540ff0594648b84db7acb9a111a, type: 3}
+  clickClip: {fileID: 8300000, guid: 181c06a4dca92a842bdf2d0f808238fa, type: 3}
 --- !u!1 &2090038744
 GameObject:
   m_ObjectHideFlags: 0
@@ -4363,8 +4482,52 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 3871691676075465768, guid: 0c5de1ff8a7fc4c49bfb68f8b2b4076a, type: 3}
       insertIndex: -1
       addedObject: {fileID: 154553680}
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 695820134400439048, guid: 0c5de1ff8a7fc4c49bfb68f8b2b4076a, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 3016882694315324861}
+    - targetCorrespondingSourceObject: {fileID: 4255752477844720558, guid: 0c5de1ff8a7fc4c49bfb68f8b2b4076a, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 3016882694315324860}
   m_SourcePrefab: {fileID: 100100000, guid: 0c5de1ff8a7fc4c49bfb68f8b2b4076a, type: 3}
+--- !u!1 &3016882694315324858 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 4255752477844720558, guid: 0c5de1ff8a7fc4c49bfb68f8b2b4076a, type: 3}
+  m_PrefabInstance: {fileID: 3016882694315324857}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &3016882694315324859 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 695820134400439048, guid: 0c5de1ff8a7fc4c49bfb68f8b2b4076a, type: 3}
+  m_PrefabInstance: {fileID: 3016882694315324857}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &3016882694315324860
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3016882694315324858}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7ea97506092c10f4ab01ab98bfa8a893, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::UiButtonSfx
+  hoverClip: {fileID: 8300000, guid: f681a540ff0594648b84db7acb9a111a, type: 3}
+  clickClip: {fileID: 8300000, guid: 181c06a4dca92a842bdf2d0f808238fa, type: 3}
+--- !u!114 &3016882694315324861
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3016882694315324859}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7ea97506092c10f4ab01ab98bfa8a893, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::UiButtonSfx
+  hoverClip: {fileID: 8300000, guid: f681a540ff0594648b84db7acb9a111a, type: 3}
+  clickClip: {fileID: 8300000, guid: 181c06a4dca92a842bdf2d0f808238fa, type: 3}
 --- !u!1001 &3784070791485027266
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -4603,7 +4766,29 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 149570632070224015, guid: 246c2b37d1497af48bc9b4b018cdc51a, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1194909169}
+    - targetCorrespondingSourceObject: {fileID: 236723714867080610, guid: 246c2b37d1497af48bc9b4b018cdc51a, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 3784070791485027268}
   m_SourcePrefab: {fileID: 100100000, guid: 246c2b37d1497af48bc9b4b018cdc51a, type: 3}
+--- !u!1 &3784070791485027267 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 236723714867080610, guid: 246c2b37d1497af48bc9b4b018cdc51a, type: 3}
+  m_PrefabInstance: {fileID: 3784070791485027266}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &3784070791485027268
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3784070791485027267}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7ea97506092c10f4ab01ab98bfa8a893, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::UiButtonSfx
+  hoverClip: {fileID: 8300000, guid: f681a540ff0594648b84db7acb9a111a, type: 3}
+  clickClip: {fileID: 8300000, guid: 181c06a4dca92a842bdf2d0f808238fa, type: 3}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

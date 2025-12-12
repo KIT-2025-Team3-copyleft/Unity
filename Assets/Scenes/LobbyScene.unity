@@ -861,8 +861,8 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4281479730
-  m_fontColor: {r: 0.19607843, g: 0.19607843, b: 0.19607843, a: 1}
+    rgba: 4294967295
+  m_fontColor: {r: 1, g: 1, b: 1, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
   m_fontColorGradient:
@@ -1635,6 +1635,7 @@ GameObject:
   - component: {fileID: 1367846405}
   - component: {fileID: 1367846404}
   - component: {fileID: 1367846403}
+  - component: {fileID: 1367846406}
   m_Layer: 5
   m_Name: Button
   m_TagString: Untagged
@@ -1768,6 +1769,20 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1367846401}
   m_CullTransparentMesh: 1
+--- !u!114 &1367846406
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1367846401}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7ea97506092c10f4ab01ab98bfa8a893, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::UiButtonSfx
+  hoverClip: {fileID: 8300000, guid: f681a540ff0594648b84db7acb9a111a, type: 3}
+  clickClip: {fileID: 8300000, guid: 181c06a4dca92a842bdf2d0f808238fa, type: 3}
 --- !u!1 &1675378288
 GameObject:
   m_ObjectHideFlags: 0
@@ -2118,6 +2133,7 @@ GameObject:
   - component: {fileID: 1751637291}
   - component: {fileID: 1751637290}
   - component: {fileID: 1751637289}
+  - component: {fileID: 1751637292}
   m_Layer: 5
   m_Name: StartGameButton
   m_TagString: Untagged
@@ -2239,6 +2255,20 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1751637287}
   m_CullTransparentMesh: 1
+--- !u!114 &1751637292
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1751637287}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7ea97506092c10f4ab01ab98bfa8a893, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::UiButtonSfx
+  hoverClip: {fileID: 8300000, guid: f681a540ff0594648b84db7acb9a111a, type: 3}
+  clickClip: {fileID: 8300000, guid: 181c06a4dca92a842bdf2d0f808238fa, type: 3}
 --- !u!1 &1824844382
 GameObject:
   m_ObjectHideFlags: 0
