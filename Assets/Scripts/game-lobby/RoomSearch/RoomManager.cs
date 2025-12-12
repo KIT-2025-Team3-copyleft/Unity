@@ -272,16 +272,31 @@ public class RoomManager : MonoBehaviour
         Debug.Log($"[RoomManager] LOBBY_UPDATE processed: RoomId={CurrentRoom.roomId}, " +
                   $"Players={players.Length}, HostNick={HostNickname}, MyNick={myNick}, IsHost={IsHost}");
 
+        bool shouldLoadLobbyScene = false;
+
         if (CurrentRoom.status == "WAITING" || CurrentRoom.status == "STARTING")
         {
-            // 현재 씬이 LobbyScene이 아니면 전환 (GamePlay Scene에서 복귀)
-            if (SceneManager.GetActiveScene().name != "LobbyScene")
+            if (SceneManager.GetActiveScene().name == "GamePlay" &&
+            GameManager.Instance != null &&
+            GameManager.Instance.IsShowingGameOverUI)
             {
-                Debug.Log("[RoomManager] Status is WAITING/STARTING. Loading LobbyScene based on server status.");
-                SceneManager.LoadScene("LobbyScene");
+                Debug.LogWarning("[RoomManager] WAITING 상태 수신. 그러나 유저 선택 대기 중이므로 씬 전환을 무시합니다.");
+                shouldLoadLobbyScene = false;
+            }
+            else
+            {
+                // **B. 그 외의 경우 (정상적인 씬 전환)**
+                if (SceneManager.GetActiveScene().name != "LobbyScene")
+                {
+                    shouldLoadLobbyScene = true;
+                    Debug.Log("[RoomManager] Status is WAITING/STARTING. Loading LobbyScene.");
+                    SceneManager.LoadScene("LobbyScene");
+                }
             }
         }
+        
         OnLobbyUpdated?.Invoke(CurrentRoom);
+        
     }
 
 
