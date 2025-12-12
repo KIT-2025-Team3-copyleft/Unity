@@ -35,7 +35,6 @@ public class GameManager : MonoBehaviour
     public string PlayerName;
     public int CurrentRoomId;
 
-    public bool IsShowingGameOverUI { get; private set; } = false;
 
     // 로컬 플레이어 식별용 ID
     public string MySessionId { get; private set; } = "SESSION_ID_PLACEHOLDER";
@@ -713,7 +712,6 @@ public class GameManager : MonoBehaviour
         StopAllCoroutines();
 
         Debug.Log($"[GM] 게임 종료! 서버 메시지: {serverMessage}, 승리 역할: {winnerRole}");
-        IsShowingGameOverUI = true;
         string finalMessage = serverMessage;
 
         if (UIManager.Instance != null)
@@ -739,7 +737,11 @@ public class GameManager : MonoBehaviour
         {
             WebSocketManager.Instance.SendBackToRoom();
         }
-        IsShowingGameOverUI = false;
+        UIManager.Instance.DisableGameOverButtons();
+        if (UIManager.Instance != null)
+        {
+            UIManager.Instance.OverwriteResultTextToWaitingMessage();
+        }
     }
 
     public void GoToRoomSearchScene()
@@ -749,7 +751,7 @@ public class GameManager : MonoBehaviour
         {
             WebSocketManager.Instance.SendLeaveRoom();
         }
-        IsShowingGameOverUI = false;
+        
         // 플레이어 데이터 클리어 (필수)
         players.Clear();
         usedColors.Clear();

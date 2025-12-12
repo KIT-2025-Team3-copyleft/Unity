@@ -937,10 +937,12 @@ public class UIManager : MonoBehaviour
         BackToRoomButton.onClick.RemoveAllListeners();
         GoRoomSearchButton.onClick.RemoveAllListeners();
 
+        BackToRoomButton.interactable = true;
+        GoRoomSearchButton.interactable = true;
+
         // 1. 방으로 돌아가기 버튼 리스너
         BackToRoomButton.onClick.AddListener(() =>
         {
-            StopGameOverCountdown();
             onBackToRoom?.Invoke(); // GameManager의 SendBackToRoomAction 호출
             LockResultButtons();
         });
@@ -996,4 +998,22 @@ public class UIManager : MonoBehaviour
         if (BackToRoomButton != null) BackToRoomButton.interactable = false;
         if (GoRoomSearchButton != null) GoRoomSearchButton.interactable = false;
     }
+    public void DisableGameOverButtons()
+    {
+        LockResultButtons();
+    }
+
+    public void OverwriteResultTextToWaitingMessage()
+    {
+        ResultText.text = "남은 플레이어의 선택을 기다리는 중...";
+    }
+
+    public void HideGameOverUI()
+    {
+        if (ResultPanel != null)
+        {
+            ResultPanel.SetActive(false);
+        }
+    }
+
 }
