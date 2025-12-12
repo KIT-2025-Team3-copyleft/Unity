@@ -170,4 +170,12 @@ public class WebSocketManager : MonoBehaviour
         var payload = new ChatMessagePayload { message = messageContent };
         SendRequest("SEND_CHAT", payload);
     }
+    public void SendLeaveRoom()
+    {
+        SendRequest("LEAVE_ROOM", null);
+    }
+    public void SendBackToRoom()
+    {
+        SendRequest("BACK_TO_ROOM", null);
+    }
 }

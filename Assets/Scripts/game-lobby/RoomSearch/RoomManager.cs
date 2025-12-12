@@ -387,11 +387,6 @@ public class RoomManager : MonoBehaviour
         WebSocketManager.Instance.Send(json);
     }
 
-    public void RequestBackToRoom()
-    {
-        Debug.Log("[RoomManager] RequestBackToRoom called, sending BACK_TO_ROOM action.");
-        SendAction("BACK_TO_ROOM");
-    }
 
     public void RequestStartGame()
     {
