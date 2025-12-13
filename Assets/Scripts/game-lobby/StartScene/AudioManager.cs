@@ -9,14 +9,21 @@ public class AudioManager : MonoBehaviour
 
     [Header("Sources")]
     [SerializeField] private AudioSource bgmSource;
-    [SerializeField] private AudioSource sfxSource;           // 🌟 단발성 SFX (버튼, PlaySfx) 전용
-    [SerializeField] private AudioSource timerSource;         // 🌟 타이머 틱톡 (StartTimerTickSfx) 전용
-    [SerializeField] private AudioSource judgmentSource;      // 🌟 심판 SFX (StartJudgmentSfx) 전용
+    [SerializeField] private AudioSource sfxSource;           
+    [SerializeField] private AudioSource timerSource;         
+    [SerializeField] private AudioSource judgmentSource;      
 
     [Header("Clips")]
     [SerializeField] private AudioClip titleToLobbyBgm;
     [SerializeField] private AudioClip timerTickClip;
+
+    [SerializeField] public AudioClip step1StartSfx;
+    [SerializeField] public AudioClip step2StartSfx;
+    [SerializeField] public AudioClip trialSuccessSfx;
+    [SerializeField] public AudioClip trialFailSfx;
+    [SerializeField] public AudioClip gameOverSfx;
     // 🌟 심판 클립 (UIManager/GameManager 호환성을 위해 필요)
+
     [SerializeField] private AudioClip lightningClip;
     [SerializeField] private AudioClip flowerClip;
 
@@ -53,6 +60,11 @@ public class AudioManager : MonoBehaviour
 
     private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
+        if (scene.name == "GamePlay")
+        {
+            StopBGM();
+        }
+
         StartCoroutine(DisableOtherListenersNextFrame());
     }
 
@@ -68,7 +80,11 @@ public class AudioManager : MonoBehaviour
             AudioListener l = listeners[i];
             if (l == null) continue;
             if (l.gameObject == gameObject) { l.enabled = true; continue; }
-            l.enabled = false;
+
+            if (l.gameObject.transform.root.name != "LocalPlayer") 
+            {
+                l.enabled = false;
+            }
         }
 
         if (bgmSource != null) bgmSource.volume = bgmVolume;
@@ -83,7 +99,6 @@ public class AudioManager : MonoBehaviour
 
     private void EnsureAudioSources()
     {
-        // 🌟 4개의 AudioSource가 필요합니다: BGM, SFX(단발), Timer(루프), Judgment(심판)
         AudioSource[] sources = GetComponents<AudioSource>();
 
         while (sources.Length < 4)
@@ -93,9 +108,9 @@ public class AudioManager : MonoBehaviour
         }
 
         bgmSource = sources[0];
-        sfxSource = sources[1];         // 단발성 SFX용
-        timerSource = sources[2];       // 타이머 루프용
-        judgmentSource = sources[3];    // 심판 SFX용
+        sfxSource = sources[1];         
+        timerSource = sources[2];       
+        judgmentSource = sources[3];    
 
         // BGM 설정
         bgmSource.playOnAwake = false;
@@ -134,7 +149,16 @@ public class AudioManager : MonoBehaviour
         bgmSource.Play();
     }
 
-    // 🌟 sfxSource를 사용하여 단발성 효과음을 재생합니다. (충돌 없음)
+    public void StopBGM()
+    {
+        if (bgmSource != null && bgmSource.isPlaying)
+        {
+            bgmSource.Stop();
+            currentBgm = null;
+            Debug.Log("[AudioManager] BGM 정지 완료.");
+        }
+    }
+
     public void PlaySfx(AudioClip clip)
     {
         if (clip == null) return;
@@ -142,7 +166,6 @@ public class AudioManager : MonoBehaviour
         sfxSource.PlayOneShot(clip);
     }
 
-    // 🌟 timerSource를 사용하여 루프 타이머 틱톡을 재생합니다.
     public void StartTimerTickSfx()
     {
         if (timerTickClip == null || timerSource == null) return;
@@ -156,7 +179,6 @@ public class AudioManager : MonoBehaviour
         Debug.Log("[AudioManager] Timer Tick Sfx 재생 시작 (Loop).");
     }
 
-    // 🌟 timerSource를 정지합니다.
     public void StopTimerTickSfx()
     {
         if (timerSource != null && timerSource.isPlaying && timerSource.loop == true)
@@ -169,7 +191,6 @@ public class AudioManager : MonoBehaviour
         }
     }
 
-    // 🌟 judgmentSource를 사용하여 심판 사운드를 재생합니다.
     public void StartJudgmentSfx(string effectName)
     {
         StopJudgmentSfx();
@@ -198,7 +219,6 @@ public class AudioManager : MonoBehaviour
         }
     }
 
-    // 🌟 judgmentSource를 정지합니다.
     public void StopJudgmentSfx()
     {
         if (judgmentSource != null && judgmentSource.isPlaying)

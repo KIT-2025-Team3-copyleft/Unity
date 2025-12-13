@@ -833,6 +833,7 @@ GameObject:
   - component: {fileID: 1515858897269369740}
   - component: {fileID: 2577358925577073416}
   - component: {fileID: 5741558347699407319}
+  - component: {fileID: 1404017541213247896}
   m_Layer: 5
   m_Name: BackToRoomButton
   m_TagString: Untagged
@@ -942,6 +943,20 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls: []
+--- !u!114 &1404017541213247896
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 664630104142058037}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7ea97506092c10f4ab01ab98bfa8a893, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::UiButtonSfx
+  hoverClip: {fileID: 8300000, guid: f681a540ff0594648b84db7acb9a111a, type: 3}
+  clickClip: {fileID: 8300000, guid: 181c06a4dca92a842bdf2d0f808238fa, type: 3}
 --- !u!1 &789461324328659636
 GameObject:
   m_ObjectHideFlags: 0
@@ -3306,6 +3321,7 @@ GameObject:
   - component: {fileID: 5294234459695315126}
   - component: {fileID: 95763552913583024}
   - component: {fileID: 2851009308749729104}
+  - component: {fileID: 2642928591782522854}
   m_Layer: 5
   m_Name: playercheck4
   m_TagString: Untagged
@@ -3416,6 +3432,20 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls: []
+--- !u!114 &2642928591782522854
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1739596408974408893}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7ea97506092c10f4ab01ab98bfa8a893, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::UiButtonSfx
+  hoverClip: {fileID: 8300000, guid: f681a540ff0594648b84db7acb9a111a, type: 3}
+  clickClip: {fileID: 8300000, guid: 181c06a4dca92a842bdf2d0f808238fa, type: 3}
 --- !u!1 &1789002511978596633
 GameObject:
   m_ObjectHideFlags: 0
@@ -4755,7 +4785,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 0}
-  m_AnchoredPosition: {x: 0, y: 164.58006}
+  m_AnchoredPosition: {x: 0, y: 164.57999}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0, y: 1}
 --- !u!114 &5173647645167287836
@@ -4810,6 +4840,7 @@ GameObject:
   - component: {fileID: 7356197128996258319}
   - component: {fileID: 509080019901173124}
   - component: {fileID: 7026751953261948393}
+  - component: {fileID: 467523074479227980}
   m_Layer: 5
   m_Name: disagree
   m_TagString: Untagged
@@ -4919,6 +4950,20 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls: []
+--- !u!114 &467523074479227980
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2877773846412184052}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7ea97506092c10f4ab01ab98bfa8a893, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::UiButtonSfx
+  hoverClip: {fileID: 8300000, guid: f681a540ff0594648b84db7acb9a111a, type: 3}
+  clickClip: {fileID: 8300000, guid: 181c06a4dca92a842bdf2d0f808238fa, type: 3}
 --- !u!1 &2934476869123480701
 GameObject:
   m_ObjectHideFlags: 0
@@ -7165,6 +7210,7 @@ GameObject:
   - component: {fileID: 5805060846156674961}
   - component: {fileID: 6755509972915271262}
   - component: {fileID: 1827177067876490649}
+  - component: {fileID: 6899388010606471887}
   m_Layer: 5
   m_Name: playercheck2
   m_TagString: Untagged
@@ -7275,6 +7321,20 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls: []
+--- !u!114 &6899388010606471887
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4661971774479274623}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7ea97506092c10f4ab01ab98bfa8a893, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::UiButtonSfx
+  hoverClip: {fileID: 8300000, guid: f681a540ff0594648b84db7acb9a111a, type: 3}
+  clickClip: {fileID: 8300000, guid: 181c06a4dca92a842bdf2d0f808238fa, type: 3}
 --- !u!1 &4693886755742137600
 GameObject:
   m_ObjectHideFlags: 0
@@ -8373,6 +8433,7 @@ GameObject:
   - component: {fileID: 8173620027909576871}
   - component: {fileID: 6106137060773579477}
   - component: {fileID: 2083635596255193107}
+  - component: {fileID: 2980323591606705577}
   m_Layer: 5
   m_Name: GoRoomSearchButton
   m_TagString: Untagged
@@ -8482,6 +8543,20 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls: []
+--- !u!114 &2980323591606705577
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5447932296097039490}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7ea97506092c10f4ab01ab98bfa8a893, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::UiButtonSfx
+  hoverClip: {fileID: 8300000, guid: f681a540ff0594648b84db7acb9a111a, type: 3}
+  clickClip: {fileID: 8300000, guid: 181c06a4dca92a842bdf2d0f808238fa, type: 3}
 --- !u!1 &5613246498361247357
 GameObject:
   m_ObjectHideFlags: 0
@@ -8903,6 +8978,7 @@ GameObject:
   - component: {fileID: 6386993497507821789}
   - component: {fileID: 2310801745094493563}
   - component: {fileID: 7715482285281412077}
+  - component: {fileID: 3923933002169934165}
   m_Layer: 5
   m_Name: playercheck1
   m_TagString: Untagged
@@ -9013,6 +9089,20 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls: []
+--- !u!114 &3923933002169934165
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6295204987985399793}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7ea97506092c10f4ab01ab98bfa8a893, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::UiButtonSfx
+  hoverClip: {fileID: 8300000, guid: f681a540ff0594648b84db7acb9a111a, type: 3}
+  clickClip: {fileID: 8300000, guid: 181c06a4dca92a842bdf2d0f808238fa, type: 3}
 --- !u!1 &6321697358285412842
 GameObject:
   m_ObjectHideFlags: 0
@@ -9056,6 +9146,7 @@ GameObject:
   - component: {fileID: 1349365050525638293}
   - component: {fileID: 2827312443773282720}
   - component: {fileID: 4972838177835443002}
+  - component: {fileID: 5259378422860678051}
   m_Layer: 5
   m_Name: agree
   m_TagString: Untagged
@@ -9165,6 +9256,20 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls: []
+--- !u!114 &5259378422860678051
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6356890088833903444}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7ea97506092c10f4ab01ab98bfa8a893, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::UiButtonSfx
+  hoverClip: {fileID: 8300000, guid: f681a540ff0594648b84db7acb9a111a, type: 3}
+  clickClip: {fileID: 8300000, guid: 181c06a4dca92a842bdf2d0f808238fa, type: 3}
 --- !u!1 &6531979088620925139
 GameObject:
   m_ObjectHideFlags: 0
@@ -10372,8 +10477,8 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 4783640968210152367}
   m_HandleRect: {fileID: 4169664710929734477}
   m_Direction: 2
-  m_Value: 0
-  m_Size: 0
+  m_Value: 1
+  m_Size: 1
   m_NumberOfSteps: 0
   m_OnValueChanged:
     m_PersistentCalls:
@@ -11388,6 +11493,7 @@ GameObject:
   - component: {fileID: 8568537754639195175}
   - component: {fileID: 600881817850542502}
   - component: {fileID: 5969080427975981727}
+  - component: {fileID: 92977610201283065}
   m_Layer: 5
   m_Name: playercheck3
   m_TagString: Untagged
@@ -11498,6 +11604,20 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls: []
+--- !u!114 &92977610201283065
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8351420752371266887}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7ea97506092c10f4ab01ab98bfa8a893, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::UiButtonSfx
+  hoverClip: {fileID: 8300000, guid: f681a540ff0594648b84db7acb9a111a, type: 3}
+  clickClip: {fileID: 8300000, guid: 181c06a4dca92a842bdf2d0f808238fa, type: 3}
 --- !u!1 &8494854231622526443
 GameObject:
   m_ObjectHideFlags: 0
