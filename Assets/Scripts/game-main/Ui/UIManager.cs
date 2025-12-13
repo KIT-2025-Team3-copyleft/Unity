@@ -63,7 +63,7 @@ public class UIManager : MonoBehaviour
     public TextMeshProUGUI judgmentText;
 
     [Header("Visual Cue")]
-    public GameObject judgmentCueObject; 
+    public GameObject judgmentCueObject;
     public GameObject lightningEffect;
     public GameObject flowerEffect;
 
@@ -80,7 +80,7 @@ public class UIManager : MonoBehaviour
     public TextMeshProUGUI ResultText;
     public Button BackToRoomButton;
     public Button GoRoomSearchButton;
-    public TextMeshProUGUI GameOverCountdownText; 
+    public TextMeshProUGUI GameOverCountdownText;
 
     private Coroutine gameOverCountdownCoroutine;
 
@@ -150,7 +150,7 @@ public class UIManager : MonoBehaviour
             if (judgmentText == null) Debug.LogError("❌ UIManager: judgmentText 참조 실패!");
         }
 
-     
+
         Transform historyPanelRoot = canvasRoot.Find("HistoryPanel");
         if (historyPanelRoot != null)
         {
@@ -307,24 +307,21 @@ public class UIManager : MonoBehaviour
             BackToRoomButton = gameOverPanelRoot.Find("BackToRoomButton")?.GetComponent<Button>();
             GoRoomSearchButton = gameOverPanelRoot.Find("GoRoomSearchButton")?.GetComponent<Button>();
         }
-        
+
         IsUILinked = true;
 
-        // 🌟 FIX: 게임 시작 직후 모든 UI 비활성화
         if (oraclePanel != null) oraclePanel.SetActive(false);
         if (cardSelectionPanel != null) cardSelectionPanel.SetActive(false);
         if (persistentOraclePanel != null) persistentOraclePanel.SetActive(false);
         if (persistentRolePanel != null) persistentRolePanel.SetActive(false);
         if (judgmentScroll != null) judgmentScroll.SetActive(false);
-        if (systemPanel != null) systemPanel.gameObject.SetActive(false);
+        if (systemPanel != null) systemPanel.gameObject.SetActive(false); 
 
-        // 🌟 FIX: 카드 토글 버튼, 히스토리, 채팅도 기본적으로 비활성화
         if (toggleCardButton != null) toggleCardButton.gameObject.SetActive(false);
         if (historyPanel != null) historyPanel.gameObject.SetActive(false);
         if (chatRoot != null) chatRoot.gameObject.SetActive(false);
         if (ResultPanel != null) ResultPanel.SetActive(false);
 
-        // 초기화 시 빈 딕셔너리로 색상 업데이트 (모두 white로 시작)
         UpdateSlotColorsFromRawData(new Dictionary<string, string>());
         Debug.Log($"[DEBUG 8] UIManager UI Link 완료. CardTexts Count: {cardTexts.Count}");
 
@@ -337,11 +334,15 @@ public class UIManager : MonoBehaviour
             countdownText.gameObject.SetActive(false);
         if (timerCircle != null)
             timerCircle.gameObject.SetActive(false);
+
+        if (AudioManager.I != null)
+        {
+            AudioManager.I.StopTimerTickSfx();
+        }
     }
 
 
 
-    // 히스토리 패널 열기/닫기 토글 함수
     public void ToggleHistoryPanel()
     {
         isHistoryOpen = !isHistoryOpen;
@@ -372,7 +373,7 @@ public class UIManager : MonoBehaviour
         historyPanel.anchoredPosition = new Vector2(historyPanel.anchoredPosition.x, targetY);
     }
 
-    
+
     public void AddHistoryItem(RoundResult msg, int roundNumber, string mission, Dictionary<string, string> slotPlayerColors)
     {
         if (HistoryItems == null || HistoryItems.Count == 0)
@@ -411,9 +412,9 @@ public class UIManager : MonoBehaviour
 
         if (role != "" && roleText != null)
         {
-                roleText.text = role;
-                currentRole = role;
-}
+            roleText.text = role;
+            currentRole = role;
+        }
 
         if (oraclePanel != null) oraclePanel.SetActive(true);
 
@@ -439,7 +440,7 @@ public class UIManager : MonoBehaviour
 
         if (persistentRolePanel != null)
         {
-            persistentRolePanel.SetActive(true); 
+            persistentRolePanel.SetActive(true);
             Debug.Log("✔ [Persistent UI] Persistent Role Panel 활성화 완료.");
         }
 
@@ -449,8 +450,8 @@ public class UIManager : MonoBehaviour
         }
 
         Canvas.ForceUpdateCanvases();
-        // 🌟 5초 후 oraclePanel만 숨김
-        StartCoroutine(HideOraclePanelAfterSeconds(5.0f));
+        // 🌟 FIX: 10초 후 oraclePanel만 숨김으로 변경 (이전 수정 복구)
+        StartCoroutine(HideOraclePanelAfterSeconds(10.0f));
     }
 
     private IEnumerator HideOraclePanelAfterSeconds(float seconds)
@@ -576,12 +577,10 @@ public class UIManager : MonoBehaviour
         Debug.Log("✔ 렌더링 후속 갱신 완료 (텍스트/호버 반영 기대).");
     }
 
-    // 🌟 FIX: mySlot이 대소문자가 섞여있을 경우를 대비하여 OrdinalIgnoreCase 사용
     public string GetSlotIdFromRole(string roleName)
     {
         for (int i = 0; i < SlotVisualOrder.Length; i++)
         {
-            // 🌟 대소문자 무시 비교 (OrdinalIgnoreCase)
             if (SlotVisualOrder[i].Equals(roleName, StringComparison.OrdinalIgnoreCase))
             {
                 return $"slot{i + 1}";
@@ -591,7 +590,6 @@ public class UIManager : MonoBehaviour
         return "slot1";
     }
 
-    // 🌟 FIX: 라운드 시작 시 슬롯 텍스트를 초기화하는 함수 추가
     public void ResetSentenceSlots()
     {
         // 🌟 저장된 slotRoleNames를 초기 상태로 리셋
@@ -616,6 +614,8 @@ public class UIManager : MonoBehaviour
             bool isActive = cardSelectionPanel.activeSelf;
             cardSelectionPanel.SetActive(!isActive);
             Debug.Log($"[UI] 카드 패널 활성화 상태 토글: {!isActive}");
+
+            // CardToggleSfx가 사운드를 처리하므로, 여기서 AudioManager 호출 코드를 제거합니다.
         }
     }
 
@@ -854,14 +854,22 @@ public class UIManager : MonoBehaviour
         if (lightningEffect != null) lightningEffect.SetActive(false);
         if (flowerEffect != null) flowerEffect.SetActive(false);
 
+        // 🌟 FIX: 심판 사운드 재생 시작
+        if (AudioManager.I != null)
+        {
+            AudioManager.I.StartJudgmentSfx(cue.effect);
+        }
+
+        float visualDuration = 13.0f; // 🌟 FIX: 시각 효과 지속 시간을 10.0초로 연장
+
         if (cue.effect == "LIGHTNING" && lightningEffect != null)
         {
-            StartCoroutine(ActivateAndDeactivateEffect(lightningEffect, 3.0f));
+            StartCoroutine(ActivateAndDeactivateEffect(lightningEffect, visualDuration));
             Debug.Log("⚡ 번개 이펙트 재생 시작.");
         }
         else if (cue.effect == "FLOWER" && flowerEffect != null)
         {
-            StartCoroutine(ActivateAndDeactivateEffect(flowerEffect, 3.0f));
+            StartCoroutine(ActivateAndDeactivateEffect(flowerEffect, visualDuration));
             Debug.Log("🌸 꽃잎 이펙트 재생 시작.");
         }
         else
@@ -884,12 +892,20 @@ public class UIManager : MonoBehaviour
     {
         float timer = totalTime;
 
+        // 🌟 FIX: 타이머 틱 사운드 재생 시작 로직 추가 (timerSource 사용)
+        if (AudioManager.I != null)
+        {
+            AudioManager.I.StartTimerTickSfx();
+        }
+
         if (countdownText != null) countdownText.gameObject.SetActive(true);
         if (timerCircle != null) timerCircle.gameObject.SetActive(true);
 
         if (countdownText == null || timerCircle == null)
         {
             Debug.LogError("❌ StartTimer: 필수 UI 컴포넌트(Text 또는 Circle)가 연결되지 않아 타이머를 시작할 수 없습니다.");
+            // 에러 발생 시 사운드 정지
+            if (AudioManager.I != null) AudioManager.I.StopTimerTickSfx();
             yield break;
         }
 
@@ -911,6 +927,12 @@ public class UIManager : MonoBehaviour
         // 타이머 끝나면 UI 숨기기
         if (countdownText != null) countdownText.gameObject.SetActive(false);
         if (timerCircle != null) timerCircle.gameObject.SetActive(false);
+
+        // 🌟 FIX: 타이머 틱 사운드 정지 로직 추가 (timerSource 정지)
+        if (AudioManager.I != null)
+        {
+            AudioManager.I.StopTimerTickSfx();
+        }
 
         onTimerEnd?.Invoke();
     }
@@ -1015,5 +1037,4 @@ public class UIManager : MonoBehaviour
             ResultPanel.SetActive(false);
         }
     }
-
 }

@@ -26,8 +26,8 @@ public class GameManager : MonoBehaviour
     [Header("Judgment Animation Positions")]
     public Transform judgmentZoomPosition;
     public Transform judgmentFinalPosition;
-    public float zoomDuration = 3f; // 시간 조정 유지
-    public float settleDuration = 2f; // 시간 조정 유지
+    public float zoomDuration = 2.0f; // 🌟 FIX: 카메라 전환 속도 2.0s
+    public float settleDuration = 2.0f; // 🌟 FIX: 카메라 전환 속도 2.0s
 
     [Header("Village State")]
     public int currentHP = 100;
@@ -44,8 +44,8 @@ public class GameManager : MonoBehaviour
     public string mySlot;
 
     public string currentRole;
-    public string currentOracle; // 👈 신탁 텍스트를 저장할 변수 추가
-    public bool cardSelectedCompleted = false; // 👈 상태 플래그 추가
+    public string currentOracle;
+    public bool cardSelectedCompleted = false;
 
     public GameObject localPlayerObject { get; private set; }
 
@@ -63,7 +63,7 @@ public class GameManager : MonoBehaviour
     [System.Serializable]
     public class GameOverMessage : MessageWrapper
     {
-        public string message; // "시민 승리!" 또는 "배신자 승리!" 등
+        public string message;
         public GameOverData data;
     }
 
@@ -103,7 +103,7 @@ public class GameManager : MonoBehaviour
         if (!string.IsNullOrEmpty(sessionId) && MySessionId != sessionId)
         {
             MySessionId = sessionId;
-            Debug.Log($"[GM] 로컬 세션 ID가 서버 ID로 설정됨: {MySessionId}");
+            //Debug.Log($"[GM] 로컬 세션 ID가 서버 ID로 설정됨: {MySessionId}");
         }
     }
 
@@ -112,7 +112,7 @@ public class GameManager : MonoBehaviour
     {
         SetupWebSocket();
         SetupMySessionId();
-        Debug.Log("[GM] Start 호출됨");
+        //Debug.Log("[GM] Start 호출됨");
     }
 
     private void SetupWebSocket()
@@ -132,7 +132,7 @@ public class GameManager : MonoBehaviour
     {
         if (string.IsNullOrEmpty(MySessionId) || MySessionId == "SESSION_ID_PLACEHOLDER")
         {
-            Debug.LogWarning("MySessionId가 로비에서 설정되지 않았습니다. 임시 ID 사용.");
+            //Debug.LogWarning("MySessionId가 로비에서 설정되지 않았습니다. 임시 ID 사용.");
             MySessionId = "TEMP_LOCAL_PLAYER_ID";
         }
     }
@@ -143,7 +143,6 @@ public class GameManager : MonoBehaviour
         {
             AutoLinkSceneObjects();
 
-            // GamePlayScene 로드 후 1인칭 카메라로 전환
             if (firstPersonCamera != null)
             {
                 SwitchCamera(firstPersonCamera);
@@ -152,7 +151,6 @@ public class GameManager : MonoBehaviour
             StartCoroutine(WaitForVoteUIManagerAndLink());
         }
 
-        // TMP_InputField listener 재연결
         if (chatInput != null)
         {
             chatInput.onSubmit.RemoveAllListeners();
@@ -171,7 +169,7 @@ public class GameManager : MonoBehaviour
 
         localPlayerObject = localPlayer;
 
-        Debug.Log($"[GM] 로컬 플레이어 오브젝트 및 카메라 참조 저장 완료.");
+        //Debug.Log($"[GM] 로컬 플레이어 오브젝트 및 카메라 참조 저장 완료.");
 
     }
 
@@ -193,28 +191,27 @@ public class GameManager : MonoBehaviour
                 topDownCamera.transform.rotation = topDownStartRot;
             }
         }
-        // LobbyScene에서는 아무것도 찾지 않음.
 
         Debug.Log("[GM] 씬 오브젝트 자동 연결 복구 완료");
     }
 
     public IEnumerator WaitForUIManagerAndLink()
     {
-        Debug.Log("🔄 [GM 코루틴] UIManager 준비 대기 및 UI 연결 코루틴 시작.");
+        //Debug.Log("🔄 [GM 코루틴] UIManager 준비 대기 및 UI 연결 코루틴 시작.");
 
         while (UIManager.Instance == null)
         {
             yield return null;
         }
 
-        Debug.Log("✅ [GM 코魯틴] UIManager 준비 완료. UI 연결을 시도합니다.");
+        //Debug.Log("✅ [GM 코루틴] UIManager 준비 완료. UI 연결을 시도합니다.");
         if (localPlayerObject != null)
         {
             UIManager.Instance.LinkLocalPlayerUIElements(localPlayerObject);
             Debug.Log("✔ UIManager에 로컬 플레이어 UI 요소 연결 완료.");
         }
 
-        Debug.Log("✅ [GM 코루틴] UIManager 준비 완료. 메시지 처리를 기다립니다.");
+        //Debug.Log("✅ [GM 코루틴] UIManager 준비 완료. 메시지 처리를 기다립니다.");
 
         if (localPlayerObject != null && systemMessageText != null)
         {
@@ -251,6 +248,12 @@ public class GameManager : MonoBehaviour
         switch (eventType)
         {
             case "VOTE_PROPOSAL_START":
+                if (UIManager.Instance != null)
+                    UIManager.Instance.StopGameOverCountdown();
+                if (AudioManager.I != null)
+                    AudioManager.I.StopJudgmentSfx();
+                goto case "TRIAL_RESULT";
+
             case "VOTE_PROPOSAL_UPDATE":
             case "VOTE_PROPOSAL_FAILED":
             case "TRIAL_START":
@@ -258,7 +261,6 @@ public class GameManager : MonoBehaviour
             case "TRIAL_RESULT":
                 if (VoteManager.Instance != null)
                 {
-                    
                     Debug.Log($"[GM] Vote 이벤트 전달: {eventType}");
                     VoteManager.Instance.OnVoteEvent(json);
                 }
@@ -288,13 +290,11 @@ public class GameManager : MonoBehaviour
 
             case "NEXT_ROUND_START":
                 RoundStartMessage startMsg = JsonUtility.FromJson<RoundStartMessage>(json);
-                StartCoroutine(ShowUIAfterLinking(json, "NEXT_ROUND_START", startMsg.mySlot, startMsg.cards));
                 break;
 
             case "RECEIVE_CARDS":
                 ReceiveCardsMessage rcMsg = JsonUtility.FromJson<ReceiveCardsMessage>(json);
 
-                // 🌟 FIX: SlotOwner 정보를 UIManager로 직접 전달하여 캔버스 색상 업데이트
                 if (UIManager.Instance != null && rcMsg.data.slotOwners != null)
                 {
                     Dictionary<string, string> slotColorMap = new Dictionary<string, string>();
@@ -305,7 +305,10 @@ public class GameManager : MonoBehaviour
                     UIManager.Instance.UpdateSlotColorsFromRawData(slotColorMap);
                 }
 
-                StartCoroutine(ShowUIAfterLinking(json, "RECEIVE_CARDS", rcMsg.data.slotType, rcMsg.data.cards));
+                if (RoundManager.Instance != null)
+                {
+                    RoundManager.Instance.HandleReceiveCards(rcMsg);
+                }
                 break;
 
             case "PLAYER_SLOT_ASSIGNMENT":
@@ -327,6 +330,10 @@ public class GameManager : MonoBehaviour
 
             case "ALL_CARDS_SELECTED":
                 RoundManager.Instance.HandleInterpretationEnd(JsonUtility.FromJson<InterpretationEnd>(json));
+                if (RoundManager.Instance != null)
+                {
+                    RoundManager.Instance.HandleCardSelectionConfirmed();
+                }
                 break;
 
             case "ROUND_RESULT":
@@ -345,12 +352,10 @@ public class GameManager : MonoBehaviour
 
             case "GAME_OVER":
                 Debug.Log($"[GM] GAME_OVER 이벤트 수신. JSON: {json}");
-                // 🌟 수정: 새로운 구조체로 파싱
-                GameOverMessage gameOverMsg = JsonUtility.FromJson<GameOverMessage>(json);
+                GameOverMessage gameOverMsg = JsonUtility.FromJson<GameOverMessage>(json);
                 if (gameOverMsg != null)
                 {
-                    // data 객체 전체를 넘기는 대신, 필요한 message와 winnerRole을 직접 전달
-                    HandleGameOver(gameOverMsg.message, gameOverMsg.data.winnerRole);
+                    HandleGameOver(gameOverMsg.message, gameOverMsg.data.winnerRole);
                 }
                 else
                 {
@@ -374,7 +379,6 @@ public class GameManager : MonoBehaviour
             {
                 PlayerManager pm = players[assignment.sessionId];
 
-                // 다른 플레이어의 슬롯도 업데이트합니다.
                 pm.slot = assignment.slot;
 
                 Debug.Log($"[GM Assign] Player {assignment.sessionId} assigned slot: {assignment.slot}");
@@ -383,7 +387,6 @@ public class GameManager : MonoBehaviour
 
         if (UIManager.Instance != null)
         {
-            // 모든 플레이어의 슬롯이 업데이트된 후 색상을 업데이트합니다.
             UIManager.Instance.UpdateSlotColorsFromPlayers();
             Debug.Log("✔ [GM Assign] PLAYER_SLOT_ASSIGNMENT 처리 후 UIManager.UpdateSlotColorsFromPlayers() 호출 완료.");
         }
@@ -419,7 +422,6 @@ public class GameManager : MonoBehaviour
             Debug.Log("✔ UIManager에 로컬 플레이어 UI 요소 연결 완료.");
         }
 
-        RoundStartMessage startMsg = null;
         ShowRoleMessage roleMsg = null;
         ShowOracleMessage oracleMsg = null;
 
@@ -436,7 +438,6 @@ public class GameManager : MonoBehaviour
                 case "SHOW_ORACLE":
                     oracleMsg = JsonUtility.FromJson<ShowOracleMessage>(json);
                     currentOracle = oracleMsg.data.oracle;
-                    UIManager.Instance.ShowOracleAndRole(currentOracle, "", 1);
                     break;
 
                 case "SHOW_ROLE":
@@ -452,57 +453,6 @@ public class GameManager : MonoBehaviour
 
                     if (roleMsg.data.role.ToLower() == "traitor")
                         UIManager.Instance.ShowTraitorInfo(roleMsg.data.godPersonality);
-
-                    yield return new WaitForSeconds(6.0f);
-                    break;
-
-                /*case "NEXT_ROUND_START":
-                    startMsg = JsonUtility.FromJson<RoundStartMessage>(json);
-                    mySlot = startMsg.mySlot; // GameManager의 mySlot 업데이트
-
-                    if (localPm != null)
-                    {
-                        localPm.SetRoleAndCards(myRole, mySlot);
-                    }
-
-                    UIManager.Instance.ShowOracleAndRole(startMsg.mission, "", startMsg.currentRound);
-
-                    yield return new WaitForSeconds(5.0f);
-
-                    if (RoundManager.Instance != null)
-                    {
-                        RoundManager.Instance.HandleRoundStart(startMsg);
-                    }
-                    break;*/
-
-                case "RECEIVE_CARDS":
-                    mySlot = mySlotOverride; // RECEIVE_CARDS는 mySlot을 직접 오버라이드
-
-                    if (localPm != null)
-                    {
-                        // myRole은 SHOW_ROLE에서 받은 값을 사용
-                        localPm.SetRoleAndCards(myRole, mySlot);
-                        Debug.Log($"[DEBUG 3] PlayerManager 슬롯 할당 완료: {mySlot}. Color: {localPm.colorName}");
-                    }
-                    else
-                    {
-                        Debug.LogError($"[DEBUG 3] localPm이 null이어서 슬롯 할당 실패. mySlot={mySlot}");
-                    }
-
-                    if (RoundManager.Instance != null)
-                    {
-                        RoundStartMessage tempStartMsg = new RoundStartMessage
-                        {
-                            cards = cardsOverride,
-                            mySlot = mySlot,
-                            mission = currentOracle,
-                            timeLimit = 120,
-                            currentRound = 0, // 👈 0으로 설정하여 RoundManager가 1로 증가시키도록 위임
-                            // slotColors는 로컬에서 PlayerManager의 colorName을 기반으로 생성됩니다.
-                        };
-
-                        RoundManager.Instance.HandleRoundStart(tempStartMsg);
-                    }
 
                     break;
             }
@@ -625,13 +575,37 @@ public class GameManager : MonoBehaviour
 
     private IEnumerator JudgmentSequence(RoundResult msg)
     {
+        // 🌟 서버 요청: ROUND_RESULT 후 45초간 심판 시퀀스 (총 시간)
+        const float TotalJudgmentTime = 45.0f;
+
+        // --- 1. 클라이언트 내부 타이밍 설정 (총 45초에 맞춰 조정) ---
+        // 카메라 전환 시간 (4.0s)
+        float cameraTime = zoomDuration + settleDuration; // 2.0s + 2.0s = 4.0s
+
+        // UI 표시 시간
+        float preSentenceWait = 4.0f; // 문장 표시 전 텀 (4.0s)
+        float displaySentenceTime = 12.0f; // 완성 문장 표시 (12.0s)
+        float displayReasonTime = 12.0f; // 심판 이유 표시 (12.0s)
+        float visualCueTime = 10.0f; // 이펙트 및 사운드 지속 (10.0s)
+
+        // 총 고정 시간 계산
+        float totalFixedTime = cameraTime + preSentenceWait + displaySentenceTime + displayReasonTime + visualCueTime; // 4.0 + 4.0 + 12.0 + 12.0 + 10.0 = 42.0s
+        float remainingTime = TotalJudgmentTime - totalFixedTime; 
+
+        if (remainingTime < 0)
+        {
+            Debug.LogError($"[GM] 심판 시퀀스 할당 시간이 {TotalJudgmentTime}초를 초과했습니다! 초과 시간: {Mathf.Abs(remainingTime)}초");
+            remainingTime = 0;
+        }
+        // --- End 타이밍 설정 ---
+
         if (topDownCamera != null)
         {
             topDownCamera.transform.position = topDownStartPos;
             topDownCamera.transform.rotation = topDownStartRot;
         }
 
-        // 🌟 심판 시퀀스 시작 시 UI OFF (SwitchCamera 내부에서 처리)
+        // 1. 카메라 이동 및 심판 UI 켜기
         SwitchCamera(topDownCamera);
 
         if (UIManager.Instance.cardSelectionPanel != null)
@@ -639,51 +613,61 @@ public class GameManager : MonoBehaviour
         if (UIManager.Instance.toggleCardButton != null)
             UIManager.Instance.toggleCardButton.gameObject.SetActive(false);
 
+        // 1.1 카메라 줌 (2.0s)
         yield return StartCoroutine(AnimateCameraTransform(topDownCamera, judgmentZoomPosition, zoomDuration));
+
+        // 1.2 카메라 정착 (2.0s)
         yield return StartCoroutine(AnimateCameraTransform(topDownCamera, judgmentFinalPosition, settleDuration));
 
-        yield return new WaitForSeconds(3.5f);
+        // 🌟 문장 표시 전 텀 (4.0s)
+        yield return new WaitForSeconds(preSentenceWait);
 
- 
+        // 2. 완성된 문장 표시 (12.0s)
         UIManager.Instance.DisplaySentence(msg.fullSentence);
         if (UIManager.Instance.judgmentScroll != null)
             UIManager.Instance.judgmentScroll.SetActive(true);
-        yield return new WaitForSeconds(7.0f);
+        yield return new WaitForSeconds(displaySentenceTime);
+
+        // 3. 심판 이유 표시 (12.0s)
         UIManager.Instance.DisplayJudgmentReason(msg.reason);
-        yield return new WaitForSeconds(7.0f);
+        yield return new WaitForSeconds(displayReasonTime);
 
-        yield return new WaitForSeconds(3.0f);
-
+        // 4. 이펙트 및 사운드 재생 (13.0s)
         SwitchCamera(observerCamera);
 
         VisualCue customCue = new VisualCue();
 
         if (msg.score < 0)
         {
-            // 점수가 0 미만이면 번개 이펙트
             customCue.effect = "LIGHTNING";
         }
         else
         {
-            // 점수가 0 이상이면 꽃잎 이펙트
             customCue.effect = "FLOWER";
         }
 
         UIManager.Instance.PlayVisualCue(customCue);
 
-        /*string score = (msg.score).ToString();
-        UIManager.Instance.DisplayJudgmentReason(score);*/
+        // 이펙트/사운드 재생 시간
+        yield return new WaitForSeconds(visualCueTime);
 
-        yield return new WaitForSeconds(7.0f);
 
-        // 🌟 심판 시퀀스 끝, UI ON (SwitchCamera 내부에서 처리)
+        if (remainingTime > 0)
+        {
+            Debug.Log($"[GM] 심판 시퀀스 남은 시간 {remainingTime:F2}초 동안 관찰 카메라 유지.");
+            yield return new WaitForSeconds(remainingTime);
+        }
+
+        // 6. 심판 시퀀스 끝, UI ON
         SwitchCamera(firstPersonCamera);
         if (UIManager.Instance.judgmentScroll != null)
             UIManager.Instance.judgmentScroll.SetActive(false);
 
-        yield return new WaitForSeconds(5.0f);
+        if (AudioManager.I != null)
+        {
+            AudioManager.I.StopJudgmentSfx();
+        }
     }
-
 
 
     public void SwitchCamera(Camera targetCamera)
@@ -694,7 +678,6 @@ public class GameManager : MonoBehaviour
         if (observerCamera != null) observerCamera.enabled = (targetCamera == observerCamera);
         if (topDownCamera != null) topDownCamera.enabled = (targetCamera == topDownCamera);
 
-        // 🌟 UI 활성화/비활성화 제어
         if (UIManager.Instance != null)
             UIManager.Instance.SetGameUIActive(isFirstPerson);
     }
@@ -707,7 +690,7 @@ public class GameManager : MonoBehaviour
 
     // ============================ GAME OVER LOGIC ===============================
 
-    public void HandleGameOver(string serverMessage, string winnerRole) 
+    public void HandleGameOver(string serverMessage, string winnerRole)
     {
         StopAllCoroutines();
 
@@ -717,7 +700,7 @@ public class GameManager : MonoBehaviour
         if (UIManager.Instance != null)
         {
             UIManager.Instance.ShowGameOverResult(
-                finalMessage, // 예: "시민 승리!"
+                finalMessage,
                 SendBackToRoomAction,
                 GoToRoomSearchScene
             );
@@ -751,7 +734,7 @@ public class GameManager : MonoBehaviour
         {
             WebSocketManager.Instance.SendLeaveRoom();
         }
-        
+
         // 플레이어 데이터 클리어 (필수)
         players.Clear();
         usedColors.Clear();
