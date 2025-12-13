@@ -9,7 +9,6 @@ public class RoundManager : MonoBehaviour
     public int currentRound = 0;
     private string currentMission = "";
 
-    // 🌟 추가: 카드 선택 타이머 코루틴을 저장할 변수
     private Coroutine cardSelectionTimerCoroutine;
 
     private void Awake()
@@ -28,32 +27,25 @@ public class RoundManager : MonoBehaviour
         }
     }
 
-    // 🌟🌟🌟 서버로부터 RECEIVE_CARDS 이벤트를 받았을 때 호출됩니다.
     public void HandleReceiveCards(ReceiveCardsMessage msg)
     {
-        // 🌟🌟🌟 클라이언트에서 라운드 번호 증가
         currentRound++;
         Debug.Log($"[RoundManager] New Round Started (Cards Received): Round {currentRound}");
 
-        // currentMission은 GameManager에 저장된 currentOracle을 사용
         currentMission = GameManager.Instance.currentOracle;
 
-        // 🌟🌟🌟 FIX: 이전 라운드에 선택된 단어 슬롯 초기화 🌟🌟🌟
         if (UIManager.Instance != null)
         {
             UIManager.Instance.ResetSentenceSlots();
         }
 
-        // 🌟 mySlot 업데이트
         GameManager.Instance.mySlot = msg.data.slotType;
 
-        // 🌟🌟🌟 상태 초기화
         if (GameManager.Instance != null)
         {
             GameManager.Instance.cardSelectedCompleted = false;
         }
 
-        // 🌟🌟🌟 (1) 이전 타이머가 있다면 취소
         if (cardSelectionTimerCoroutine != null)
         {
             StopCoroutine(cardSelectionTimerCoroutine);
@@ -61,7 +53,6 @@ public class RoundManager : MonoBehaviour
         }
         UIManager.Instance.HideTimerUI();
 
-        // 🌟🌟🌟 (2) 카드 리스트 확인
         if (msg.data.cards != null)
         {
             Debug.Log($"[RoundManager] Received Cards Count: {msg.data.cards.Count}");
@@ -72,7 +63,6 @@ public class RoundManager : MonoBehaviour
             Debug.LogWarning("[RoundManager] Received Cards list is NULL!");
         }
 
-        // 🌟🌟🌟 (3) 타이머 시작 (서버 요청에 따라 120초로 고정)
         int selectionTime = 120;
 
         if (this.isActiveAndEnabled)
@@ -86,7 +76,6 @@ public class RoundManager : MonoBehaviour
     }
 
 
-    // 카드 선택 시작
     private IEnumerator StartCardSelection(List<string> cards, int selectionTime)
     {
         if (cardSelectionTimerCoroutine != null)
@@ -96,21 +85,18 @@ public class RoundManager : MonoBehaviour
         }
         UIManager.Instance.HideTimerUI();
 
-        // UI 활성화 이전에 1프레임 대기하여 모든 UI 컴포넌트가 활성화되도록 보장
         yield return null;
 
-        // 🌟🌟🌟 FIX: 카드 선택 관련 UI 활성화 🌟🌟🌟
         if (UIManager.Instance != null)
         {
             if (UIManager.Instance.toggleCardButton != null)
-                UIManager.Instance.toggleCardButton.gameObject.SetActive(true); // 카드 토글 버튼 ON
+                UIManager.Instance.toggleCardButton.gameObject.SetActive(true); 
             if (UIManager.Instance.historyPanel != null)
-                UIManager.Instance.historyPanel.gameObject.SetActive(true); // 히스토리 패널 ON
+                UIManager.Instance.historyPanel.gameObject.SetActive(true); 
             if (UIManager.Instance.chatRoot != null)
-                UIManager.Instance.chatRoot.gameObject.SetActive(true); // 채팅 ON
+                UIManager.Instance.chatRoot.gameObject.SetActive(true);
         }
 
-        // 카드 선택 UI 활성화 (SetupCardButtons 내부에서 cardSelectionPanel이 true가 됨)
         UIManager.Instance.SetupCardButtons(cards);
         Debug.Log($"[DEBUG 5] SetupCardButtons 호출 완료. Cards Count: {cards?.Count ?? 0}");
 
@@ -118,26 +104,22 @@ public class RoundManager : MonoBehaviour
             UIManager.Instance.StartTimer(selectionTime, () =>
             {
                 UIManager.Instance.AutoSelectRandomCard();
-                cardSelectionTimerCoroutine = null; // 자동 선택 완료 후 참조 해제
+                cardSelectionTimerCoroutine = null; 
             })
         );
         Debug.Log($"[DEBUG 6] UIManager.StartTimer 호출 완료. Time: {selectionTime}");
     }
 
-    // 카드 선택 완료(개인) - 서버로부터 CARD_SELECTION_CONFIRMED 수신 시 호출
     public void HandleCardSelectionConfirmed()
     {
-        // 🌟🌟🌟 (3) 플레이어 수동 선택 시 타이머 취소 🌟🌟🌟
         if (cardSelectionTimerCoroutine != null)
         {
             StopCoroutine(cardSelectionTimerCoroutine);
             cardSelectionTimerCoroutine = null;
         }
 
-        // 🌟🌟🌟 (4) UI에서도 타이머 숨기기 🌟🌟🌟
         UIManager.Instance.HideTimerUI();
 
-        // 카드 선택 UI 비활성화
         UIManager.Instance.DisableMyCards();
         UIManager.Instance.ShowSystemMessage("카드 선택이 확인되었습니다.");
     }

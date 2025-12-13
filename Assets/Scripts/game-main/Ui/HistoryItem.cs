@@ -5,10 +5,9 @@ using TMPro;
 
 public class HistoryItem : MonoBehaviour
 {
-    // UIManager의 SlotVisualOrder를 기반으로 매핑을 정의합니다.
     private readonly string[] SlotVisualOrder = { "SUBJECT", "TARGET", "HOW", "ACTION" };
 
-    // 🌟 추가: 라운드 번호와 신탁
+    // 라운드 번호와 신탁
     public TextMeshProUGUI roundText;
     public TextMeshProUGUI OracleText;
 
