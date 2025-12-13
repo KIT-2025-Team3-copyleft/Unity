@@ -26,8 +26,8 @@ public class GameManager : MonoBehaviour
     [Header("Judgment Animation Positions")]
     public Transform judgmentZoomPosition;
     public Transform judgmentFinalPosition;
-    public float zoomDuration = 2.0f; // 🌟 FIX: 카메라 전환 속도 2.0s
-    public float settleDuration = 2.0f; // 🌟 FIX: 카메라 전환 속도 2.0s
+    public float zoomDuration = 2.0f; 
+    public float settleDuration = 2.0f; 
 
     [Header("Village State")]
     public int currentHP = 100;
@@ -51,7 +51,6 @@ public class GameManager : MonoBehaviour
 
     private List<string> availableColors = new List<string> { "red", "blue", "green", "yellow", "pink" };
     private List<string> usedColors = new List<string>();
-    // Session ID를 키로 PlayerManager를 저장합니다.
     private Dictionary<string, PlayerManager> players = new Dictionary<string, PlayerManager>();
 
     [System.Serializable]
