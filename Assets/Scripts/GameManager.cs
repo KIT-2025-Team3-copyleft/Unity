@@ -729,6 +729,11 @@ public class GameManager : MonoBehaviour
 
     public void GoToRoomSearchScene()
     {
+        if (UIManager.Instance != null)
+        {
+            UIManager.Instance.StopGameOverCountdown(); // 실행 중인 카운트다운 중지
+            UIManager.Instance.HideGameOverUI();       // 게임 오버 패널 숨기기
+        }
         Debug.Log("[GM] 룸 서치 씬(RoomSearchScene)으로 이동 시작. 모든 데이터 클리어.");
         if (WebSocketManager.Instance != null && WebSocketManager.Instance.IsConnected)
         {
