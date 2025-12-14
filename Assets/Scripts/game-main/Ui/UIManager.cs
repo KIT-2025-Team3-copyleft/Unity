@@ -626,7 +626,7 @@ public class UIManager : MonoBehaviour
             if (i >= SlotVisualOrder.Length) continue;
             string slotRoleName = SlotVisualOrder[i];
 
-            string colorName = "white";
+            string colorName = "black";
 
             if (slotRoleColors != null && slotRoleColors.ContainsKey(slotRoleName))
             {
