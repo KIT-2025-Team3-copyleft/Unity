@@ -1390,6 +1390,8 @@ MonoBehaviour:
   judgmentSource: {fileID: 1714019577}
   titleToLobbyBgm: {fileID: 8300000, guid: c543c75ed3b71b34292fb4615dc569bc, type: 3}
   timerTickClip: {fileID: 8300000, guid: c5e2a73ad4706440f93bf05df0b465fe, type: 3}
+  step1StartSfx: {fileID: 8300000, guid: f43cec13d6ae89241aadea2bd14f4194, type: 3}
+  step2StartSfx: {fileID: 8300000, guid: 8cbbb7a9197f0bd4489c18c0158c10d0, type: 3}
   lightningClip: {fileID: 8300000, guid: 6deaa88591ee46e478a7559a5f49ce58, type: 3}
   flowerClip: {fileID: 8300000, guid: 917960076d82bc74e9d88c114d68aef1, type: 3}
   bgmVolume: 0.3
@@ -2059,8 +2061,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: -0.3623}
-  m_SizeDelta: {x: 1920, y: 1122.7397}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 1920, y: 1080}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1242129999
 MonoBehaviour:

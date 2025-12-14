@@ -53,6 +53,8 @@ public class GameManager : MonoBehaviour
     private List<string> usedColors = new List<string>();
     private Dictionary<string, PlayerManager> players = new Dictionary<string, PlayerManager>();
 
+
+
     [System.Serializable]
     public class GameOverData
     {
@@ -694,6 +696,10 @@ public class GameManager : MonoBehaviour
         StopAllCoroutines();
 
         Debug.Log($"[GM] 게임 종료! 서버 메시지: {serverMessage}, 승리 역할: {winnerRole}");
+        if (AudioManager.I != null)
+        {
+            AudioManager.I.PlaySfx(AudioManager.I.gameOverSfx);
+        }
         string finalMessage = serverMessage;
 
         if (UIManager.Instance != null)

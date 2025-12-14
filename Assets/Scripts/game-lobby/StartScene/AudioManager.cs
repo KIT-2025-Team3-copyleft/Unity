@@ -16,6 +16,14 @@ public class AudioManager : MonoBehaviour
     [Header("Clips")]
     [SerializeField] private AudioClip titleToLobbyBgm;
     [SerializeField] private AudioClip timerTickClip;
+
+    [SerializeField] public AudioClip step1StartSfx;
+    [SerializeField] public AudioClip step2StartSfx;
+    [SerializeField] public AudioClip trialSuccessSfx;
+    [SerializeField] public AudioClip trialFailSfx;
+    [SerializeField] public AudioClip gameOverSfx;
+    // 🌟 심판 클립 (UIManager/GameManager 호환성을 위해 필요)
+
     [SerializeField] private AudioClip lightningClip;
     [SerializeField] private AudioClip flowerClip;
 
