@@ -860,7 +860,7 @@ public class UIManager : MonoBehaviour
             AudioManager.I.StartJudgmentSfx(cue.effect);
         }
 
-        float visualDuration = 13.0f; // 🌟 FIX: 시각 효과 지속 시간을 10.0초로 연장
+        float visualDuration = 8.0f; 
 
         if (cue.effect == "LIGHTNING" && lightningEffect != null)
         {
@@ -884,6 +884,10 @@ public class UIManager : MonoBehaviour
         {
             effectObject.SetActive(true);
             yield return new WaitForSeconds(duration);
+            if (AudioManager.I != null)
+            {
+                AudioManager.I.StopJudgmentSfx();
+            }
             effectObject.SetActive(false);
         }
     }

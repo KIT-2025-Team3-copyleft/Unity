@@ -9,8 +9,8 @@ public class PlayerManager : MonoBehaviour
     public string godPersonality; 
     public string colorName;
     public bool actionCompleted = false;
-
     public bool isHost = false;
+    public bool isConnected = true;
 
     private Renderer playerRenderer;
 
@@ -53,5 +53,10 @@ public class PlayerManager : MonoBehaviour
     public void MarkActionCompleted()
     {
         actionCompleted = true;
+    }
+    public void MarkDisconnected()
+    {
+        isConnected = false;
+        gameObject.SetActive(false);
     }
 }

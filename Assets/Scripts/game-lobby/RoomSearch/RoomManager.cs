@@ -272,7 +272,11 @@ public class RoomManager : MonoBehaviour
         Debug.Log($"[RoomManager] LOBBY_UPDATE processed: RoomId={CurrentRoom.roomId}, " +
                   $"Players={players.Length}, HostNick={HostNickname}, MyNick={myNick}, IsHost={IsHost}");
 
-       
+        if (SceneManager.GetActiveScene().name == "GamePlay" && GameManager.Instance != null)
+        {
+            GameManager.Instance.UpdatePlayerConnections(players);
+        }
+
 
         if (CurrentRoom.status == "WAITING" || CurrentRoom.status == "STARTING")
         {
