@@ -730,7 +730,7 @@ public class UIManager : MonoBehaviour
                 {
                     if (slotText != null)
                     {
-                        slotText.color = Color.black;
+                        slotText.color = Color.white;
                         slotText.text = hoveredWord;
                         slotText.ForceMeshUpdate();
                     }
