@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.SceneManagement;
 using System.Collections;
+using System;
 
 public class AudioManager : MonoBehaviour
 {
@@ -8,11 +9,28 @@ public class AudioManager : MonoBehaviour
 
     [Header("Sources")]
     [SerializeField] private AudioSource bgmSource;
-    [SerializeField] private AudioSource sfxSource;
+    [SerializeField] private AudioSource sfxSource;           
+    [SerializeField] private AudioSource timerSource;         
+    [SerializeField] private AudioSource judgmentSource;      
 
     [Header("Clips")]
     [SerializeField] private AudioClip titleToLobbyBgm;
+    [SerializeField] private AudioClip timerTickClip;
+
+    [SerializeField] public AudioClip step1StartSfx;
+    [SerializeField] public AudioClip step2StartSfx;
+    [SerializeField] public AudioClip trialSuccessSfx;
+    [SerializeField] public AudioClip trialFailSfx;
+    [SerializeField] public AudioClip gameOverSfx;
+    // 🌟 심판 클립 (UIManager/GameManager 호환성을 위해 필요)
+
+    [SerializeField] private AudioClip lightningClip;
+    [SerializeField] private AudioClip flowerClip;
+
+    [Header("Volume")]
     [SerializeField] private float bgmVolume = 0.6f;
+    [SerializeField] private float tickVolume = 0.8f;
+    [SerializeField] private float judgmentVolume = 0.9f;
 
     private AudioClip currentBgm;
 
@@ -42,7 +60,11 @@ public class AudioManager : MonoBehaviour
 
     private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
-        // 씬 로드 직후 카메라/리스너가 생성되는 타이밍 때문에 1프레임 뒤 정리
+        if (scene.name == "GamePlay")
+        {
+            StopBGM();
+        }
+
         StartCoroutine(DisableOtherListenersNextFrame());
     }
 
@@ -58,10 +80,13 @@ public class AudioManager : MonoBehaviour
             AudioListener l = listeners[i];
             if (l == null) continue;
             if (l.gameObject == gameObject) { l.enabled = true; continue; }
-            l.enabled = false; // 씬 카메라 리스너 비활성
+
+            if (l.gameObject.transform.root.name != "LocalPlayer") 
+            {
+                l.enabled = false;
+            }
         }
 
-        // 볼륨이 씬에서 바뀌는 경우 대비
         if (bgmSource != null) bgmSource.volume = bgmVolume;
     }
 
@@ -74,25 +99,40 @@ public class AudioManager : MonoBehaviour
 
     private void EnsureAudioSources()
     {
-        // 자기 자신에 붙은 AudioSource만 사용(씬 다른 오브젝트 참조 방지)
         AudioSource[] sources = GetComponents<AudioSource>();
 
-        while (sources.Length < 2)
+        while (sources.Length < 4)
         {
             gameObject.AddComponent<AudioSource>();
             sources = GetComponents<AudioSource>();
         }
 
         bgmSource = sources[0];
-        sfxSource = sources[1];
+        sfxSource = sources[1];         
+        timerSource = sources[2];       
+        judgmentSource = sources[3];    
 
+        // BGM 설정
         bgmSource.playOnAwake = false;
         bgmSource.loop = true;
         bgmSource.spatialBlend = 0f;
 
+        // 단발성 SFX 설정 (sfxSource)
         sfxSource.playOnAwake = false;
         sfxSource.loop = false;
         sfxSource.spatialBlend = 0f;
+
+        // 타이머 SFX 설정 (timerSource)
+        timerSource.playOnAwake = false;
+        timerSource.loop = false;
+        timerSource.spatialBlend = 0f;
+        timerSource.volume = tickVolume;
+
+        // 심판 SFX 설정 (judgmentSource)
+        judgmentSource.playOnAwake = false;
+        judgmentSource.loop = false;
+        judgmentSource.spatialBlend = 0f;
+        judgmentSource.volume = judgmentVolume;
     }
 
 
@@ -100,9 +140,6 @@ public class AudioManager : MonoBehaviour
     {
         if (clip == null) return;
 
-        EnsureAudioSources();
-
-        // 같은 곡이 이미 재생 중이면 건드리지 않음 = 이어짐
         if (currentBgm == clip && bgmSource.isPlaying) return;
 
         currentBgm = clip;
@@ -112,11 +149,84 @@ public class AudioManager : MonoBehaviour
         bgmSource.Play();
     }
 
+    public void StopBGM()
+    {
+        if (bgmSource != null && bgmSource.isPlaying)
+        {
+            bgmSource.Stop();
+            currentBgm = null;
+            Debug.Log("[AudioManager] BGM 정지 완료.");
+        }
+    }
+
     public void PlaySfx(AudioClip clip)
     {
         if (clip == null) return;
 
-        EnsureAudioSources();
         sfxSource.PlayOneShot(clip);
+    }
+
+    public void StartTimerTickSfx()
+    {
+        if (timerTickClip == null || timerSource == null) return;
+
+        if (timerSource.clip == timerTickClip && timerSource.loop == true && timerSource.isPlaying) return;
+
+        timerSource.volume = tickVolume;
+        timerSource.loop = true;
+        timerSource.clip = timerTickClip;
+        timerSource.Play();
+        Debug.Log("[AudioManager] Timer Tick Sfx 재생 시작 (Loop).");
+    }
+
+    public void StopTimerTickSfx()
+    {
+        if (timerSource != null && timerSource.isPlaying && timerSource.loop == true)
+        {
+            timerSource.Stop();
+            timerSource.loop = false;
+            timerSource.volume = 1.0f;
+            timerSource.clip = null;
+            Debug.Log("[AudioManager] Timer Tick Sfx 정지 완료.");
+        }
+    }
+
+    public void StartJudgmentSfx(string effectName)
+    {
+        StopJudgmentSfx();
+
+        AudioClip clipToPlay = null;
+
+        if (effectName == "LIGHTNING")
+        {
+            clipToPlay = lightningClip;
+        }
+        else if (effectName == "FLOWER")
+        {
+            clipToPlay = flowerClip;
+        }
+
+        if (clipToPlay != null && judgmentSource != null)
+        {
+            judgmentSource.clip = clipToPlay;
+            judgmentSource.loop = true;
+            judgmentSource.Play();
+            Debug.Log($"[AudioManager] Judgment Sfx '{effectName}' 재생 시작 (Loop).");
+        }
+        else
+        {
+            Debug.LogWarning($"[AudioManager] Judgment Clip for '{effectName}' not found or Judgment Source is null.");
+        }
+    }
+
+    public void StopJudgmentSfx()
+    {
+        if (judgmentSource != null && judgmentSource.isPlaying)
+        {
+            judgmentSource.Stop();
+            judgmentSource.loop = false;
+            judgmentSource.clip = null;
+            Debug.Log("[AudioManager] Judgment Sfx 정지 완료.");
+        }
     }
 }

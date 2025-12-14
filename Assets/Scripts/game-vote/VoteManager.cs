@@ -85,6 +85,24 @@ public class VoteManager : MonoBehaviour
 
             case "VOTE_PROPOSAL_FAILED":
             case "TRIAL_RESULT":
+                if (tempWrapper.@event == "TRIAL_RESULT")
+                {
+                    TrialResultMessage trialMsg = JsonUtility.FromJson<TrialResultMessage>(json);
+
+                    if (trialMsg != null && AudioManager.I != null)
+                    {
+                        if (trialMsg.code == "SUCCESS")
+                        {
+                            AudioManager.I.PlaySfx(AudioManager.I.trialSuccessSfx);
+                            Debug.Log("[VoteManager] 심판 결과: SUCCESS SFX 재생");
+                        }
+                        else if (trialMsg.code == "FAIL")
+                        {
+                            AudioManager.I.PlaySfx(AudioManager.I.trialFailSfx);
+                            Debug.Log("[VoteManager] 심판 결과: FAIL SFX 재생");
+                        }
+                    }
+                }
                 FinishVote(tempWrapper.message); 
                 break;
 
@@ -114,6 +132,10 @@ public class VoteManager : MonoBehaviour
     private void StartVoteProposal(string message)
     {
         int timer = TryParseOrDefault(message, 30);
+        if (AudioManager.I != null)
+        {
+            AudioManager.I.PlaySfx(AudioManager.I.step1StartSfx);
+        }
         voteUIManager?.ShowStep1();
         voteUIManager?.StartStep1Timer(timer);
     }
@@ -133,7 +155,10 @@ public class VoteManager : MonoBehaviour
     private void StartStep2Vote(string message)
     {
         int timer = TryParseOrDefault(message, 20); // message 변수를 바로 사용
-
+        if (AudioManager.I != null)
+        {
+            AudioManager.I.PlaySfx(AudioManager.I.step2StartSfx);
+        }
         var orderedPlayers = GameManager.Instance.GetOrderedPlayers();
         voteUIManager?.ShowStep2(orderedPlayers); // 닉네임+색상을 모두 포함
 
