@@ -17,7 +17,7 @@ public class WebSocketManager : MonoBehaviour
     public event Action<string> OnServerMessage;
     public event Action OnConnected;
 
-    [SerializeField] private string serverUrl = "ws://168.107.19.253/ws/";
+    [SerializeField] private string serverUrl = "wss://godschoice.kro.kr/ws";
 
     void Awake()
     {
