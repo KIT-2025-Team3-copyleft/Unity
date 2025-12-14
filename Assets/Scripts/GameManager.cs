@@ -84,7 +84,9 @@ public class GameManager : MonoBehaviour
 
     public List<PlayerManager> GetOrderedPlayers()
     {
-        return players.Values.ToList();
+        return players.Values
+         .Where(player => player != null && player.isConnected) 
+         .ToList();
     }
 
 
@@ -687,6 +689,34 @@ public class GameManager : MonoBehaviour
     {
         currentHP = Mathf.Clamp(currentHP + scoreChange, int.MinValue, 1000);
         Debug.Log($"마을 HP가 {scoreChange}만큼 변경되었습니다. 현재 HP: {currentHP}");
+    }
+
+
+    public void UpdatePlayerConnections(RoomManager.PlayerData[] newPlayers)
+    {
+        if (newPlayers == null)
+        {
+            return;
+        }
+
+        HashSet<string> connectedSessionIds = new HashSet<string>(
+            newPlayers.Select(p => p.sessionId)
+        );
+
+        foreach (var playerEntry in players)
+        {
+            string sessionId = playerEntry.Key;
+            PlayerManager playerManager = playerEntry.Value;
+
+            if (!connectedSessionIds.Contains(sessionId))
+            {
+                if (playerManager != null && playerManager.isConnected)
+                {
+                    playerManager.MarkDisconnected(); 
+                }
+            }
+        }
+
     }
 
     // ============================ GAME OVER LOGIC ===============================
