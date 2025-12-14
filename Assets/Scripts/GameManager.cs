@@ -282,6 +282,8 @@ public class GameManager : MonoBehaviour
                 break;
 
             case "SHOW_ORACLE":
+                ShowOracleMessage oracleMsg = JsonUtility.FromJson<ShowOracleMessage>(json);
+                currentOracle = oracleMsg.data.oracle;
                 StartCoroutine(ShowUIAfterLinking(json, "SHOW_ORACLE"));
                 break;
 
@@ -292,7 +294,6 @@ public class GameManager : MonoBehaviour
                 break;
 
             case "NEXT_ROUND_START":
-                RoundStartMessage startMsg = JsonUtility.FromJson<RoundStartMessage>(json);
                 break;
 
             case "RECEIVE_CARDS":
@@ -441,18 +442,19 @@ public class GameManager : MonoBehaviour
                 case "SHOW_ORACLE":
                     oracleMsg = JsonUtility.FromJson<ShowOracleMessage>(json);
                     currentOracle = oracleMsg.data.oracle;
+                    UIManager.Instance.ShowOracleAndRole(currentOracle, currentRole, 1);
                     break;
 
                 case "SHOW_ROLE":
                     roleMsg = JsonUtility.FromJson<ShowRoleMessage>(json);
-
+                    currentRole = roleMsg.data.role;    
                     if (localPm != null)
                     {
                         localPm.role = myRole;
                         localPm.godPersonality = roleMsg.data.godPersonality;
                     }
 
-                    UIManager.Instance.ShowOracleAndRole(currentOracle, roleMsg.data.role, 1);
+                    UIManager.Instance.ShowOracleAndRole(currentOracle, currentRole, 1);
 
                     if (roleMsg.data.role.ToLower() == "traitor")
                         UIManager.Instance.ShowTraitorInfo(roleMsg.data.godPersonality);
@@ -578,7 +580,7 @@ public class GameManager : MonoBehaviour
 
     private IEnumerator JudgmentSequence(RoundResult msg)
     {
-        // 🌟 서버 요청: ROUND_RESULT 후 45초간 심판 시퀀스 (총 시간)
+        // 🌟 서버 요청: ROUND_RESULT 
         const float TotalJudgmentTime = 40.0f;
 
         // --- 1. 클라이언트 내부 타이밍 설정 (총 45초에 맞춰 조정) ---
@@ -625,7 +627,7 @@ public class GameManager : MonoBehaviour
         // 🌟 문장 표시 전 텀 (4.0s)
         yield return new WaitForSeconds(preSentenceWait);
 
-        // 2. 완성된 문장 표시 (12.0s)
+        // 2. 완성된 문장 표시 (1.0s)
         UIManager.Instance.DisplaySentence(msg.fullSentence);
         if (UIManager.Instance.judgmentScroll != null)
             UIManager.Instance.judgmentScroll.SetActive(true);
