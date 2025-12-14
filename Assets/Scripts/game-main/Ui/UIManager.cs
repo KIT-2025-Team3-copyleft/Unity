@@ -626,7 +626,7 @@ public class UIManager : MonoBehaviour
             if (i >= SlotVisualOrder.Length) continue;
             string slotRoleName = SlotVisualOrder[i];
 
-            string colorName = "black";
+            string colorName = "white";
 
             if (slotRoleColors != null && slotRoleColors.ContainsKey(slotRoleName))
             {
@@ -730,7 +730,7 @@ public class UIManager : MonoBehaviour
                 {
                     if (slotText != null)
                     {
-                        slotText.color = Color.black;
+                        slotText.color = Color.white;
                         slotText.text = hoveredWord;
                         slotText.ForceMeshUpdate();
                     }
