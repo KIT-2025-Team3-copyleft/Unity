@@ -574,18 +574,16 @@ public class GameManager : MonoBehaviour
 
     private IEnumerator JudgmentSequence(RoundResult msg)
     {
-        // 🌟 서버 요청: ROUND_RESULT 후 45초간 심판 시퀀스 (총 시간)
-        const float TotalJudgmentTime = 45.0f;
+        const float TotalJudgmentTime = 40.0f;
 
-        // --- 1. 클라이언트 내부 타이밍 설정 (총 45초에 맞춰 조정) ---
         // 카메라 전환 시간 (4.0s)
         float cameraTime = zoomDuration + settleDuration; // 2.0s + 2.0s = 4.0s
 
         // UI 표시 시간
-        float preSentenceWait = 4.0f; // 문장 표시 전 텀 (4.0s)
-        float displaySentenceTime = 12.0f; // 완성 문장 표시 (12.0s)
-        float displayReasonTime = 12.0f; // 심판 이유 표시 (12.0s)
-        float visualCueTime = 10.0f; // 이펙트 및 사운드 지속 (10.0s)
+        float preSentenceWait = 4.0f; 
+        float displaySentenceTime = 12.0f;
+        float displayReasonTime = 12.0f; 
+        float visualCueTime = 8.0f; 
 
         // 총 고정 시간 계산
         float totalFixedTime = cameraTime + preSentenceWait + displaySentenceTime + displayReasonTime + visualCueTime; // 4.0 + 4.0 + 12.0 + 12.0 + 10.0 = 42.0s
@@ -631,7 +629,7 @@ public class GameManager : MonoBehaviour
         UIManager.Instance.DisplayJudgmentReason(msg.reason);
         yield return new WaitForSeconds(displayReasonTime);
 
-        // 4. 이펙트 및 사운드 재생 (13.0s)
+        // 4. 이펙트 및 사운드 재생 (8.0s)
         SwitchCamera(observerCamera);
 
         VisualCue customCue = new VisualCue();
