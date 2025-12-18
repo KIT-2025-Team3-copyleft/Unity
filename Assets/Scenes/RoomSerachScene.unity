@@ -515,7 +515,7 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 1947968624}
   m_HandleRect: {fileID: 1947968623}
   m_Direction: 2
-  m_Value: 1
+  m_Value: 0
   m_Size: 0
   m_NumberOfSteps: 0
   m_OnValueChanged:
@@ -2838,7 +2838,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5f4b77cfe00d6a0468d2efc9cd84f5ed, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::WebSocketManager
-  serverUrl: ws://168.107.19.253/ws/
+  serverUrl: wss://godschoice.kro.kr/ws
 --- !u!4 &1604994214
 Transform:
   m_ObjectHideFlags: 0

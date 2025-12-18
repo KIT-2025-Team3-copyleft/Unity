@@ -45,7 +45,6 @@ public class UIManager : MonoBehaviour
     private bool isHistoryOpen = false;
     private float closedYPosition;
     public float targetOpenedYPosition;
-    private float slideDuration = 0.3f;
 
     [Header("Card UI")]
     public GameObject cardSelectionPanel;
@@ -83,6 +82,7 @@ public class UIManager : MonoBehaviour
     public TextMeshProUGUI GameOverCountdownText;
 
     private Coroutine gameOverCountdownCoroutine;
+    private Coroutine hideOracleCoroutine;
 
     public string currentRole;
 
@@ -410,6 +410,12 @@ public class UIManager : MonoBehaviour
     public void ShowOracleAndRole(string oracle, string role, int round)
     {
 
+        if (hideOracleCoroutine != null)
+        {
+            StopCoroutine(hideOracleCoroutine);
+            hideOracleCoroutine = null;
+        }
+
         if (role != "" && roleText != null)
         {
             roleText.text = role;
@@ -464,6 +470,8 @@ public class UIManager : MonoBehaviour
         }
 
     }
+
+
 
     public void ShowTraitorInfo(string godPersonality)
     {

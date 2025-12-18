@@ -1,18 +1,48 @@
 ﻿using UnityEngine;
-using WebSocketSharp; // WebSocketSharp 라이브러리 사용
 using System;
 using System.Collections;
-using System.Collections.Generic;
+
+#if !UNITY_WEBGL || UNITY_EDITOR
+using WebSocketSharp; // 데스크탑에서만 사용
+#else
+using System.Runtime.InteropServices; // WebGL에서 jslib 사용
+#endif
 
 public class WebSocketManager : MonoBehaviour
 {
     public static WebSocketManager Instance { get; private set; }
     public string ClientSessionId { get; private set; }
-    // 🌟 웹소켓 연결 객체 (WebSocketManager에서 가져옴)
-    private WebSocket ws;
+
+#if !UNITY_WEBGL || UNITY_EDITOR
+    private WebSocket ws; // 데스크탑용
+#else
+    // WebGL용 jslib 함수 선언
+    [DllImport("__Internal")]
+    private static extern void WebSocketConnect(string url);
+    
+    [DllImport("__Internal")]
+    private static extern void WebSocketSend(string message);
+    
+    [DllImport("__Internal")]
+    private static extern void WebSocketClose();
+    
+    [DllImport("__Internal")]
+    private static extern int WebSocketIsConnected();
+#endif
+
     private bool isConnecting = false;
 
-    public bool IsConnected => ws != null && ws.ReadyState == WebSocketState.Open;
+    public bool IsConnected
+    {
+        get
+        {
+#if !UNITY_WEBGL || UNITY_EDITOR
+            return ws != null && ws.ReadyState == WebSocketState.Open;
+#else
+            return WebSocketIsConnected() == 1;
+#endif
+        }
+    }
 
     public event Action<string> OnServerMessage;
     public event Action OnConnected;
@@ -42,13 +72,15 @@ public class WebSocketManager : MonoBehaviour
         Connect();
     }
 
-    // 🌟 웹소켓 연결 로직 (WebSocketManager에서 통합)
     void Connect()
     {
         if (isConnecting || IsConnected) return;
 
-        ws = new WebSocket(serverUrl);
         isConnecting = true;
+
+#if !UNITY_WEBGL || UNITY_EDITOR
+        // ========== 데스크탑: WebSocketSharp 사용 ==========
+        ws = new WebSocket(serverUrl);
 
         ws.OnOpen += (s, e) =>
         {
@@ -60,7 +92,6 @@ public class WebSocketManager : MonoBehaviour
         ws.OnMessage += (s, e) =>
         {
             string msg = e.Data;
-
             if (!string.IsNullOrEmpty(msg))
             {
                 UnityMainThreadDispatcher.EnqueueOnMainThread(() =>
@@ -68,7 +99,6 @@ public class WebSocketManager : MonoBehaviour
                     OnServerMessage?.Invoke(msg);
                 });
             }
-
             Debug.Log("[WS] 서버 → 클라: " + msg);
         };
 
@@ -86,7 +116,44 @@ public class WebSocketManager : MonoBehaviour
         };
 
         ws.ConnectAsync();
+#else
+        // ========== WebGL: JavaScript WebSocket 사용 ==========
+        WebSocketConnect(serverUrl);
+        isConnecting = false;
+#endif
     }
+
+#if UNITY_WEBGL && !UNITY_EDITOR
+    // ========== JavaScript에서 호출되는 콜백 함수들 ==========
+    void OnWebSocketOpen(string message)
+    {
+        Debug.Log("[WS] WebGL 연결 성공");
+        isConnecting = false;
+        OnConnected?.Invoke();
+    }
+
+    void OnWebSocketError(string error)
+    {
+        Debug.LogError("[WS] WebGL 에러: " + error);
+        isConnecting = false;
+    }
+
+    void OnWebSocketMessage(string message)
+    {
+        if (!string.IsNullOrEmpty(message))
+        {
+            OnServerMessage?.Invoke(message);
+            Debug.Log("[WS] 서버 → 클라: " + message);
+        }
+    }
+
+    void OnWebSocketClose(string message)
+    {
+        Debug.LogWarning("[WS] WebGL 연결 종료");
+        isConnecting = false;
+        StartCoroutine(Reconnect());
+    }
+#endif
 
     IEnumerator Reconnect()
     {
@@ -94,7 +161,6 @@ public class WebSocketManager : MonoBehaviour
         Connect();
     }
 
-    // 🌟 메시지 전송 로직 (기존 NetworkManager 유지)
     public void Send(string json)
     {
         if (!IsConnected)
@@ -105,7 +171,11 @@ public class WebSocketManager : MonoBehaviour
 
         try
         {
+#if !UNITY_WEBGL || UNITY_EDITOR
             ws.Send(json);
+#else
+            WebSocketSend(json);
+#endif
             Debug.Log("[WS] 클라 → 서버: " + json);
         }
         catch (Exception ex)
@@ -114,10 +184,7 @@ public class WebSocketManager : MonoBehaviour
         }
     }
 
-    // ----------------------------------------------------
-    // 🔸 API 명세 기반 구조화된 요청 전송 함수들
-    // ----------------------------------------------------
-
+    // 기존 SendRequest, SendGameReady 등은 그대로 유지
     private void SendRequest(string action, object payload)
     {
         string json;
@@ -142,40 +209,11 @@ public class WebSocketManager : MonoBehaviour
         Send(json);
     }
 
-    public void SendGameReady()
-    {
-        SendRequest("GAME_READY", null);
-    }
-
-    public void SendCardSelection(string card)
-    {
-        var payload = new CardSelectionPayload { card = card };
-        SendRequest("SELECT_CARD", payload);
-    }
-
-    public void SendProposeVote(bool agree)
-    {
-        var payload = new ProposeVotePayload { agree = agree };
-        SendRequest("PROPOSE_VOTE", payload);
-    }
-
-    public void SendCastVote(string targetSessionId)
-    {
-        var payload = new CastVotePayload { targetSessionId = targetSessionId };
-        SendRequest("CAST_VOTE", payload);
-    }
-
-    public void SendChat(string messageContent)
-    {
-        var payload = new ChatMessagePayload { message = messageContent };
-        SendRequest("SEND_CHAT", payload);
-    }
-    public void SendLeaveRoom()
-    {
-        SendRequest("LEAVE_ROOM", null);
-    }
-    public void SendBackToRoom()
-    {
-        SendRequest("BACK_TO_ROOM", null);
-    }
+    public void SendGameReady() => SendRequest("GAME_READY", null);
+    public void SendCardSelection(string card) => SendRequest("SELECT_CARD", new CardSelectionPayload { card = card });
+    public void SendProposeVote(bool agree) => SendRequest("PROPOSE_VOTE", new ProposeVotePayload { agree = agree });
+    public void SendCastVote(string targetSessionId) => SendRequest("CAST_VOTE", new CastVotePayload { targetSessionId = targetSessionId });
+    public void SendChat(string messageContent) => SendRequest("SEND_CHAT", new ChatMessagePayload { message = messageContent });
+    public void SendLeaveRoom() => SendRequest("LEAVE_ROOM", null);
+    public void SendBackToRoom() => SendRequest("BACK_TO_ROOM", null);
 }
